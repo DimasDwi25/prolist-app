@@ -21,13 +21,8 @@
                 <select id="client_id" name="client_id"
                     class="js-example-basic-single w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 text-sm shadow-sm">
                     <option value="">-- Select Client --</option>
-                    @foreach ($clients as $client)
-                        <option value="{{ $client->id }}"
-                            {{ old('client_id', $quotation->client_id ?? '') == $client->id ? 'selected' : '' }}>
-                            {{ $client->name }}
-                        </option>
-                    @endforeach
                 </select>
+
 
                 @error('client_id')
                     <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
@@ -185,13 +180,37 @@
 <script>
     $(document).ready(function() {
         // Initialize Select2 with better configuration
-        $('.js-example-basic-single').select2({
-            placeholder: "-- Select Client --",
-            allowClear: true,
-            width: '100%',
-            theme: 'bootstrap-5', // Optional theme
-            minimumResultsForSearch: 1 // Always show search box
+        $(document).ready(function () {
+            console.log("Select2 Init Running"); // cek di console
+
+            $('#client_id').select2({
+                placeholder: "-- Search Client --",
+                allowClear: true,
+                width: '100%',
+                minimumInputLength: 0,
+                ajax: {
+                    url: "{{ route('ajax.clients') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        console.log("Kirim query:", params.term); // log query
+                        return { q: params.term || '' };
+                    },
+                    processResults: function (data) {
+                        console.log("Data dari server:", data); // log hasil
+                        return { results: data };
+                    },
+                    cache: true
+                }
+            });
+
+            @if(isset($quotation) && $quotation->client)
+                var clientOption = new Option("{{ $quotation->client->name }}", "{{ $quotation->client->id }}", true, true);
+                $('#client_id').append(clientOption).trigger('change');
+            @endif
         });
+
+
 
         // Rest of your existing JavaScript...
         function getWeek(date) {

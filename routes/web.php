@@ -120,6 +120,8 @@ Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(func
     Route::delete('/quotation/destroy/{quotation}', [SupervisorQuotationController::class, 'destroy'])->name('quotation.destroy');
     Route::get('/quotation/show/{quotation}', [SupervisorQuotationController::class, 'show'])->name('quotation.show');
     Route::patch('/quotation/{quotation}/status', [SupervisorQuotationController::class, 'updateStatus'])->name('quotation.updateStatus');
+    Route::get('/ajax/clients', [SupervisorQuotationController::class, 'ajaxClients'])
+    ->name('ajax.clients');
 
     Route::get('/marketing-report', [MarketingReportController::class, 'index'])->name('supervisor.marketing.report');
     Route::get('/sales-report', [SalesReportController::class, 'index'])->name('supervisor.sales.report');

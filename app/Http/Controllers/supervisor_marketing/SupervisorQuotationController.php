@@ -21,7 +21,7 @@ class SupervisorQuotationController extends Controller
 
     public function create()
     {
-        $clients = Client::latest()->limit(5)->get();
+        $clients = Client::all();
         $nextNumber = Quotation::getNextQuotationNumber();
         $noQuotationNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT); // 001
         $formattedQuotation = Quotation::formatFullQuotationNo($noQuotationNumber); // Q-001/VII/25
@@ -33,6 +33,34 @@ class SupervisorQuotationController extends Controller
 
         ]);
     }
+
+    public function ajaxClients(Request $request)
+    {
+        $search = $request->q;
+
+        $query = \App\Models\Client::query();
+
+        if (!empty($search)) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $clients = $query->orderBy('name')
+            ->limit(20) // biar ringan
+            ->get(['id', 'name']);
+
+        // Pastikan format sesuai Select2
+        $formatted = $clients->map(function ($client) {
+            return [
+                'id' => $client->id,
+                'text' => $client->name
+            ];
+        });
+
+        return response()->json($formatted);
+    }
+
+
+
 
 
     public function store(Request $request)
