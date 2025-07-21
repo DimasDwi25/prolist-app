@@ -98,6 +98,13 @@
 
             {{-- Document Preparation --}}
             <div x-show="tab === 'docs'" x-cloak class="space-y-4">
+                {{-- Tombol Lihat Scope of Work --}}
+                @if($phc->scope_of_work_approval === 1)
+                    <div class="mt-6">
+                        {{-- Sekarang tombol & modal dari ViewSow --}}
+                        @livewire('project-controller.view-sow', ['phcId' => $phc->id])
+                    </div>
+                @endif
                 @php
                     $docs = [
                         'scope_of_work_approval' => 'Scope of Work Approval',
