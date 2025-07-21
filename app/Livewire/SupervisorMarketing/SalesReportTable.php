@@ -143,8 +143,7 @@ class SalesReportTable extends DataTableComponent
                     if (!empty($value)) {
                         $query->whereYear('quotation_date', $value);
                     }
-                })
-                ->filterPillTitle('Year'),
+                }),
 
             // Month Filter - Dependent on selected year
             SelectFilter::make('Month')
@@ -154,8 +153,7 @@ class SalesReportTable extends DataTableComponent
                     if (!empty($value)) {
                         $query->whereMonth('quotation_date', $value);
                     }
-                })
-                ->filterPillTitle('Month'),
+                }),
 
             SelectFilter::make('Status')
                 ->options([
@@ -167,8 +165,7 @@ class SalesReportTable extends DataTableComponent
                     if ($value !== 'all') {
                         $query->where('status', $value);
                     }
-                })
-                ->filterPillTitle('Status'),
+                }),
 
             // Filter Weekly, Monthly, Yearly
             SelectFilter::make('Quotation Date Range')
@@ -188,8 +185,7 @@ class SalesReportTable extends DataTableComponent
                     } elseif ($value === 'yearly') {
                         $query->whereYear('po_date', $now->year);
                     }
-                })
-                ->filterPillTitle('Date Range'),
+                }),
 
             // Filter Custom Date
             DateFilter::make('From')

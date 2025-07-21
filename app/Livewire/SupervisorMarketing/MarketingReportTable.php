@@ -143,8 +143,7 @@ class MarketingReportTable extends DataTableComponent
                     if (!empty($value)) {
                         $query->whereYear('quotation_date', $value);
                     }
-                })
-                ->filterPillTitle('Year'),
+                }),
 
             // Month Filter - Dependent on selected year
             SelectFilter::make('Month')
@@ -166,8 +165,7 @@ class MarketingReportTable extends DataTableComponent
                     if ($value !== 'all') {
                         $query->where('status', $value);
                     }
-                })
-                ->filterPillTitle('Status'),
+                }),
 
             // Filter Weekly, Monthly, Yearly
             SelectFilter::make('Quotation Date Range')
@@ -187,8 +185,7 @@ class MarketingReportTable extends DataTableComponent
                     } elseif ($value === 'yearly') {
                         $query->whereYear('quotation_date', $now->year);
                     }
-                })
-                ->filterPillTitle('Date Range'),
+                }),
 
             // Filter Custom Date
             DateFilter::make('From')

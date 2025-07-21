@@ -162,8 +162,7 @@ class QuotationTable extends DataTableComponent
                     if (!empty($value)) {
                         $query->whereYear('quotation_date', $value);
                     }
-                })
-                ->filterPillTitle('Year'),
+                }),
 
             // Month Filter - Dependent on selected year
             SelectFilter::make('Month')
@@ -173,8 +172,7 @@ class QuotationTable extends DataTableComponent
                     if (!empty($value)) {
                         $query->whereMonth('quotation_date', $value);
                     }
-                })
-                ->filterPillTitle('Month'),
+                }),
             SelectFilter::make('Status')
                 ->options([
                     '' => '🔍 Select Status', // ✅ Ubah default menjadi kosong
@@ -188,9 +186,7 @@ class QuotationTable extends DataTableComponent
                     if ($value !== '') {
                         $query->where('status', $value);
                     }
-                })
-                ->filterDefault('') // ✅ Set default kosong
-                ->filterPillTitle('Status'),
+                }),
 
             // Filter Weekly, Monthly, Yearly
             SelectFilter::make('Quotation Date Range')
@@ -210,9 +206,7 @@ class QuotationTable extends DataTableComponent
                     } elseif ($value === 'yearly') {
                         $query->whereYear('quotation_date', $now->year);
                     }
-                })
-                ->filterDefault('') // ✅ Set default kosong
-                ->filterPillTitle('Date Range'),
+                }),
 
             // Filter Custom Date
             DateFilter::make('From')
