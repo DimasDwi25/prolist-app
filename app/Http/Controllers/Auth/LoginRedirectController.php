@@ -21,14 +21,20 @@ class LoginRedirectController extends Controller
             // Redirect dinamis berdasarkan role
             if ($user->role->name === 'super_admin') {
                 return redirect()->intended('/admin');
-            }
-
-            if ($user->role->name === 'marketing') {
-                return redirect()->intended('/marketing');
-            }
-
-            if ($user->role->name === 'engineer') {
+            } elseif ($user->role->name === 'supervisor marketing') {
+                return redirect()->intended('/supervisor-marketing');
+            } elseif ($user->role->name === 'administration marketing') {
+                return redirect()->intended('/administration-marketing');
+            } elseif ($user->role->name === 'estimator') {
+                return redirect()->intended('/estimator');
+            } elseif ($user->role->name === 'engineer') {
                 return redirect()->intended('/engineer');
+            } elseif ($user->role->name === 'project controller') {
+                return redirect()->intended('/project-controller');
+            } 
+            else {
+                Auth::guard('web')->logout();
+                return redirect()->route('login')->with('status', 'You are not authorized to access this page.');
             }
 
         }

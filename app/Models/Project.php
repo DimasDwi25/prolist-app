@@ -45,14 +45,16 @@ class Project extends Model
 
         $lastNumber = 0;
 
-        if ($lastProject && preg_match('/PN-(\d{3})\/\d{2}/', $lastProject->project_number, $matches)) {
+        // Ambil angka setelah slash (misal: 001 dari PN-25/001)
+        if ($lastProject && preg_match('/PN-\d{2}\/(\d{3})/', $lastProject->project_number, $matches)) {
             $lastNumber = (int) $matches[1];
         }
 
         $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
 
-        return "PN-{$newNumber}/{$yearShort}";
+        return "PN-{$yearShort}/{$newNumber}";
     }
+
 
 
     public function quotation()
@@ -79,8 +81,5 @@ class Project extends Model
     {
         return $this->hasMany(\App\Models\Log::class);
     }
-
-
-
 
 }

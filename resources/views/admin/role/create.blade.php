@@ -4,7 +4,7 @@
     <div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow-lg">
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-bold text-gray-800">➕ Add Role</h1>
-            <a href="{{ route('admin.department') }}" class="text-sm text-blue-600 hover:underline">← Back</a>
+            <a href="{{ route('admin.role') }}" class="text-sm text-blue-600 hover:underline">← Back</a>
         </div>
 
         <form action="{{ route('role.store') }}" method="POST" class="space-y-6">
@@ -33,7 +33,7 @@
 
 
             <div class="flex justify-end space-x-3">
-                <a href="{{ route('admin.department') }}"
+                <a href="{{ route('admin.role') }}"
                     class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
                     Cancel
                 </a>

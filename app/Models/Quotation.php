@@ -39,10 +39,6 @@ class Quotation extends Model
         static::creating(function ($quotation) {
             $quotation->no_quotation = self::formatFullQuotationNo($quotation->no_quotation);
         });
-
-        static::updating(function ($quotation) {
-            $quotation->no_quotation = self::formatFullQuotationNo($quotation->no_quotation);
-        });
     }
 
     public static function formatFullQuotationNo($number)

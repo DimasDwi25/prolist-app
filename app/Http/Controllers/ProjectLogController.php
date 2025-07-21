@@ -12,6 +12,6 @@ class ProjectLogController extends Controller
     {
         $project = Project::with('quotation')->findOrFail($id);
 
-        return view('marketing.project.logs', compact('project'));
+        return view('supervisor.project.logs', compact('project'));
     }
 }

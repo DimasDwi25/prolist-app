@@ -23,7 +23,7 @@
             {{-- Kategori --}}
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Kategori Log</label>
-                <select wire:model="categoryId"
+                <select wire:model.live="categoryId"
                     class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                     <option value="">-- Pilih Kategori --</option>
                     @foreach(\App\Models\CategorieLog::all() as $cat)
@@ -34,13 +34,13 @@
 
             {{-- Perlu Respons --}}
             <div class="flex items-center gap-3">
-                <input type="checkbox" wire:model="need_response" id="need_response"
+                <input type="checkbox" wire:model.live="need_response" id="need_response"
                     class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
                 <label for="need_response" class="text-sm font-medium text-gray-700">Perlu Respons?</label>
             </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Direspon oleh</label>
-                <select wire:model="responseBy"
+                <select wire:model.live="responseBy"
                     class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                     <option value="">-- Pilih User --</option>
                     @foreach(\App\Models\User::all() as $user)
@@ -53,7 +53,7 @@
             {{-- Isi Log --}}
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Isi Log</label>
-                <textarea wire:model="logContent" rows="4"
+                <textarea wire:model.live="logContent" rows="4"
                     class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none"
                     placeholder="Tulis log kamu di sini..."></textarea>
                 @error('logContent')
@@ -149,6 +149,8 @@
 
 @push('scripts')
     <script>
+        window.projectId = @json($project->id);
+        
         Livewire.on('log-error', data => {
             Swal.fire({
                 icon: 'error',
@@ -178,8 +180,10 @@
                 .listen('.log.closed', (e) => {
                     Livewire.dispatch('refreshLogs');
                 });
-
         });
+
+        
+    
 
     </script>
 

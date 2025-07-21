@@ -7,7 +7,6 @@
     <title>{{ $title ?? 'Engineer Dashboard' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://unpkg.com/alpinejs" defer></script>
     @livewireStyles
 </head>
 
@@ -39,7 +38,7 @@
                             </svg>
                         </button>
                         <div x-show="open" x-transition class="pl-4 mt-1 space-y-1 text-sm">
-                            <a href="#" class="block px-4 py-2 rounded hover:bg-[#005f87]">🛠 Work Order</a>
+                            <a href="{{ route('engineer.work_order') }}" class="block px-4 py-2 rounded hover:bg-[#005f87]">🛠 Work Order</a>
                             <a href="{{ route('engineer.project') }}"
                                 class="block px-4 py-2 rounded hover:bg-[#005f87]">🛠 Projects</a>
                         </div>

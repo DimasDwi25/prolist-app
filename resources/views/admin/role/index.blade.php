@@ -1,61 +1,15 @@
 @extends('admin.layouts.app')
 
 @section('content')
-    <h1 class="text-2xl font-bold mb-4">Role List</h1>
-    <div class="flex justify-end mb-4">
-        <a href="{{ route('role.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">+ Add
-            Role</a>
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">📋 Client List</h1>
+        <a href="{{ route('role.create') }}"
+            class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition">
+            + Add Role
+        </a>
     </div>
 
-    <table class="min-w-full bg-white rounded shadow">
-        <thead>
-            <tr class="bg-gray-100">
-                <th class="py-2 px-4 text-left">Role</th>
-                <th class="py-2 px-4">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($roles as $data)
-                <tr class="border-t">
-                    <td class="py-2 px-4">{{ $data->name }}</td>
-                    <td class="py-2 px-4 text-center">
-                        <a href="{{ route('role.edit', $data) }}" class="text-blue-500 hover:underline">Edit</a>
-
-                        <button onclick="confirmDelete({{ $data->id }}, '{{ $data->name }}')"
-                            class="text-red-500 hover:underline ml-2">
-                            Delete
-                        </button>
-
-                        <!-- Hidden delete form -->
-                        <form id="delete-form-{{ $data->id }}" action="{{ route('department.destroy', $data) }}" method="POST"
-                            style="display: none;">
-                            @csrf
-                            @method('DELETE')
-                        </form>
-                    </td>
-
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-
-    <script>
-        function confirmDelete(id, name) {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: `Delete role "${name}"? This action cannot be undone.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#e3342f',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, delete it!',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById(`delete-form-${id}`).submit();
-                }
-            });
-        }
-    </script>
-
+    <div class="bg-white p-4 shadow-md rounded-xl border border-gray-100">
+        @livewire('super-admin.role-table')
+    </div>
 @endsection

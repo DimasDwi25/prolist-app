@@ -29,16 +29,18 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
         if (Auth::user() && Auth::user()->role->name == 'super_admin') {
             return redirect()->route('admin.dashboard');
-        }
-        elseif(Auth::user() && Auth::user()->role->name == 'marketing')
-        {
-            return redirect()->route('marketing.dashboard');
-        }
-        elseif(Auth::user() && Auth::user()->role->name == 'engineer')
-        {
+        } elseif (Auth::user() && Auth::user()->role->name == 'supervisor marketing') {
+            return redirect()->route('supervisor.dashboard');
+        } elseif (Auth::user() && Auth::user()->role->name == 'administration marketing') {
+            return redirect()->route('administration_marketing.dashboard');
+        } elseif (Auth::user() && Auth::user()->role->name == 'estimator') {
+            return redirect()->route('estimator.dashboard');
+        } elseif (Auth::user() && Auth::user()->role->name == 'engineer') {
             return redirect()->route('engineer.dashboard');
+        } elseif (Auth::user() && Auth::user()->role->name == 'project controller') {
+            return redirect()->route('project_controller.dashboard');
         }
-         else {
+        else {
             Auth::guard('web')->logout();
             return redirect()->route('login')->with('status', 'You are not authorized to access this page.');
         }

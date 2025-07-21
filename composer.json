@@ -10,8 +10,12 @@
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
-        "livewire/livewire": "^3.6",
-        "pusher/pusher-php-server": "^7.2"
+        "livewire/livewire": "*",
+        "maatwebsite/excel": "^3.1",
+        "pusher/pusher-php-server": "^7.2",
+        "rappasoft/laravel-livewire-tables": "3.7.3",
+        "spatie/laravel-query-builder": "^6.3",
+        "yajra/laravel-datatables-oracle": "^10.11"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",
