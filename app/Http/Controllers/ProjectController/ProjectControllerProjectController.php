@@ -19,8 +19,9 @@ class ProjectControllerProjectController extends Controller
     public function show(Project $project)
     {
         $project->load(['phc', 'quotation']);
+        $logs = $project->logs()->with(['user', 'responseUser'])->latest()->get();
 
         // dd($project);
-        return view('project-controller.project.show', compact('project'));
+        return view('project-controller.project.show', compact('project', 'logs'));
     }
 }

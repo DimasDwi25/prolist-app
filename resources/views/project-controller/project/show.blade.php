@@ -8,17 +8,14 @@
     <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow border border-gray-200">
 
         {{-- Header --}}
-        {{-- Header --}}
         <div class="flex justify-between items-center mb-4">
             <div>
                 <h2 class="text-2xl font-bold">View Project</h2>
                 <a href="{{ route('project_controller.project.index') }}" class="text-sm text-gray-600 hover:underline">←
-                    Back to
-                    Projects</a>
+                    Back to Projects</a>
             </div>
 
             <div class="space-x-2">
-                {{-- Tombol Edit Project --}}
                 @php $hasPhc = $project->phc; @endphp
 
                 @if ($hasPhc)
@@ -32,8 +29,8 @@
                         🔒 View PHC
                     </span>
                 @endif
-                {{-- Tombol View Log --}}
-                <a href="#"
+
+                <a href="{{ route('projects.logs', $project->id) }}"
                     class="inline-flex items-center bg-gray-700 text-white px-3 py-1.5 rounded hover:bg-gray-800 text-sm">
                     📋 View Logs
                 </a>
@@ -49,11 +46,6 @@
                         @click="tab = 'info'">
                         📁 Informasi Proyek
                     </button>
-                    <!-- <button class="px-4 py-2 focus:outline-none transition"
-                                :class="tab === 'quotation' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'hover:text-blue-500'"
-                                @click="tab = 'quotation'">
-                                📄 Informasi Quotation
-                            </button> -->
                     <button class="px-4 py-2 focus:outline-none transition"
                         :class="tab === 'status' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'hover:text-blue-500'"
                         @click="tab = 'status'">
@@ -83,24 +75,7 @@
                 </div>
             </div>
 
-            {{-- Info Quotation --}}
-            <!-- <div x-show="tab === 'quotation'" x-cloak>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                            <x-view.label label="No. Quotation" :value="$display($project->quotation->no_quotation)" />
-                            <x-view.label label="Client" :value="$display($project->quotation->client->name)" />
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                            <x-view.label label="PO Value" :value="$formatDecimal($project->quotation->po_value)" />
-                            <x-view.label label="PO Number" :value="$display($project->quotation->po_number)" />
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                            <x-view.label label="PO Date" :value="$formatDate($project->quotation->po_date)" />
-                        </div>
-                    </div> -->
-
-            {{-- Info Status --}}
+            {{-- Status Project --}}
             <div x-show="tab === 'status'" x-cloak>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
                     <x-view.label label="Status Proyek" :value="$display($project->statusProject->name)" />
@@ -111,6 +86,60 @@
                     <x-view.label label="Updated At" :value="$formatDate($project->updated_at)" />
                 </div>
             </div>
+        </div>
+
+        {{-- Project Logs --}}
+        <div class="mt-8">
+            <h3 class="text-xl font-bold text-gray-700 mb-4">📜 Project Logs</h3>
+            <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
+
+                {{-- Desktop (DataTable) --}}
+                <div class="hidden md:block">
+                    @livewire('log.log-table', ['projectId' => $project->id])
+                </div>
+
+                {{-- Mobile (Cards) --}}
+                <div class="mt-6 space-y-4 md:hidden">
+                    @foreach($logs as $log)
+                        <div class="p-4 bg-gray-50 rounded-lg shadow border">
+                            <div class="flex justify-between items-center text-sm text-gray-500">
+                                <span>{{ $log->tgl_logs->translatedFormat('d M Y') }}</span>
+                                <span
+                                    class="px-2 py-1 text-xs rounded 
+                                            {{ $log->status === 'open' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700' }}">
+                                    {{ ucfirst($log->status) }}
+                                </span>
+                            </div>
+
+                            <div class="mt-2 text-gray-800 text-sm">
+                                {{ Str::limit($log->logs, 100) }}
+                            </div>
+
+                            <div class="mt-3 text-xs text-gray-500">
+                                <strong>Created by:</strong> {{ $log->user->name ?? '-' }}<br>
+                                <strong>Response by:</strong> {{ $log->responseUser->name ?? '-' }}
+                            </div>
+
+                            {{-- Modal Trigger --}}
+                            <button x-data @click="$dispatch('open-log-modal', { content: @js($log->logs) })"
+                                class="mt-3 w-full text-center text-blue-600 text-sm underline">
+                                Lihat Lengkap
+                            </button>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal for full log content --}}
+    <div x-data="{ open: false, content: '' }" @open-log-modal.window="open = true; content = $event.detail.content"
+        x-show="open" x-cloak class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+            <div class="text-gray-800 text-sm whitespace-pre-line" x-text="content"></div>
+            <button @click="open = false" class="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                Tutup
+            </button>
         </div>
     </div>
 @endsection

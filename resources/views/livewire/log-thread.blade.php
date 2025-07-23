@@ -4,9 +4,9 @@
             $role = Auth::user()->role->name ?? '';
         @endphp
 
-        <a href="{{ $role === 'engineer'
-    ? route('engineer.project.show', $project->id)
-    : route('project.show', $project->id) }}"
+        <a href="{{ $role === 'project controller'
+    ? route('project_controller.project.show', $project->id)
+    : route('supervisor.project.show', $project->id) }}"
             class="inline-flex items-center bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 text-sm">
             ← Kembali
         </a>

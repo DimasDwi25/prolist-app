@@ -40,7 +40,7 @@
                     </a>
                 @endif
 
-                <a href="{{ route('projects.logs', $project->id) }}"
+                <a href="{{ route('supervisor.projects.logs', $project->id) }}"
                     class="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-md text-sm shadow transition">
                     📋 View Logs
                 </a>
@@ -119,5 +119,15 @@
                 </div>
             </div>
         </div>
-    </div>
+        {{-- Project Logs --}}
+        <div class="mt-8">
+            <h3 class="text-xl font-bold text-gray-700 mb-4">📜 Project Logs</h3>
+            <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
+
+                {{-- Desktop (DataTable) --}}
+                <div class="hidden md:block">
+                    @livewire('log.log-table', ['projectId' => $project->id])
+                </div>
+            </div>
+        </div>
 @endsection

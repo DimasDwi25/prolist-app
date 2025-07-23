@@ -166,9 +166,11 @@ Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(func
         return Excel::download(new StatusProjectExport, 'status_projects.xlsx');
     });
 
+    Route::get('/supervisor/projects/{id}/logs', [ProjectLogController::class, 'show'])->name('supervisor.projects.logs');
+
 });
 
-Route::middleware(['auth', 'role:super_admin,supervisor marketing,engineer'])->group(function () {
+Route::middleware(['auth', 'role:super_admin,supervisor marketing,engineer, project controller'])->group(function () {
     Route::get('/phc/show/{phc}', [SupervisorPhcController::class, 'show'])->name('phc.show');
     Route::get('/projects/{id}/logs', [ProjectLogController::class, 'show'])->name('projects.logs');
 });
@@ -210,6 +212,7 @@ Route::middleware(['auth', 'role:project controller'])->group(function () {
 
     // Endpoint AJAX ambil nama client
     Route::get('/projects/{project}/client', [ProjectControllerWorkOrderController::class, 'getClient'])->name('project_controller.projects.client');
+     Route::get('/projects/{id}/logs', [ProjectLogController::class, 'show'])->name('projects.logs');
 });
 
 

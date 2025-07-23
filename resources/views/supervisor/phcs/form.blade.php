@@ -31,31 +31,32 @@
         {{-- AlpineJS Component --}}
         <div x-data="phcForm()" x-cloak>
             {{-- Step Indicator --}}
-            <div class="mb-6 text-center text-gray-600 font-medium">
+           <div class="mb-4 md:mb-6 text-center text-gray-600 font-medium text-sm md:text-base">
                 <template x-if="step === 1"><span>🔹 <strong>Step 1 of 3:</strong> Informasi Umum</span></template>
                 <template x-if="step === 2"><span>📋 <strong>Step 2 of 3:</strong> Handover Checklist</span></template>
                 <template x-if="step === 3"><span>📄 <strong>Step 3 of 3:</strong> Document Preparation</span></template>
             </div>
 
             {{-- Step Tabs --}}
-            <div class="flex justify-center mb-6 space-x-4">
+            <div class="flex flex-col md:flex-row justify-center mb-6 gap-3 md:space-x-4">
                 <template x-for="i in [1,2,3]" :key="i">
                     <button type="button" @click="setStep(i)" 
                         :class="{
                             'bg-blue-600 text-white': step === i,
                             'bg-gray-200 text-gray-700': step !== i
                         }"
-                        class="px-4 py-2 rounded-md font-medium transition w-40">
+                        class="px-4 py-2 rounded-md font-medium transition w-full md:w-40 text-sm md:text-base">
                         <span x-text="i === 1 ? '1️⃣ Informasi' : (i === 2 ? '2️⃣ Checklist' : '3️⃣ Dokumen')"></span>
                     </button>
                 </template>
             </div>
 
             {{-- STEP 1: Informasi Umum --}}
-            <div x-show="step === 1" x-transition class="space-y-6">
+            <div x-show="step === 1" x-transition class="space-y-5 md:space-y-6">
                 <x-input.text name="project_name" label="Project" disabled :value="$project->project_name ?? $phc->project->project_name" />
 
-                <div class="grid md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{-- Handover Date --}}
                     <div>
                         <label for="handover_date" class="block text-sm font-medium text-gray-700 mb-1">Handover Date</label>
                         @php
@@ -67,8 +68,8 @@
                     <x-input.text name="project_number" label="PN No" disabled :value="$project->project_number ?? $phc->project->project_number" />
                 </div>
 
-                {{-- Start & Target Finish Date --}}
-                <div class="grid md:grid-cols-2 gap-4">
+                {{-- Start & Finish --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                         @php
@@ -88,30 +89,20 @@
                 </div>
 
                 {{-- Quotation Info --}}
-                <div class="grid md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <x-input.text name="no_quotation" label="No Quotation" disabled :value="$phc->no_quotation ?? $project->quotation->no_quotation" />
                     <x-input.text name="quotation_date" label="Quotation Date" disabled :value="optional($project->quotation->quotation_date)->format('d M Y')" />
                 </div>
 
-                <div class="grid md:grid-cols-2 gap-4">
-                    <x-input.text name="po_number" label="PO No." disabled :value="$project->quotation->po_number ?? ''" />
-                    <x-input.text name="po_date" label="PO Date" disabled :value="optional($project->quotation->po_date)->format('d M Y')" />
-                </div>
-
                 {{-- Client Info --}}
-                <div class="grid md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <x-input.text name="client_name" label="Client Name" :value="old('client_name', $phc->client_name ?? '')" />
                     <x-input.text name="client_mobile" label="Client Mobile" :value="old('client_mobile', $phc->client_mobile ?? '')" />
                     <x-input.text name="client_reps_office_address" label="Client Reps Office Address" :value="old('client_reps_office_address', $phc->client_reps_office_address ?? '')" />
                 </div>
 
-                <div class="grid md:grid-cols-3 gap-4">
-                    <x-input.text name="client_site_representatives" label="Office Representative" :value="old('client_site_representatives', $phc->client_site_representatives ?? '')" />
-                    <x-input.text name="client_site_address" label="Site Address" :value="old('client_site_address', $phc->client_site_address ?? '')" />
-                    <x-input.text name="site_phone_number" label="Site Phone" :value="old('site_phone_number', $phc->site_phone_number ?? '')" />
-                </div>
                 {{-- Engineer --}}
-                <div class="grid md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {{-- HO Engineer --}}
                     <div>
                         <label for="ho_engineering_id" class="block text-sm font-medium text-gray-700 mb-1">
@@ -121,8 +112,7 @@
                             <option value="">-- Pilih HO Engineer --</option>
                             <optgroup label="Engineer">
                                 @foreach ($users->filter(fn($u) => $u->role && strtolower($u->role->name) === 'engineer')->take(5) as $user)
-                                    <option value="{{ $user->id }}"
-                                        {{ old('ho_engineering_id', $phc->ho_engineering_id ?? '') == $user->id ? 'selected' : '' }}>
+                                    <option value="{{ $user->id }}" {{ old('ho_engineering_id', $phc->ho_engineering_id ?? '') == $user->id ? 'selected' : '' }}>
                                         {{ $user->name }}
                                     </option>
                                 @endforeach
@@ -139,8 +129,7 @@
                             <option value="">-- Pilih PIC Engineer --</option>
                             <optgroup label="Engineer">
                                 @foreach ($users->filter(fn($u) => $u->role && strtolower($u->role->name) === 'engineer')->take(5) as $user)
-                                    <option value="{{ $user->id }}"
-                                        {{ old('pic_engineering_id', $phc->pic_engineering_id ?? '') == $user->id ? 'selected' : '' }}>
+                                    <option value="{{ $user->id }}" {{ old('pic_engineering_id', $phc->pic_engineering_id ?? '') == $user->id ? 'selected' : '' }}>
                                         {{ $user->name }}
                                     </option>
                                 @endforeach
@@ -148,50 +137,10 @@
                         </select>
                     </div>
                 </div>
-
-                {{-- Marketing --}}
-                <div class="grid md:grid-cols-2 gap-4 mt-4">
-                    {{-- HO Marketing --}}
-                    <div>
-                        <label for="ho_marketing_id" class="block text-sm font-medium text-gray-700 mb-1">
-                            HO Marketing
-                        </label>
-                        <select id="ho_marketing_id" name="ho_marketing_id" class="select2 w-full" wire:ignore>
-                            <option value="">-- Pilih HO Marketing --</option>
-                            <optgroup label="Supervisor Marketing">
-                                @foreach ($users->filter(fn($u) => $u->role && strtolower($u->role->name) === 'supervisor marketing')->take(5) as $user)
-                                    <option value="{{ $user->id }}"
-                                        {{ old('ho_marketing_id', $phc->ho_marketing_id ?? '') == $user->id ? 'selected' : '' }}>
-                                        {{ $user->name }}
-                                    </option>
-                                @endforeach
-                            </optgroup>
-                        </select>
-                    </div>
-
-                    {{-- PIC Marketing --}}
-                    <div>
-                        <label for="pic_marketing_id" class="block text-sm font-medium text-gray-700 mb-1">
-                            PIC Marketing
-                        </label>
-                        <select id="pic_marketing_id" name="pic_marketing_id" class="select2 w-full" wire:ignore>
-                            <option value="">-- Pilih PIC Marketing --</option>
-                            <optgroup label="Supervisor Marketing">
-                                @foreach ($users->filter(fn($u) => $u->role && strtolower($u->role->name) === 'supervisor marketing')->take(5) as $user)
-                                    <option value="{{ $user->id }}"
-                                        {{ old('pic_marketing_id', $phc->pic_marketing_id ?? '') == $user->id ? 'selected' : '' }}>
-                                        {{ $user->name }}
-                                    </option>
-                                @endforeach
-                            </optgroup>
-                        </select>
-                    </div>
-                </div>
-
 
                 <div>
                     <label class="text-sm text-gray-600">Notes</label>
-                    <textarea name="notes" class="w-full border rounded px-3 py-2">{{ old('notes', $phc->notes ?? '') }}</textarea>
+                    <textarea name="notes" rows="3" class="w-full border rounded px-3 py-2 text-sm">{{ old('notes', $phc->notes ?? '') }}</textarea>
                 </div>
 
                 <div class="flex justify-end pt-4">
@@ -200,9 +149,9 @@
             </div>
 
             {{-- STEP 2: Handover Checklist --}}
-            <div x-show="step === 2" x-transition class="space-y-6">
-                <h3 class="text-lg font-semibold text-gray-800">📋 Step 2: Handover Checklist</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div x-show="step === 2" x-transition class="space-y-5 md:space-y-6">
+                <h3 class="text-lg md:text-xl font-semibold text-gray-800">📋 Step 2: Handover Checklist</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     @foreach([
                         'costing_by_marketing' => 'Costing by Marketing',
                         'boq' => 'Bill of Quantity (BOQ)',
@@ -210,38 +159,45 @@
                         'warranty' => 'Warranty',
                         'penalty' => 'Penalty',
                     ] as $key => $label)
-                        <div x-data="{ applicable: '{{ old($key, isset($phc) ? ($phc->$key ? 'A' : 'NA') : 'NA') }}' }" class="p-4 border rounded-md bg-gray-50">
+                        <div x-data="{ applicable: '{{ old($key, isset($phc) ? ($phc->$key ? 'A' : 'NA') : 'NA') }}' }"
+                            class="p-4 border rounded-md bg-gray-50">
                             <label class="block text-sm font-medium text-gray-700 mb-2">{{ $label }}</label>
-                            <div class="flex items-center gap-6">
+                            <div class="flex flex-wrap items-center gap-4">
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="{{ $key }}" value="A" x-model="applicable" class="text-blue-600 border-gray-300">
-                                    <span class="ml-2">Applicable</span>
+                                    <input type="radio" name="{{ $key }}" value="A" x-model="applicable"
+                                        class="text-blue-600 border-gray-300">
+                                    <span class="ml-2 text-sm">Applicable</span>
                                 </label>
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="{{ $key }}" value="NA" x-model="applicable" class="text-blue-600 border-gray-300">
-                                    <span class="ml-2">Not Applicable</span>
+                                    <input type="radio" name="{{ $key }}" value="NA" x-model="applicable"
+                                        class="text-blue-600 border-gray-300">
+                                    <span class="ml-2 text-sm">Not Applicable</span>
                                 </label>
                             </div>
                             @if (in_array($key, ['retention_applicability', 'warranty', 'penalty']))
-                                <div x-show="applicable === 'A'" class="mt-3" x-transition>
+                                <div x-show="applicable === 'A'" class="mt-3 space-y-2" x-transition>
                                     @php
-                                        $detailField = $key == 'retention_applicability' ? 'retention' : ($key == 'warranty' ? 'warranty_detail' : 'penalty_detail');
+                                        $detailField = $key == 'retention_applicability' ? 'retention' :
+                                                    ($key == 'warranty' ? 'warranty_detail' : 'penalty_detail');
                                     @endphp
-                                    <x-input.text name="{{ $detailField }}" label="{{ $label }} Detail" :value="old($detailField, $phc->$detailField ?? '')" />
+                                    <x-input.text name="{{ $detailField }}" label="{{ $label }} Detail"
+                                                :value="old($detailField, $phc->$detailField ?? '')" />
                                 </div>
                             @endif
                         </div>
                     @endforeach
                 </div>
-                <div class="flex justify-between pt-6">
-                    <button type="button" @click="setStep(1)" class="px-5 py-2 border rounded">⬅️ Back</button>
-                    <button type="button" @click="setStep(3)" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded">⏭️ Next: Dokumen</button>
+                <div class="flex flex-col md:flex-row justify-between pt-4 gap-3">
+                    <button type="button" @click="setStep(1)"
+                            class="px-5 py-2 border rounded text-sm md:text-base w-full md:w-auto">⬅️ Back</button>
+                    <button type="button" @click="setStep(3)"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded text-sm md:text-base w-full md:w-auto">⏭️ Next: Dokumen</button>
                 </div>
             </div>
 
             {{-- STEP 3: Document Preparation --}}
-            <div x-show="step === 3" x-transition class="space-y-6">
-                <h3 class="text-lg font-semibold text-gray-800">📄 Document Preparation</h3>
+            <div x-show="step === 3" x-transition class="space-y-5 md:space-y-6">
+                <h3 class="text-lg md:text-xl font-semibold text-gray-800">📄 Document Preparation</h3>
 
                 @foreach([
                     '📐 Desain & Gambar' => [
@@ -270,60 +226,60 @@
                     ],
                 ] as $groupTitle => $fields)
                     <div>
-                        <h4 class="font-medium text-gray-700 mt-6 mb-2">{{ $groupTitle }}</h4>
+                        <h4 class="font-medium text-gray-700 mt-4 mb-2 text-sm md:text-base">{{ $groupTitle }}</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             @foreach($fields as $key => $label)
                                 @php $default = old($key, isset($phc) ? ($phc->$key ? 'A' : 'NA') : 'NA'); @endphp
 
                                 @if ($key === 'scope_of_work_approval')
-                                    <div x-data="{ sow: @js($default), openModal: false }">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ $label }}</label>
-                                        <div class="flex gap-6">
+                                    <div x-data="{ sow: @js($default), openModal: false }" class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">{{ $label }}</label>
+                                        <div class="flex flex-wrap gap-4">
                                             <label class="inline-flex items-center">
                                                 <input type="radio" name="{{ $key }}" value="A" x-model="sow">
-                                                <span class="ml-2">Applicable</span>
+                                                <span class="ml-2 text-sm">Applicable</span>
                                             </label>
                                             <label class="inline-flex items-center">
                                                 <input type="radio" name="{{ $key }}" value="NA" x-model="sow">
-                                                <span class="ml-2">N/A</span>
+                                                <span class="ml-2 text-sm">N/A</span>
                                             </label>
                                         </div>
+
+                                        {{-- Tombol Modal SOW --}}
                                         <template x-if="sow === 'A'">
-                                            <div class="mt-3">
+                                            <div class="mt-2">
                                                 @if(empty($phc) || !$phc->id)
-                                                    {{-- Info jika PHC belum ada --}}
                                                     <div class="bg-yellow-100 text-yellow-700 p-3 rounded-md text-sm">
-                                                        ⚠️ Anda harus <strong>menyimpan PHC terlebih dahulu</strong> sebelum dapat menambahkan Scope of Work (SOW).
+                                                        ⚠️ Simpan PHC terlebih dahulu sebelum menambahkan Scope of Work (SOW).
                                                     </div>
                                                 @else
-                                                    <button type="button" 
-                                                        onclick="Livewire.dispatch('openModal')" 
-                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">
+                                                    <button type="button"
+                                                            onclick="Livewire.dispatch('openModal')"
+                                                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm w-full md:w-auto">
                                                         + Tambah SOW
                                                     </button>
                                                 @endif
                                             </div>
                                         </template>
 
-                                        
-                                         <div data-turbo="false">
+                                        {{-- Modal SOW --}}
+                                        <div data-turbo="false" class="w-full">
                                             @if(!empty($phc) && $phc->id)
                                                 @livewire('supervisor-marketing.scope-of-work-form-modal', ['phcId' => $phc->id])
                                             @endif
                                         </div>
-
                                     </div>
                                 @else
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ $label }}</label>
-                                        <div class="flex gap-6">
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">{{ $label }}</label>
+                                        <div class="flex flex-wrap gap-4">
                                             <label class="inline-flex items-center">
                                                 <input type="radio" name="{{ $key }}" value="A" @checked($default === 'A')>
-                                                <span class="ml-2">Applicable</span>
+                                                <span class="ml-2 text-sm">Applicable</span>
                                             </label>
                                             <label class="inline-flex items-center">
                                                 <input type="radio" name="{{ $key }}" value="NA" @checked($default === 'NA')>
-                                                <span class="ml-2">Not Applicable</span>
+                                                <span class="ml-2 text-sm">Not Applicable</span>
                                             </label>
                                         </div>
                                     </div>
@@ -333,11 +289,14 @@
                     </div>
                 @endforeach
 
-                <div class="flex justify-between pt-6">
-                    <button type="button" @click="setStep(2)" class="px-5 py-2 border rounded">⬅️ Back</button>
-                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded">💾 Save PHC</button>
+                <div class="flex flex-col md:flex-row justify-between pt-4 gap-3">
+                    <button type="button" @click="setStep(2)"
+                            class="px-5 py-2 border rounded text-sm md:text-base w-full md:w-auto">⬅️ Back</button>
+                    <button type="submit"
+                            class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded text-sm md:text-base w-full md:w-auto">💾 Save PHC</button>
                 </div>
             </div>
+
         </div>
     </form>
 </div>

@@ -1,26 +1,22 @@
-@extends(match(Auth::user()->role->name) {
-    'super_admin' => 'admin.layouts.app',
-    'supervisor marketing' => 'supervisor.layouts.app',
-    'engineer' => 'engineer.layouts.app',
-    default => 'layouts.app', // fallback jika role tidak cocok
-})
+@extends('supervisor.layouts.app', )
 
 @section('content')
-    <div class="max-w-7xl mx-auto bg-white p-8 md:p-10 rounded-lg shadow space-y-8">
+    <div class="max-w-7xl mx-auto bg-white p-6 md:p-10 rounded-lg shadow space-y-8">
         {{-- Header --}}
-        <div class="flex justify-between items-center flex-wrap mb-6">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-800">📁 Project Handover Checklist (PHC)</h2>
-                <p class="text-sm text-gray-500">Informasi lengkap dan dokumen yang disiapkan untuk serah terima proyek</p>
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+            <div class="flex-1 min-w-[200px]">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800">📁 Project Handover Checklist (PHC)</h2>
+                <p class="text-xs md:text-sm text-gray-500">
+                    Informasi lengkap dan dokumen yang disiapkan untuk serah terima proyek
+                </p>
             </div>
-            <div class="flex flex-wrap gap-2">
-                
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <a href="{{ route('phc.edit', $phc->id) }}"
-                    class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm">
+                    class="flex justify-center items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm w-full sm:w-auto">
                     ✏️ Edit
                 </a>
                 <a href="{{ route('supervisor.project.show', $phc->project_id) }}"
-                    class="inline-flex items-center bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 text-sm">
+                    class="flex justify-center items-center bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 text-sm w-full sm:w-auto">
                     ← Kembali
                 </a>
             </div>
@@ -29,20 +25,20 @@
         {{-- Tabs --}}
         <div x-data="{ tab: 'info' }" class="space-y-6">
             <div class="border-b pb-2">
-                <nav class="flex flex-wrap gap-4">
+                <nav class="flex flex-wrap gap-2 sm:gap-4">
                     <button @click="tab = 'info'"
                         :class="tab === 'info' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'"
-                        class="px-4 py-2 font-medium">
+                        class="px-3 sm:px-4 py-2 font-medium text-sm sm:text-base">
                         📋 Information
                     </button>
                     <button @click="tab = 'handover'"
                         :class="tab === 'handover' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'"
-                        class="px-4 py-2 font-medium">
+                        class="px-3 sm:px-4 py-2 font-medium text-sm sm:text-base">
                         ✅ Handover Checklist
                     </button>
                     <button @click="tab = 'docs'"
                         :class="tab === 'docs' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'"
-                        class="px-4 py-2 font-medium">
+                        class="px-3 sm:px-4 py-2 font-medium text-sm sm:text-base">
                         📄 Document Preparation List
                     </button>
                 </nav>
@@ -98,10 +94,8 @@
 
             {{-- Document Preparation --}}
             <div x-show="tab === 'docs'" x-cloak class="space-y-4">
-                {{-- Tombol Lihat Scope of Work --}}
                 @if($phc->scope_of_work_approval === 1)
-                    <div class="mt-6">
-                        {{-- Sekarang tombol & modal dari ViewSow --}}
+                    <div class="mt-4">
                         @livewire('project-controller.view-sow', ['phcId' => $phc->id])
                     </div>
                 @endif
@@ -128,7 +122,7 @@
                     ];
                 @endphp
 
-                <div class="grid md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     @foreach($docs as $field => $label)
                         <x-phc-check :label="$label" :value="$phc->$field" />
                     @endforeach
@@ -136,4 +130,19 @@
             </div>
         </div>
     </div>
+
+    {{-- CSS tambahan untuk modal Livewire (biar pas di mobile) --}}
+    <style>
+        .livewire-modal {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .livewire-modal {
+                max-width: 40rem;
+                /* ~640px */
+            }
+        }
+    </style>
 @endsection

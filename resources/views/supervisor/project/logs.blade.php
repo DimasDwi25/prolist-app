@@ -2,6 +2,7 @@
     'super_admin' => 'admin.layouts.app',
     'supervisor marketing' => 'supervisor.layouts.app',
     'engineer' => 'engineer.layouts.app',
+    'project controller' => 'project-controller.layouts.app',
     default => 'layouts.app', // fallback jika role tidak cocok
 })
 

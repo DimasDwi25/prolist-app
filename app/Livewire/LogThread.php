@@ -138,7 +138,7 @@ class LogThread extends Component
         $logs = Log::with(['user', 'category', 'responseUser'])
             ->where('project_id', $this->project->id)
             ->orderByDesc('tgl_logs')
-            ->get();
+            ->paginate(5);
 
         return view('livewire.log-thread', compact('logs'));
     }
