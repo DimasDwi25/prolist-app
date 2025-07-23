@@ -4,27 +4,23 @@ namespace App\Imports;
 
 use App\Models\Client;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class ClientImport implements ToModel
+class ClientImport implements ToModel, WithHeadingRow
 {
-    /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
     public function model(array $row)
     {
         return new Client([
-            'name' => $row[0],
-            'address' => $row[1],
-            'phone' => $row[2],
-            'client_representative' => $row[3],
-            'city' => $row[4],
-            'province' => $row[5],
-            'country' => $row[6],
-            'postal_code' => $row[7],
-            'website' => $row[8],
-            'notes' => $row[9],
+            'name' => $row['name'],
+            'address' => $row['address'],
+            'phone' => $row['phone'],
+            'client_representative' => $row['client_representative'],
+            'city' => $row['city'],
+            'province' => $row['province'],
+            'country' => $row['country'],
+            'zip_code' => $row['zip_code'],
+            'web' => $row['web'],
+            'notes' => $row['notes'],
         ]);
     }
 }

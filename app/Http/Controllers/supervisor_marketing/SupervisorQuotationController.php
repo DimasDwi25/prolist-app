@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\supervisor_marketing;
 
 use App\Http\Controllers\Controller;
+use App\Imports\QuotationsImport;
 use App\Models\Client;
 use App\Models\Quotation;
-use Auth;
 use Illuminate\Http\Request;
-use Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SupervisorQuotationController extends Controller
 {
-    //
     public function index()
     {
         $quotations = Quotation::with('client', 'user')->get();
-
         return view('supervisor.quotation.index', compact('quotations'));
     }
 
@@ -23,51 +23,35 @@ class SupervisorQuotationController extends Controller
     {
         $clients = Client::all();
         $nextNumber = Quotation::getNextQuotationNumber();
-        $noQuotationNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT); // 001
-        $formattedQuotation = Quotation::formatFullQuotationNo($noQuotationNumber); // Q-001/VII/25
+        $noQuotationNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        $formattedQuotation = Quotation::formatFullQuotationNo($noQuotationNumber);
 
-        return view('supervisor.quotation.form', [
-            'clients' => $clients,
-            'noQuotationNumber' => $noQuotationNumber,
-            'formattedQuotation' => $formattedQuotation,
-
-        ]);
+        return view('supervisor.quotation.form', compact('clients', 'noQuotationNumber', 'formattedQuotation'));
     }
 
     public function ajaxClients(Request $request)
     {
         $search = $request->q;
 
-        $query = \App\Models\Client::query();
-
-        if (!empty($search)) {
-            $query->where('name', 'like', "%{$search}%");
-        }
-
-        $clients = $query->orderBy('name')
-            ->limit(20) // biar ringan
+        $clients = Client::query()
+            ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%"))
+            ->orderBy('name')
+            ->limit(20)
             ->get(['id', 'name']);
 
-        // Pastikan format sesuai Select2
-        $formatted = $clients->map(function ($client) {
-            return [
+        return response()->json(
+            $clients->map(fn($client) => [
                 'id' => $client->id,
-                'text' => $client->name
-            ];
-        });
-
-        return response()->json($formatted);
+                'text' => $client->name,
+            ])
+        );
     }
-
-
-
-
 
     public function store(Request $request)
     {
         $this->validateRequest($request);
 
-        $quotation = Quotation::create([
+        Quotation::create([
             ...$request->except(['no_quotation']),
             'no_quotation' => $request->no_quotation,
             'quotation_number' => $request->no_quotation,
@@ -83,7 +67,6 @@ class SupervisorQuotationController extends Controller
 
         return view('supervisor.quotation.form', compact('quotation', 'clients', 'noQuotationNumber'));
     }
-
 
     public function update(Request $request, Quotation $quotation)
     {
@@ -136,13 +119,14 @@ class SupervisorQuotationController extends Controller
 
     public function updateStatus(Request $request, Quotation $quotation)
     {
-        $request->validate([
+        Validator::make($request->all(), [
             'status' => 'required|in:A,D,E,F,O',
-        ]);
+        ])->validate();
 
-        $quotation->status = $request->status;
-        $quotation->save();
+        $quotation->update(['status' => $request->status]);
 
         return redirect()->back()->with('success', 'Quotation status updated successfully.');
     }
+
+    
 }

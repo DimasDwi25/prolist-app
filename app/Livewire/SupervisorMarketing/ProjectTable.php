@@ -88,8 +88,7 @@ class ProjectTable extends DataTableComponent
                     if ($value !== '') {
                         $builder->where('project_number', 'like', '%-' . $value . '/%');
                     }
-                })
-                ->filterPillTitle('Year'),
+                }),
         ];
     }
 }

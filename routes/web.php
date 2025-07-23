@@ -24,6 +24,7 @@ use App\Http\Controllers\SuperAdmin\DepartmentController;
 use App\Http\Controllers\SuperAdmin\RoleController;
 use App\Http\Controllers\SuperAdmin\UserController;
 use App\Http\Controllers\Marketing\DashboardController as MarketingDashboardController;
+use App\Http\Controllers\supervisor_marketing\ImportQuotationController;
 use App\Http\Controllers\supervisor_marketing\MarketingReportController;
 use App\Http\Controllers\supervisor_marketing\SalesReportController;
 use App\Http\Controllers\supervisor_marketing\SupervisorCategorieProjectController;
@@ -122,6 +123,7 @@ Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(func
     Route::patch('/quotation/{quotation}/status', [SupervisorQuotationController::class, 'updateStatus'])->name('quotation.updateStatus');
     Route::get('/ajax/clients', [SupervisorQuotationController::class, 'ajaxClients'])
     ->name('ajax.clients');
+    Route::post('/quotation/import', [ImportQuotationController::class, 'import'])->name('quotation.import');
 
     Route::get('/marketing-report', [MarketingReportController::class, 'index'])->name('supervisor.marketing.report');
     Route::get('/sales-report', [SalesReportController::class, 'index'])->name('supervisor.sales.report');
@@ -149,15 +151,7 @@ Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(func
         return Excel::download(new QuotationsExport, 'quotations.xlsx');
     })->name('quotation.export');
 
-    Route::post('/quotation/import', function (Request $request) {
-        $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls',
-        ]);
-
-        Excel::import(new QuotationsImport, $request->file('file'));
-
-        return back()->with('success', 'Quotation imported successfully.');
-    })->name('quotation.import');
+    
 
     Route::get('/projects/export', function () {
         return Excel::download(new ProjectsExport, 'projects.xlsx');

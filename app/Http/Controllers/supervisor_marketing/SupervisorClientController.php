@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Imports\ClientImport;
 use App\Models\Client;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Excel;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SupervisorClientController extends Controller
 {

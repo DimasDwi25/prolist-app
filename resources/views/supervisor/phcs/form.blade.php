@@ -290,18 +290,28 @@
                                         </div>
                                         <template x-if="sow === 'A'">
                                             <div class="mt-3">
-                                                <button type="button" 
-                                                    onclick="Livewire.dispatch('openModal')" 
-                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                                                    + Tambah SOW
-                                                </button>
+                                                @if(empty($phc) || !$phc->id)
+                                                    {{-- Info jika PHC belum ada --}}
+                                                    <div class="bg-yellow-100 text-yellow-700 p-3 rounded-md text-sm">
+                                                        ⚠️ Anda harus <strong>menyimpan PHC terlebih dahulu</strong> sebelum dapat menambahkan Scope of Work (SOW).
+                                                    </div>
+                                                @else
+                                                    <button type="button" 
+                                                        onclick="Livewire.dispatch('openModal')" 
+                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">
+                                                        + Tambah SOW
+                                                    </button>
+                                                @endif
                                             </div>
                                         </template>
 
                                         
                                          <div data-turbo="false">
-                                            @livewire('supervisor-marketing.scope-of-work-form-modal', ['phcId' => $phc->id])
+                                            @if(!empty($phc) && $phc->id)
+                                                @livewire('supervisor-marketing.scope-of-work-form-modal', ['phcId' => $phc->id])
+                                            @endif
                                         </div>
+
                                     </div>
                                 @else
                                     <div>

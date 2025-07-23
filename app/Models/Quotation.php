@@ -11,6 +11,7 @@ class Quotation extends Model
     use HasFactory;
 
     protected $fillable = [
+        'id',
         'inquiry_date',
         'client_id',
         'title_quotation',

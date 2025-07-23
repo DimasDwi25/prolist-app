@@ -32,7 +32,7 @@ class ClientTable extends DataTableComponent
     public function columns(): array
     {
         return [
-            Column::make('#', 'id')->sortable(),
+            Column::make('ID', 'id')->excludeFromColumnSelect()->hideIf(true),
             Column::make('Name', 'name')->searchable()->sortable(),
             Column::make('Phone', 'phone')->searchable()->sortable(),
             Column::make('City', 'city')->searchable()->sortable(),
