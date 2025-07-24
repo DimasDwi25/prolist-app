@@ -1,4 +1,4 @@
-@extends('supervisor.layouts.app', )
+@extends('supervisor.layouts.app')
 
 @section('content')
     <div class="max-w-7xl mx-auto bg-white p-6 md:p-10 rounded-lg shadow space-y-8">
