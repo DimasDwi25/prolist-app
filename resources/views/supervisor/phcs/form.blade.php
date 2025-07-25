@@ -138,6 +138,47 @@
                     </div>
                 </div>
 
+                {{-- Marketing --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{-- HO Marketings --}}
+                    <div>
+                        <label for="ho_marketings_id" class="block text-sm font-medium text-gray-700 mb-1">
+                            HO Marketing
+                        </label>
+                        <select id="ho_marketings_id" name="ho_marketings_id" class="select2 w-full" wire:ignore>
+                            <option value="">-- Pilih HO Marketing --</option>
+                            <optgroup label="Marketing">
+                                @foreach ($users->filter(fn($u) => 
+                                    $u->role && in_array(strtolower($u->role->name), ['supervisor marketing', 'admin marketing', 'estimator'])
+                                )->take(5) as $user)
+                                    <option value="{{ $user->id }}" {{ old('ho_marketings_id', $phc->ho_marketings_id ?? '') == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    {{-- PIC Marketing --}}
+                    <div>
+                        <label for="pic_marketing_id" class="block text-sm font-medium text-gray-700 mb-1">
+                            PIC Marketing
+                        </label>
+                        <select id="pic_marketing_id" name="pic_marketing_id" class="select2 w-full" wire:ignore>
+                            <option value="">-- Pilih PIC Marketing --</option>
+                            <optgroup label="Marketing">
+                                 @foreach ($users->filter(fn($u) => 
+                                    $u->role && in_array(strtolower($u->role->name), ['supervisor marketing', 'admin marketing', 'estimator'])
+                                )->take(5) as $user)
+                                    <option value="{{ $user->id }}" {{ old('pic_marketing_id', $phc->pic_marketing_id ?? '') == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
                 <div>
                     <label class="text-sm text-gray-600">Notes</label>
                     <textarea name="notes" rows="3" class="w-full border rounded px-3 py-2 text-sm">{{ old('notes', $phc->notes ?? '') }}</textarea>

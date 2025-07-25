@@ -99,7 +99,7 @@
                 </button>
 
                 <div class="text-xl font-semibold text-primary-700 hidden md:block">
-                    System Project
+                   
                 </div>
 
                 <!-- Right Menu - Profile Dropdown -->
