@@ -19,18 +19,21 @@ class ProjectControllerWorkOrderController extends Controller
     {
         $workOrders = WorkOrder::with([
             'project',
-            'client',
-            'pic1',
-            'pic2',
-            'pic3',
-            'pic4',
-            'pic5',
+            'pic1User',
+            'pic2User',
+            'pic3User',
+            'pic4User',
+            'pic5User',
             'rolePic1',
             'rolePic2',
             'rolePic3',
             'rolePic4',
             'rolePic5'
         ])->get();
+
+        // $wo = WorkOrder::with(['project.quotation.client', 'pic1User', 'pic2User'])->first();
+        // dd($wo->toArray());
+
 
         return view('project-controller.work-order.index', compact('workOrders'));
     }

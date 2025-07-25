@@ -30,41 +30,39 @@ class WorkOrder extends Model
         'work_description',
     ];
 
+    // Relasi ke Project
     public function project()
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Project::class, 'project_id');
     }
 
-    public function client()
-    {
-        return $this->belongsTo(Client::class);
-    }
-
-    public function pic1()
+    // Relasi PIC - ubah nama method biar nggak bentrok dengan kolom
+    public function pic1User()
     {
         return $this->belongsTo(User::class, 'pic1');
     }
 
-    public function pic2()
+    public function pic2User()
     {
         return $this->belongsTo(User::class, 'pic2');
     }
 
-    public function pic3()
+    public function pic3User()
     {
         return $this->belongsTo(User::class, 'pic3');
     }
 
-    public function pic4()
+    public function pic4User()
     {
         return $this->belongsTo(User::class, 'pic4');
     }
 
-    public function pic5()
+    public function pic5User()
     {
         return $this->belongsTo(User::class, 'pic5');
     }
 
+    // Relasi Role PIC
     public function rolePic1()
     {
         return $this->belongsTo(Role::class, 'role_pic_1');
@@ -90,7 +88,7 @@ class WorkOrder extends Model
         return $this->belongsTo(Role::class, 'role_pic_5');
     }
 
-
+    // Relasi Log (berdasarkan project_id)
     public function logs()
     {
         return $this->hasMany(Log::class, 'project_id', 'project_id');

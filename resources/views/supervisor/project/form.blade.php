@@ -61,8 +61,8 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Quotation</label>
                         <select name="quotations_id" id="quotations_id" required
-                            class="select2 w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            <option value="">-- Select --</option>
+                            class="select2 w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" aria-placeholder="Select Quotation">
+                            <option value="">-- Select Quotation --</option>
                             @foreach ($quotations as $quotation)
                                 <option value="{{ $quotation->id }}" {{ old('quotations_id', $project->quotations_id ?? '') == $quotation->id ? 'selected' : '' }}>
                                     {{ $quotation->no_quotation }}
