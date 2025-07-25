@@ -94,52 +94,11 @@
             <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
 
                 {{-- Desktop (DataTable) --}}
-                <div class="hidden md:block">
+                <div class="">
                     @livewire('log.log-table', ['projectId' => $project->id])
-                </div>
-
-                {{-- Mobile (Cards) --}}
-                <div class="mt-6 space-y-4 md:hidden">
-                    @foreach($logs as $log)
-                        <div class="p-4 bg-gray-50 rounded-lg shadow border">
-                            <div class="flex justify-between items-center text-sm text-gray-500">
-                                <span>{{ $log->tgl_logs->translatedFormat('d M Y') }}</span>
-                                <span
-                                    class="px-2 py-1 text-xs rounded 
-                                            {{ $log->status === 'open' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700' }}">
-                                    {{ ucfirst($log->status) }}
-                                </span>
-                            </div>
-
-                            <div class="mt-2 text-gray-800 text-sm">
-                                {{ Str::limit($log->logs, 100) }}
-                            </div>
-
-                            <div class="mt-3 text-xs text-gray-500">
-                                <strong>Created by:</strong> {{ $log->user->name ?? '-' }}<br>
-                                <strong>Response by:</strong> {{ $log->responseUser->name ?? '-' }}
-                            </div>
-
-                            {{-- Modal Trigger --}}
-                            <button x-data @click="$dispatch('open-log-modal', { content: @js($log->logs) })"
-                                class="mt-3 w-full text-center text-blue-600 text-sm underline">
-                                Lihat Lengkap
-                            </button>
-                        </div>
-                    @endforeach
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Modal for full log content --}}
-    <div x-data="{ open: false, content: '' }" @open-log-modal.window="open = true; content = $event.detail.content"
-        x-show="open" x-cloak class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-            <div class="text-gray-800 text-sm whitespace-pre-line" x-text="content"></div>
-            <button @click="open = false" class="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-                Tutup
-            </button>
-        </div>
-    </div>
 @endsection

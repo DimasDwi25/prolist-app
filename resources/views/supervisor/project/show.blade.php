@@ -125,7 +125,7 @@
             <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
 
                 {{-- Desktop (DataTable) --}}
-                <div class="hidden md:block">
+                <div class="">
                     @livewire('log.log-table', ['projectId' => $project->id])
                 </div>
             </div>
