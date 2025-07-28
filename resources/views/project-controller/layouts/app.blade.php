@@ -110,7 +110,7 @@
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-y-auto p-4 md:p-6">
+            <main class="flex-1 w-full overflow-auto p-4 md:p-6">
                 @if (isset($slot))
                     {{ $slot }}
                 @else
