@@ -29,9 +29,11 @@ class WeeklyProgress extends Component
 
     public function generateWeeksDynamic()
     {
-        $startDate = $this->task->actual_start ?? $this->task->plan_start;
-        if (!$startDate)
-            return;
+        // Hanya generate week jika actual_start ada
+        $startDate = $this->task->actual_start;
+        if (!$startDate) {
+            return; // Tidak buat minggu kalau belum ada tanggal actual_start
+        }
 
         $endDate = $this->task->actual_finish ?? now();
 
@@ -69,6 +71,7 @@ class WeeklyProgress extends Component
             }
         }
     }
+
 
     public function loadWeeks()
     {

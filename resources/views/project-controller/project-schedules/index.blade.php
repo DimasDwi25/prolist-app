@@ -7,7 +7,7 @@
             <div>
                 <h2 class="text-2xl font-bold text-gray-900">Project Schedules</h2>
                 <p class="text-gray-500 text-sm mt-1">
-                    Project: <span class="font-semibold">{{ $project->project_name ?? $project->name }}</span>
+                    Project: <span class="font-semibold">{{ $project->project_number ?? $project->name }}</span>
                 </p>
             </div>
             <div class="flex items-center gap-2">
