@@ -82,4 +82,10 @@ class Project extends Model
         return $this->hasMany(\App\Models\Log::class);
     }
 
+    public function schedules()
+    {
+        return $this->hasMany(ProjectSchedule::class);
+    }
+
+
 }

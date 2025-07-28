@@ -8,22 +8,17 @@ use App\Http\Controllers\Auth\LoginRedirectController;
 use App\Http\Controllers\Engineer\EngineerDashboardController;
 use App\Http\Controllers\Engineer\EngineerProjectController;
 use App\Http\Controllers\Engineer\WorkOrderController;
-use App\Http\Controllers\Marketing\CategorieProjectController;
-use App\Http\Controllers\Marketing\ClientController;
-use App\Http\Controllers\Marketing\PhcController;
-use App\Http\Controllers\Marketing\ProjectController;
-use App\Http\Controllers\Marketing\QuotationController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController\ProjectControllerDashboardController;
 use App\Http\Controllers\ProjectController\ProjectControllerPhcController;
 use App\Http\Controllers\ProjectController\ProjectControllerProjectController;
 use App\Http\Controllers\ProjectController\ProjectControllerWorkOrderController;
+use App\Http\Controllers\ProjectController\ProjectScheduleController;
+use App\Http\Controllers\ProjectController\ProjectScheduleTaskController;
 use App\Http\Controllers\ProjectLogController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\DepartmentController;
 use App\Http\Controllers\SuperAdmin\RoleController;
 use App\Http\Controllers\SuperAdmin\UserController;
-use App\Http\Controllers\Marketing\DashboardController as MarketingDashboardController;
 use App\Http\Controllers\supervisor_marketing\ImportQuotationController;
 use App\Http\Controllers\supervisor_marketing\MarketingReportController;
 use App\Http\Controllers\supervisor_marketing\SalesReportController;
@@ -34,8 +29,8 @@ use App\Http\Controllers\supervisor_marketing\SupervisorPhcController;
 use App\Http\Controllers\supervisor_marketing\SupervisorProjectController;
 use App\Http\Controllers\supervisor_marketing\SupervisorQuotationController;
 use App\Imports\ProjectsImport;
-use App\Imports\QuotationsImport;
-use App\Models\Project;
+use App\Livewire\ProjectController\MasterTasks;
+use App\Livewire\ProjectController\ProjectSchedules;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -122,7 +117,7 @@ Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(func
     Route::get('/quotation/show/{quotation}', [SupervisorQuotationController::class, 'show'])->name('quotation.show');
     Route::patch('/quotation/{quotation}/status', [SupervisorQuotationController::class, 'updateStatus'])->name('quotation.updateStatus');
     Route::get('/ajax/clients', [SupervisorQuotationController::class, 'ajaxClients'])
-    ->name('ajax.clients');
+        ->name('ajax.clients');
     Route::post('/quotation/import', [ImportQuotationController::class, 'import'])->name('quotation.import');
 
     Route::get('/marketing-report', [MarketingReportController::class, 'index'])->name('supervisor.marketing.report');
@@ -151,7 +146,7 @@ Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(func
         return Excel::download(new QuotationsExport, 'quotations.xlsx');
     })->name('quotation.export');
 
-    
+
 
     Route::get('/projects/export', function () {
         return Excel::download(new ProjectsExport, 'projects.xlsx');
@@ -210,9 +205,40 @@ Route::middleware(['auth', 'role:project controller'])->group(function () {
     Route::put('/project-controller/work-order/update/{workOrder}', [ProjectControllerWorkOrderController::class, 'update'])->name('project_controller.work-orders.update');
     Route::delete('/project-controller/work-order/delete/{workOrder}', [ProjectControllerWorkOrderController::class, 'destroy'])->name('project_controller.work_orders.destroy');
 
+    Route::get('/master-tasks', MasterTasks::class)->name('tasks');
+
     // Endpoint AJAX ambil nama client
     Route::get('/projects/{project}/client', [ProjectControllerWorkOrderController::class, 'getClient'])->name('project_controller.projects.client');
-     Route::get('/projects/{id}/logs', [ProjectLogController::class, 'show'])->name('projects.logs');
+    Route::get('/projects/{id}/logs', [ProjectLogController::class, 'show'])->name('projects.logs');
+
+    Route::prefix('projects/{project}')->name('projects.')->group(function () {
+        Route::get('schedules', [ProjectScheduleController::class, 'index'])->name('schedules.index');
+        Route::get('schedules/create', [ProjectScheduleController::class, 'create'])->name('schedules.create');
+        Route::post('schedules', [ProjectScheduleController::class, 'store'])->name('schedules.store');
+        Route::get('schedules/{schedule}/edit', [ProjectScheduleController::class, 'edit'])->name('schedules.edit');
+        Route::put('schedules/{schedule}', [ProjectScheduleController::class, 'update'])->name('schedules.update');
+        Route::delete('schedules/{schedule}', [ProjectScheduleController::class, 'destroy'])->name('schedules.destroy');
+    });
+
+    Route::prefix('projects/{project}/schedules/{schedule}')
+        ->name('projects.schedule-tasks.')
+        ->group(function () {
+            Route::get('tasks', [ProjectScheduleTaskController::class, 'index'])->name('index');
+            Route::get('tasks/create', [ProjectScheduleTaskController::class, 'create'])->name('create');
+            Route::post('tasks', [ProjectScheduleTaskController::class, 'store'])->name('store');
+            Route::get('tasks/{task}/edit', [ProjectScheduleTaskController::class, 'edit'])->name('edit');
+            Route::put('tasks/{task}', [ProjectScheduleTaskController::class, 'update'])->name('update');
+            Route::delete('tasks/{task}', [ProjectScheduleTaskController::class, 'destroy'])->name('destroy');
+        });
+
+    Route::get(
+        'projects/{project}/schedules/{schedule}/tasks/{task}/weekly-progress',
+        \App\Livewire\ProjectController\WeeklyProgress::class
+    )
+        ->name('projects.schedule-tasks.weekly-progress');
+
+
+
 });
 
 

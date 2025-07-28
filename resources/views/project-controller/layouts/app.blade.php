@@ -49,6 +49,9 @@
                                 class="block px-4 py-2 rounded hover:bg-[#005f87]">🛠 Projects</a>
                         </div>
                     </div>
+
+                    <a href="{{ route('tasks') }}" class="block px-4 py-2 rounded hover:bg-[#005f87] transition">📁
+                        Task</a>
                 </nav>
             </div>
         </div>
@@ -108,7 +111,11 @@
 
             <!-- Page Content -->
             <main class="flex-1 overflow-y-auto p-4 md:p-6">
-                @yield('content')
+                @if (isset($slot))
+                    {{ $slot }}
+                @else
+                    @yield('content')
+                @endif
             </main>
         </div>
     </div>

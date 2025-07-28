@@ -34,6 +34,13 @@
                     class="inline-flex items-center bg-gray-700 text-white px-3 py-1.5 rounded hover:bg-gray-800 text-sm">
                     📋 View Logs
                 </a>
+
+                {{-- Tombol Project Schedule --}}
+                <a href="{{ route('projects.schedules.index', $project->id) }}"
+                    class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm transition">
+                    🗓️ Project Schedule
+                </a>
+
             </div>
         </div>
 
