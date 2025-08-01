@@ -35,6 +35,7 @@ class UserController extends Controller
             'password' => 'required|string|min:6',
             'role_id' => 'required|exists:roles,id',
             'department_id' => 'nullable|exists:departments,id',
+            'pin' => 'nullable|string|digits:6',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -58,6 +59,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'role_id' => 'required|exists:roles,id',
             'department_id' => 'nullable|exists:departments,id',
+            'pin' => 'nullable|string|digits:6',
         ]);
 
         $user->update($validated);

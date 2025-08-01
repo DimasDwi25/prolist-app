@@ -41,6 +41,12 @@
                     🗓️ Project Schedule
                 </a>
 
+                <a href="{{ route('projects.schedule.weekly-progress-all', [$project->id]) }}">
+                    📈 Lihat S-Curve
+                </a>
+
+
+
             </div>
         </div>
 

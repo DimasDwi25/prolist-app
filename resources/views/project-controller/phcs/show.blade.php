@@ -14,6 +14,10 @@
                     class="flex justify-center items-center bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 text-sm w-full sm:w-auto">
                     ← Kembali
                 </a>
+                 <a href="{{ route('project_controller.dashboard') }}"
+                    class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm shadow transition">
+                    ✅ Lanjut Validasi PHC
+                </a>
             </div>
         </div>
 

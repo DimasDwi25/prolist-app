@@ -77,6 +77,12 @@
     </div>
   </div>
 
+  {{-- PHC Pending Validation Section --}}
+  <div class="mt-12">
+      @livewire('phc-validation-table')
+      @livewire('phc-validation-modal')
+  </div>
+
   {{-- Grafik Section --}}
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
     {{-- Bar Chart --}}
@@ -97,6 +103,8 @@
     <h2 class="text-lg font-semibold text-gray-700 mb-4">Monthly Trend (Quotation & Sales)</h2>
     <canvas id="lineChart"></canvas>
   </div>
+  
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

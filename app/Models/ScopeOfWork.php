@@ -10,20 +10,7 @@ class ScopeOfWork extends Model
     use HasFactory;
 
     protected $fillable = [
-        'phc_id',
-        'description',
-        'category',
-        'items',
+        'names', 'description'
     ];
-
-    public function phc()
-    {
-        return $this->belongsTo(PHC::class, 'phc_id');
-    }
-
-    // protected $casts = [
-    //     'items' => 'array',
-    // ];
     
-
 }

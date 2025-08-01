@@ -2,39 +2,44 @@
 
 namespace App\Livewire\SupervisorMarketing;
 
+use App\Models\Project;
 use App\Models\ScopeOfWork;
+use App\Models\ScopeOfWorkProject;
 use Livewire\Component;
 
 class ScopeOfWorkFormModal extends Component
 {
-    public $phcId;
-    public $description = '';
-    public $category = '';
-    public $items = '';
-    public $editingId = null;
+    public $projectId;
+    public $scope_of_work_id;
+    public $description;
+
+    public $projects = [];
+    public $scopeOfWorks = [];
+    public $editingId = null; // ID dari scope_of_work_project
     public $sows = [];
 
-    public $showModal = false; // Untuk kontrol modal
+    public $showModal = false;
 
     protected $listeners = ['openModal' => 'open', 'closeModal' => 'close', 'delete' => 'delete'];
 
-    protected $rules = [
-        'description' => 'required|string',
-        'category' => 'required|string',
-        'items' => 'required|string',
-    ];
-
-    public function mount($phcId)
+    public function mount($projectId)
     {
-        $this->phcId = $phcId;
-        $this->loadSows();
+        $this->projectId = $projectId;
+        $this->projects = Project::all(); // Bisa dihapus jika tak dipakai
+        $this->scopeOfWorks = ScopeOfWork::all();
+        $this->loadSows(); // Panggil untuk load SOW langsung saat buka modal
     }
+
+    protected $rules = [
+        'projectId' => 'required|exists:projects,id',
+        'scope_of_work_id' => 'required|exists:scope_of_works,id',
+        'description' => 'required|string',
+    ];
 
     public function open()
     {
         $this->showModal = true;
     }
-
     public function close()
     {
         $this->showModal = false;
@@ -42,8 +47,9 @@ class ScopeOfWorkFormModal extends Component
 
     public function loadSows()
     {
-        $this->sows = ScopeOfWork::where('phc_id', $this->phcId)
-            ->orderBy('created_at', 'desc')
+        $this->sows = ScopeOfWorkProject::with('scopeOfWork')
+            ->where('project_id', $this->projectId)
+            ->latest()
             ->get();
     }
 
@@ -51,32 +57,29 @@ class ScopeOfWorkFormModal extends Component
     {
         $this->validate();
 
-        ScopeOfWork::updateOrCreate(
-            ['id' => $this->editingId],
-            [
-                'phc_id' => $this->phcId,
-                'description' => $this->description,
-                'category' => $this->category,
-                'items' => $this->items,
-            ]
-        );
+        ScopeOfWorkProject::create([
+            'project_id' => $this->projectId,
+            'scope_of_work_id' => $this->scope_of_work_id,
+            'description' => $this->description,
+        ]);
 
-        $this->reset(['description', 'category', 'items', 'editingId']);
+        session()->flash('message', 'Scope of Work Project berhasil ditambahkan!');
+        $this->reset(['scope_of_work_id', 'description']);
         $this->loadSows();
     }
 
     public function edit($id)
     {
-        $sow = ScopeOfWork::findOrFail($id);
-        $this->editingId = $sow->id;
-        $this->description = $sow->description;
-        $this->category = $sow->category;
-        $this->items = $sow->items;
+        $sowProject = ScopeOfWorkProject::with('scopeOfWork')->findOrFail($id);
+        $this->editingId = $sowProject->id;
+        $this->description = $sowProject->description;
+        $this->category = $sowProject->scopeOfWork->name ?? '';
+        $this->items = ''; // Anda bisa menambah kolom items di pivot jika perlu
     }
 
     public function delete($id)
     {
-        ScopeOfWork::findOrFail($id)->delete();
+        ScopeOfWorkProject::findOrFail($id)->delete();
         $this->loadSows();
     }
 

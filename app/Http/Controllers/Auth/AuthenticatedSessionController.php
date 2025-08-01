@@ -39,6 +39,8 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('engineer.dashboard');
         } elseif (Auth::user() && Auth::user()->role->name == 'project controller') {
             return redirect()->route('project_controller.dashboard');
+        } elseif (Auth::user() && Auth::user()->role->name == 'project manager') {
+            return redirect()->route('project_manager.dashboard');
         }
         else {
             Auth::guard('web')->logout();

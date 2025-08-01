@@ -15,6 +15,8 @@ use App\Http\Controllers\ProjectController\ProjectControllerWorkOrderController;
 use App\Http\Controllers\ProjectController\ProjectScheduleController;
 use App\Http\Controllers\ProjectController\ProjectScheduleTaskController;
 use App\Http\Controllers\ProjectLogController;
+use App\Http\Controllers\ProjectManager\ProjectManagerDashboardController;
+use App\Http\Controllers\ProjectManager\ProjectManagerPhcController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\DepartmentController;
 use App\Http\Controllers\SuperAdmin\RoleController;
@@ -28,9 +30,14 @@ use App\Http\Controllers\supervisor_marketing\SupervisorDashboardController;
 use App\Http\Controllers\supervisor_marketing\SupervisorPhcController;
 use App\Http\Controllers\supervisor_marketing\SupervisorProjectController;
 use App\Http\Controllers\supervisor_marketing\SupervisorQuotationController;
+use App\Http\Livewire\PhcValidation;
 use App\Imports\ProjectsImport;
+use App\Livewire\NotificationsList;
+use App\Livewire\ProjectController\MasterScopeOfWork;
 use App\Livewire\ProjectController\MasterTasks;
 use App\Livewire\ProjectController\ProjectSchedules;
+use App\Livewire\ProjectController\WeeklyProgressAll;
+use App\Livewire\ProjectController\WeeklyProgressBoard;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -168,6 +175,7 @@ Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(func
 Route::middleware(['auth', 'role:super_admin,supervisor marketing,engineer, project controller'])->group(function () {
     Route::get('/phc/show/{phc}', [SupervisorPhcController::class, 'show'])->name('phc.show');
     Route::get('/projects/{id}/logs', [ProjectLogController::class, 'show'])->name('projects.logs');
+
 });
 
 Route::middleware(['auth', 'role:engineer'])->group(function () {
@@ -206,6 +214,13 @@ Route::middleware(['auth', 'role:project controller'])->group(function () {
     Route::delete('/project-controller/work-order/delete/{workOrder}', [ProjectControllerWorkOrderController::class, 'destroy'])->name('project_controller.work_orders.destroy');
 
     Route::get('/master-tasks', MasterTasks::class)->name('tasks');
+    Route::get('/master-scope-of-work', MasterScopeOfWork::class)->name('scope_of_work');
+
+    Route::get(
+        '/projects/{project}/weekly-progress-all',
+        \App\Livewire\ProjectController\WeeklyProgressAll::class
+    )->name('projects.schedule.weekly-progress-all');
+
 
     // Endpoint AJAX ambil nama client
     Route::get('/projects/{project}/client', [ProjectControllerWorkOrderController::class, 'getClient'])->name('project_controller.projects.client');
@@ -236,9 +251,11 @@ Route::middleware(['auth', 'role:project controller'])->group(function () {
         \App\Livewire\ProjectController\WeeklyProgress::class
     )
         ->name('projects.schedule-tasks.weekly-progress');
+});
 
-
-
+Route::middleware(['auth', 'role:project manager'])->group(function () {
+    Route::get('/project-manager', [ProjectManagerDashboardController::class, 'index'])->name('project_manager.dashboard');
+    Route::get('/project-manager/phc/show/{phc}', [ProjectManagerPhcController::class, 'show'])->name('project_manager.phc.show');
 });
 
 

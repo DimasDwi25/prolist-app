@@ -1,5 +1,9 @@
 @extends('project-controller.layouts.app')
 
 @section('content')
-    <h1>tes</h1>
+    <div class="space-y-6">
+        @livewire('phc-validation-table')
+    </div>
+
+    @livewire('phc-validation-modal')
 @endsection

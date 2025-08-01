@@ -85,4 +85,10 @@ class PHC extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function approvals()
+    {
+        return $this->hasMany(PhcApproval::class, 'phc_id'); // foreign key yang benar
+    }
+
 }

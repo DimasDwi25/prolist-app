@@ -101,6 +101,12 @@
                     <x-input.text name="client_reps_office_address" label="Client Reps Office Address" :value="old('client_reps_office_address', $phc->client_reps_office_address ?? '')" />
                 </div>
 
+                {{-- Client Info --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <x-input.text name="client_site_address" label="Client Site Address" :value="old('client_site_address', $phc->client_site ?? '')" />
+                    <x-input.text name="client_site_representative" label="Client Site Representative" :value="old('client_site_representative', $phc->client_site_representative ?? '')" />
+                </div>
+
                 {{-- Engineer --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {{-- HO Engineer --}}
@@ -111,7 +117,9 @@
                         <select id="ho_engineering_id" name="ho_engineering_id" class="select2 w-full" wire:ignore>
                             <option value="">-- Pilih HO Engineer --</option>
                             <optgroup label="Engineer">
-                                @foreach ($users->filter(fn($u) => $u->role && strtolower($u->role->name) === 'engineer')->take(5) as $user)
+                                @foreach ($users->filter(fn($u) => 
+                                    $u->role && in_array(strtolower($u->role->name), ['engineer', 'supervisor engineer', 'project manager', 'project controller', 'admin engineer'])
+                                )->take(5) as $user)
                                     <option value="{{ $user->id }}" {{ old('ho_engineering_id', $phc->ho_engineering_id ?? '') == $user->id ? 'selected' : '' }}>
                                         {{ $user->name }}
                                     </option>
@@ -128,7 +136,10 @@
                         <select id="pic_engineering_id" name="pic_engineering_id" class="select2 w-full" wire:ignore>
                             <option value="">-- Pilih PIC Engineer --</option>
                             <optgroup label="Engineer">
-                                @foreach ($users->filter(fn($u) => $u->role && strtolower($u->role->name) === 'engineer')->take(5) as $user)
+                                
+                                @foreach ($users->filter(fn($u) => 
+                                    $u->role && in_array(strtolower($u->role->name), ['engineer', 'supervisor engineer', 'project manager', 'project controller', 'admin engineer'])
+                                )->take(5) as $user)
                                     <option value="{{ $user->id }}" {{ old('pic_engineering_id', $phc->pic_engineering_id ?? '') == $user->id ? 'selected' : '' }}>
                                         {{ $user->name }}
                                     </option>
@@ -289,25 +300,22 @@
                                         {{-- Tombol Modal SOW --}}
                                         <template x-if="sow === 'A'">
                                             <div class="mt-2">
-                                                @if(empty($phc) || !$phc->id)
-                                                    <div class="bg-yellow-100 text-yellow-700 p-3 rounded-md text-sm">
-                                                        ⚠️ Simpan PHC terlebih dahulu sebelum menambahkan Scope of Work (SOW).
-                                                    </div>
-                                                @else
-                                                    <button type="button"
-                                                            onclick="Livewire.dispatch('openModal')"
-                                                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm w-full md:w-auto">
-                                                        + Tambah SOW
-                                                    </button>
-                                                @endif
+                                               
+                                               
+                                                <button type="button"
+                                                        onclick="Livewire.dispatch('openModal')"
+                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm w-full md:w-auto">
+                                                    + Tambah SOW
+                                                </button>
+                                               
                                             </div>
                                         </template>
 
                                         {{-- Modal SOW --}}
-                                        <div data-turbo="false" class="w-full">
-                                            @if(!empty($phc) && $phc->id)
-                                                @livewire('supervisor-marketing.scope-of-work-form-modal', ['phcId' => $phc->id])
-                                            @endif
+                                        <div class="w-full">
+                                            
+                                                @livewire('supervisor-marketing.scope-of-work-form-modal', ['projectId' => $project->id])
+                                           
                                         </div>
                                     </div>
                                 @else

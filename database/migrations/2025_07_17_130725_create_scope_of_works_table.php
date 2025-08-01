@@ -12,11 +12,7 @@ return new class extends Migration {
     {
         Schema::create('scope_of_works', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('phc_id')
-                ->constrained('phcs')
-                ->onDelete('cascade');
-            $table->string('category')->nullable();
-            $table->string('items')->nullable();
+            $table->text('names');
             $table->text('description')->nullable();
             $table->timestamps();
         });

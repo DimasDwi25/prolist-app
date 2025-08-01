@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\supervisor_marketing;
 
+use App\Events\PhcCreatedEvent;
 use App\Http\Controllers\Controller;
 use App\Models\PHC;
+use App\Models\PhcApproval;
 use App\Models\Project;
 use App\Models\User;
+use App\Notifications\PhcAllApprovedNotification;
+use App\Notifications\PhcValidationRequested;
 use Auth;
 use Illuminate\Http\Request;
 
@@ -23,7 +27,15 @@ class SupervisorPhcController extends Controller
         }
 
         $users = User::whereHas('role', function ($q) {
-            $q->whereIn('name', ['supervisor marketing', 'administration marketing', 'engineer']);
+            $q->whereIn('name', [
+                'engineer',
+                'supervisor engineer',
+                'project manager',
+                'project controller',
+                'admin engineer',
+                'supervisor marketing',
+                'administration marketing',
+            ]);
         })->with('role')->get();
 
 
@@ -62,6 +74,7 @@ class SupervisorPhcController extends Controller
             'ho_marketings_id' => 'nullable|exists:users,id',
             'ho_engineering_id' => 'nullable|exists:users,id',
             'notes' => 'nullable|string',
+            'status' => 'string',
             'costing_by_marketing' => 'nullable|in:A,NA',
             'boq' => 'nullable|in:A,NA',
             'retention' => 'nullable|string',
@@ -125,13 +138,35 @@ class SupervisorPhcController extends Controller
 
         $booleanData = $this->mapToBoolean($request->all(), $checklistFields);
         $validated = array_merge($validated, $booleanData);
-
         $validated['created_by'] = Auth::id();
+        $validated['status'] = 'pending'; // default
 
-        Phc::create($validated);
+        $phc = Phc::create($validated);
+
+        // Ambil 4 user dari field input PHC
+        $userIds = array_filter([
+            $request->ho_engineering_id,
+            $request->ho_marketings_id,
+            $request->pic_engineering_id,
+            $request->pic_marketing_id,
+        ]);
+
+        foreach ($userIds as $id) {
+            PhcApproval::create([
+                'phc_id' => $phc->id,
+                'user_id' => $id,
+                'status' => 'pending',
+            ]);
+        }
+
+        // Broadcast ke public channel
+        event(new PhcCreatedEvent($phc, $userIds));
+
+
         session()->flash('resetStep', true);
 
-        return redirect()->route('supervisor.project.show', $request->project_id)->with('success', 'PHC created successfully.');
+        return redirect()->route('supervisor.project.show', $request->project_id)
+            ->with('success', 'PHC created successfully and waiting for approval.');
     }
 
     public function edit(PHC $phc)

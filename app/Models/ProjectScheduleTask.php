@@ -45,6 +45,17 @@ class ProjectScheduleTask extends Model
         return $this->hasMany(ProjectWeekSchedule::class, 'project_schedule_task_id');
     }
 
+    public function progress_weeks()
+    {
+        return $this->hasMany(ProjectWeekSchedule::class, 'project_schedule_task_id');
+    }
+
+    public function weekSchedules()
+    {
+        return $this->hasMany(\App\Models\ProjectWeekSchedule::class, 'project_schedule_task_id');
+    }
+
+
 
     /**
      * Generate weeks dinamis

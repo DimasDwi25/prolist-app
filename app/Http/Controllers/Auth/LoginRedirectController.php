@@ -31,6 +31,8 @@ class LoginRedirectController extends Controller
                 return redirect()->intended('/engineer');
             } elseif ($user->role->name === 'project controller') {
                 return redirect()->intended('/project-controller');
+            } elseif ($user->role->name === 'project manager') {
+                return redirect()->intended('/project-manager');
             } 
             else {
                 Auth::guard('web')->logout();
