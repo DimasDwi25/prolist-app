@@ -18,7 +18,7 @@
             <div class="space-x-2">
                 @php $hasPhc = $project->phc; @endphp
 
-                @if ($hasPhc)
+                @if ($hasPhc->status == "ready")
                     <a href="{{ route('project_controller.phc.show', $project->phc->id) }}"
                         class="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm transition">
                         👁️ View PHC
@@ -31,7 +31,7 @@
                 @endif
 
                 <a href="{{ route('projects.logs', $project->id) }}"
-                    class="inline-flex items-center bg-gray-700 text-white px-3 py-1.5 rounded hover:bg-gray-800 text-sm">
+                    class="inline-flex items-center bg-gray-400 text-white px-3 py-1.5 rounded hover:bg-gray-800 text-sm">
                     📋 View Logs
                 </a>
 
@@ -41,9 +41,15 @@
                     🗓️ Project Schedule
                 </a>
 
-                <a href="{{ route('projects.schedule.weekly-progress-all', [$project->id]) }}">
-                    📈 Lihat S-Curve
+                <a href="{{ route('projects.schedule.weekly-progress-all', [$project->id]) }}"
+                    class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow transition duration-300 ease-in-out">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                    Lihat S-Curve
                 </a>
+
 
 
 

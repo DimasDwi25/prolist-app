@@ -16,6 +16,16 @@
                 class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-sm rounded">
                 + Task
             </button>
+
+            <a href="{{ route('project_controller.project.show', $project->id) }}"
+                class="inline-flex items-center gap-2 bg-gray-500 hover:bg-green-600 text-white px-4 py-2 text-sm font-semibold rounded-lg shadow transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Kembali
+            </a>
+
         </div>
     </div>
 
@@ -127,30 +137,31 @@
                                                     <!-- Plan Row Input -->
                                                     <input type="number" min="0" step="0.01" max="100"
                                                         class="w-16 border rounded p-1 text-xs text-center pr-5 focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition
-                                                            @if($isLastWeek) border-yellow-300 bg-yellow-50 @endif
-                                                            @if($weekData['disabled'] ?? false) bg-gray-100 cursor-not-allowed @endif" value="{{ $plan }}"
+                                                                                                @if($isLastWeek) border-yellow-300 bg-yellow-50 @endif
+                                                                                                @if($weekData['disabled'] ?? false) bg-gray-100 cursor-not-allowed @endif"
+                                                        value="{{ $plan }}"
                                                         wire:change.debounce.500ms="updateBobot({{ $weekId }}, 'bobot_plan', $event.target.value, {{ $task['id'] }})"
                                                         @if($weekData['disabled'] ?? false) disabled @endif x-data="{
-                                                        previousValue: {{ $plan }},
-                                                        handleChange(event) {
-                                                            const weekNumber = {{ $weekData['week_number'] ?? 0 }};
-                                                            const newValue = parseFloat(event.target.value);
+                                                                                            previousValue: {{ $plan }},
+                                                                                            handleChange(event) {
+                                                                                                const weekNumber = {{ $weekData['week_number'] ?? 0 }};
+                                                                                                const newValue = parseFloat(event.target.value);
 
-                                                            // Check if previous week was 100%
-                                                            if (weekNumber > 1) {
-                                                                const prevWeekInput = this.$root.querySelector(`input[data-week-number='${weekNumber-1}'][data-task-id='{{ $task['id'] }}'][data-type='plan']`);
-                                                                if (prevWeekInput && parseFloat(prevWeekInput.value) === 100) {
-                                                                    event.target.value = 100;
-                                                                    this.previousValue = 100;
-                                                                    $wire.updateBobot({{ $weekId }}, 'bobot_plan', 100, {{ $task['id'] }});
-                                                                    return;
-                                                                }
-                                                            }
+                                                                                                // Check if previous week was 100%
+                                                                                                if (weekNumber > 1) {
+                                                                                                    const prevWeekInput = this.$root.querySelector(`input[data-week-number='${weekNumber-1}'][data-task-id='{{ $task['id'] }}'][data-type='plan']`);
+                                                                                                    if (prevWeekInput && parseFloat(prevWeekInput.value) === 100) {
+                                                                                                        event.target.value = 100;
+                                                                                                        this.previousValue = 100;
+                                                                                                        $wire.updateBobot({{ $weekId }}, 'bobot_plan', 100, {{ $task['id'] }});
+                                                                                                        return;
+                                                                                                    }
+                                                                                                }
 
-                                                            this.previousValue = newValue;
-                                                            $wire.updateBobot({{ $weekId }}, 'bobot_plan', newValue, {{ $task['id'] }});
-                                                        }
-                                                    }" x-on:change="handleChange(event)"
+                                                                                                this.previousValue = newValue;
+                                                                                                $wire.updateBobot({{ $weekId }}, 'bobot_plan', newValue, {{ $task['id'] }});
+                                                                                            }
+                                                                                        }" x-on:change="handleChange(event)"
                                                         data-week-number="{{ $weekData['week_number'] ?? 0 }}"
                                                         data-task-id="{{ $task['id'] }}" data-type="plan">
                                                     <span class="absolute right-1 top-1 text-xs text-gray-500">%</span>
@@ -172,47 +183,50 @@
                                     <td class="border p-2 sticky left-[280px] bg-blue-50 z-10"></td>
 
                                     @foreach ($weeks as $week)
-                                                                @php
-                                                                    $weekData = collect($task['week_schedules'])->firstWhere('week_number', $week['week_number']);
-                                                                    $actual = $weekData['bobot_actual'] ?? 0;
-                                                                    $weekId = $weekData['id'] ?? null;
-                                                                    $isLastWeek = $loop->last;
-                                                                @endphp
-                                                                <td class="border p-2 text-center bg-blue-50 @if($isLastWeek) bg-yellow-50 @endif">
-                                                                    <div class="flex flex-col items-center space-y-1">
-                                                                        <span class="text-[10px] italic text-gray-600">Actual</span>
-                                                                        <div class="relative">
-                                                                            <!-- Actual Row Input -->
-                                                                            <input type="number" min="0" step="0.01" max="100" class="w-16 border rounded p-1 text-xs text-center pr-5 focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition
-                                                @if($isLastWeek) border-yellow-300 bg-yellow-50 @endif
-                                                @if($weekData['disabled'] ?? false) bg-gray-100 cursor-not-allowed @endif" value="{{ $actual }}"
-                                                                                wire:change.debounce.500ms="updateBobot({{ $weekId }}, 'bobot_actual', $event.target.value, {{ $task['id'] }})"
-                                                                                @if($weekData['disabled'] ?? false) disabled @endif x-data="{
-                                            previousValue: {{ $actual }},
-                                            handleChange(event) {
-                                                const weekNumber = {{ $weekData['week_number'] ?? 0 }};
-                                                const newValue = parseFloat(event.target.value);
+                                        @php
+                                            $weekData = collect($task['week_schedules'])->firstWhere('week_number', $week['week_number']);
+                                            $actual = $weekData['bobot_actual'] ?? 0;
+                                            $weekId = $weekData['id'] ?? null;
+                                            $isLastWeek = $loop->last;
+                                        @endphp
+                                        <td class="border p-2 text-center bg-blue-50 @if($isLastWeek) bg-yellow-50 @endif">
+                                            <div class="flex flex-col items-center space-y-1">
+                                                <span class="text-[10px] italic text-gray-600">Actual</span>
+                                                <div class="relative">
+                                                    <!-- Actual Row Input -->
+                                                    <input type="number" min="0" step="0.01" max="100"
+                                                        class="w-16 border rounded p-1 text-xs text-center pr-5 focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition
+                                                                                    @if($isLastWeek) border-yellow-300 bg-yellow-50 @endif
+                                                                                    @if($weekData['disabled'] ?? false) bg-gray-100 cursor-not-allowed @endif"
+                                                        value="{{ $actual }}"
+                                                        wire:change.debounce.500ms="updateBobot({{ $weekId }}, 'bobot_actual', $event.target.value, {{ $task['id'] }})"
+                                                        @if($weekData['disabled'] ?? false) disabled @endif x-data="{
+                                                                                previousValue: {{ $actual }},
+                                                                                handleChange(event) {
+                                                                                    const weekNumber = {{ $weekData['week_number'] ?? 0 }};
+                                                                                    const newValue = parseFloat(event.target.value);
 
-                                                // Check if previous week was 100%
-                                                if (weekNumber > 1) {
-                                                    const prevWeekInput = this.$root.querySelector(`input[data-week-number='${weekNumber-1}'][data-task-id='{{ $task['id'] }}'][data-type='actual']`);
-                                                    if (prevWeekInput && parseFloat(prevWeekInput.value) === 100) {
-                                                        event.target.value = 100;
-                                                        this.previousValue = 100;
-                                                        $wire.updateBobot({{ $weekId }}, 'bobot_actual', 100, {{ $task['id'] }});
-                                                        return;
-                                                    }
-                                                }
+                                                                                    // Check if previous week was 100%
+                                                                                    if (weekNumber > 1) {
+                                                                                        const prevWeekInput = this.$root.querySelector(`input[data-week-number='${weekNumber-1}'][data-task-id='{{ $task['id'] }}'][data-type='actual']`);
+                                                                                        if (prevWeekInput && parseFloat(prevWeekInput.value) === 100) {
+                                                                                            event.target.value = 100;
+                                                                                            this.previousValue = 100;
+                                                                                            $wire.updateBobot({{ $weekId }}, 'bobot_actual', 100, {{ $task['id'] }});
+                                                                                            return;
+                                                                                        }
+                                                                                    }
 
-                                                this.previousValue = newValue;
-                                                $wire.updateBobot({{ $weekId }}, 'bobot_actual', newValue, {{ $task['id'] }});
-                                            }
-                                        }" x-on:change="handleChange(event)" data-week-number="{{ $weekData['week_number'] ?? 0 }}"
-                                                                                data-task-id="{{ $task['id'] }}" data-type="actual">
-                                                                            <span class="absolute right-1 top-1 text-xs text-gray-500">%</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
+                                                                                    this.previousValue = newValue;
+                                                                                    $wire.updateBobot({{ $weekId }}, 'bobot_actual', newValue, {{ $task['id'] }});
+                                                                                }
+                                                                            }" x-on:change="handleChange(event)"
+                                                        data-week-number="{{ $weekData['week_number'] ?? 0 }}"
+                                                        data-task-id="{{ $task['id'] }}" data-type="actual">
+                                                    <span class="absolute right-1 top-1 text-xs text-gray-500">%</span>
+                                                </div>
+                                            </div>
+                                        </td>
                                     @endforeach
                                 </tr>
                             @endforeach
