@@ -19,10 +19,13 @@
                     class="flex justify-center items-center bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 text-sm w-full sm:w-auto">
                     ← Kembali
                 </a>
-                <a href="{{ route('dashboard.supervisor') }}"
-                    class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm shadow transition">
-                    ✅ Lanjut Validasi PHC
-                </a>
+                @if ($phc->status === 'pending')
+                    <a href="{{ route('supervisor.dashboard') }}"
+                        class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm shadow transition">
+                        ✅ Lanjut Validasi PHC
+                    </a>
+                @endif
+
 
             </div>
         </div>
@@ -101,7 +104,7 @@
             <div x-show="tab === 'docs'" x-cloak class="space-y-4">
                 @if($phc->scope_of_work_approval === 1)
                     <div class="mt-4">
-                        @livewire('project-controller.view-sow', ['phcId' => $phc->id])
+                        <livewire:project-controller.view-sow :projectId="$project->id" />
                     </div>
                 @endif
                 @php

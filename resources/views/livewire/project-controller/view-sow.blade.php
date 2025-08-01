@@ -26,50 +26,45 @@
             <div class="flex-1 p-6 overflow-y-auto">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Daftar Scope of Work</h3>
 
-                @if($sows->isEmpty())
-                    <div class="text-center py-10 text-gray-500 border border-dashed border-gray-300 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 13h6m-3-3v6m5 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5l2 2h5a2 2 0 012 2v12a2 2 0 01-2 2z" />
-                        </svg>
-                        <p class="mt-2 text-sm">Belum ada Scope of Work. Tambahkan di atas.</p>
+                @if($sowProjects->isEmpty())
+                    <div class="text-center py-10 text-gray-500">
+                        <p>Belum ada Scope of Work.</p>
                     </div>
                 @else
-                    <div class="overflow-x-auto border rounded-lg max-h-64 overflow-y-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Deskripsi
-                                    </th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Kategori
-                                    </th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Items</th>
-                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Aksi
-                                    </th>
+                    <table class="w-full table-auto">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 text-left">Nama</th>
+                                <th class="px-4 py-2 text-left">Deskripsi</th>
+                                <th class="px-4 py-2 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($sowProjects as $sowProject)
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="px-4 py-2 text-sm text-gray-800">
+                                        {{ $sowProject->scopeOfWork->names ?? '-' }}
+                                    </td>
+                                    <td class="px-4 py-2 text-sm text-gray-800">
+                                        {{ $sowProject->scopeOfWork->description ?? '-' }}
+                                    </td>
+                                    <td class="px-4 py-2 text-center space-x-2">
+                                        <button type="button" wire:click="edit({{ $sowProject->id }})"
+                                            class="inline-flex items-center px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded shadow">
+                                            ✏️ Edit
+                                        </button>
+                                        <button type="button" wire:click="delete({{ $sowProject->id }})"
+                                            onclick="return confirm('Hapus SOW ini?')"
+                                            class="inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded shadow">
+                                            🗑 Hapus
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-100">
-                                @foreach($sows as $sow)
-                                    <tr class="hover:bg-gray-50 transition">
-                                        <td class="px-4 py-3 text-sm text-gray-800">{{ $sow->description }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-800">{{ $sow->category }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-600 whitespace-pre-line">{{ $sow->items }}</td>
-                                        <td class="px-4 py-3 text-center space-x-2">
-                                            <button type="button" wire:click="edit({{ $sow->id }})"
-                                                class="inline-flex items-center px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded shadow">✏️
-                                                Edit</button>
-                                            <button type="button" wire:click="delete({{ $sow->id }})"
-                                                onclick="return confirm('Hapus SOW ini?')"
-                                                class="inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded shadow">🗑
-                                                Hapus</button>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                            @endforeach
+                        </tbody>
+                    </table>
                 @endif
+
             </div>
 
             <!-- Footer -->

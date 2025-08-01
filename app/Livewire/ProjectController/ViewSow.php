@@ -2,36 +2,36 @@
 
 namespace App\Livewire\ProjectController;
 
+use App\Models\Project;
 use App\Models\ScopeOfWork;
+use App\Models\ScopeOfWorkProject;
 use Livewire\Component;
 
 class ViewSow extends Component
 {
-    public $phcId;
-    public $description = '';
-    public $category = '';
-    public $items = '';
+    public $projectId;
+    public $sowProjects = [];
     public $editingId = null;
     public $sows = [];
 
     public $showModal = false;
 
-    protected $rules = [
-        'description' => 'required|string',
-        'category' => 'required|string',
-        'items' => 'required|string',
-    ];
+    // protected $rules = [
+    //     'description' => 'required|string',
+    //     'category' => 'required|string',
+    //     'items' => 'required|string',
+    // ];
 
-    public function mount($phcId)
+    public function mount($projectId)
     {
-        $this->phcId = $phcId;
+        $this->projectId = $projectId;
         $this->loadSows();
     }
 
     public function loadSows()
     {
-        $this->sows = ScopeOfWork::where('phc_id', $this->phcId)
-            ->orderBy('created_at', 'desc')
+        $this->sowProjects = ScopeOfWorkProject::with(['scopeOfWork', 'project'])
+            ->where('project_id', $this->projectId)
             ->get();
     }
 
@@ -47,6 +47,8 @@ class ViewSow extends Component
 
     public function render()
     {
-        return view('livewire.project-controller.view-sow');
+        return view('livewire.project-controller.view-sow', [
+            'project' => Project::findOrFail($this->projectId),
+        ]);
     }
 }

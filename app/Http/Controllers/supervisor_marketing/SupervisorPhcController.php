@@ -270,6 +270,7 @@ class SupervisorPhcController extends Controller
     public function show(PHC $phc)
     {
         $phc->load('project.quotation');
-        return view('supervisor.phcs.show', compact('phc'));
+        $project = $phc->project;
+        return view('supervisor.phcs.show', compact('phc' , 'project'));
     }
 }
