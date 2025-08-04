@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\PhcApproval;
+use App\Models\PHC;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Events\PhcApprovalUpdatedEvent;
 
@@ -25,7 +27,6 @@ class PhcApprovalModal extends Component
         $this->error = null;
     }
 
-
     public function mount()
     {
         $this->notifications = Auth::user()
@@ -33,40 +34,83 @@ class PhcApprovalModal extends Component
             ->take(10)
             ->get();
     }
+
     public function approve()
     {
-        $approval = PhcApproval::with('user', 'phc.approvals')->findOrFail($this->approvalId);
+        $approval = PhcApproval::with(['phc', 'user.role'])->findOrFail($this->approvalId);
 
-        // Pastikan hanya user yang bersangkutan bisa approve
+        // Validasi otorisasi dan PIN
         if ($approval->user_id !== Auth::id()) {
             $this->error = 'Unauthorized.';
             return;
         }
 
-        // Cek PIN (pakai kolom users.pin)
-        if ($this->pin !== $approval->user->pin) {
+        if ($this->pin !== Auth::user()->pin) {
             $this->error = 'Invalid PIN.';
             return;
         }
 
-        // Update approval status
-        $approval->update([
-            'status' => 'approved',
-            'validated_at' => now(),
-        ]);
-
         $phc = $approval->phc;
+        $currentUser = Auth::user();
 
-        // Jika semua sudah approve, update status PHC
-        if ($phc->approvals()->where('status', '!=', 'approved')->count() === 0) {
-            $phc->update(['status' => 'ready']);
+        // Jika user termasuk dari 3 role khusus (PM/PC/SuperAdmin) dan ho_engineering_id belum diisi
+        if (
+            in_array($currentUser->role->name, ['project manager', 'project controller', 'super_admin'])
+            && !$phc->ho_engineering_id
+        ) {
+
+            // Update ho_engineering_id di tabel PHC
+            $phc->update(['ho_engineering_id' => $currentUser->id]);
+
+            // Hapus semua approval pending untuk 3 role ini
+            PhcApproval::where('phc_id', $phc->id)
+                ->where('status', 'pending')
+                ->whereHas('user', function ($q) {
+                    $q->whereHas('role', function ($r) {
+                        $r->whereIn('name', ['project manager', 'project controller', 'super_admin']);
+                    });
+                })
+                ->delete();
         }
 
-        // Broadcast ke semua listener agar notifikasi dan status update
-        event(new PhcApprovalUpdatedEvent($phc));
+        // Update status approval
+        $approval->update([
+            'status' => 'approved',
+            'validated_at' => now()
+        ]);
+
+        // Cek jika sudah 3 validasi lengkap
+        $this->checkCompleteValidations($phc);
 
         $this->reset(['show', 'pin', 'error']);
-        session()->flash('success', 'PHC Approved successfully!');
+        session()->flash('success', 'PHC berhasil divalidasi!');
+        $this->dispatch('refreshValidationTable');
+    }
+
+    protected function checkCompleteValidations($phc)
+    {
+        // 3 validasi yang dibutuhkan:
+        // 1. HO Marketing
+        // 2. PIC Marketing
+        // 3. HO Engineering (yang sudah diisi oleh PM/PC/SuperAdmin pertama)
+
+        $requiredApprovals = [
+            $phc->ho_marketings_id,
+            $phc->pic_marketing_id,
+            $phc->ho_engineering_id
+        ];
+
+        // Hitung yang sudah di-approve
+        $approvedCount = PhcApproval::where('phc_id', $phc->id)
+            ->whereIn('user_id', array_filter($requiredApprovals))
+            ->where('status', 'approved')
+            ->count();
+
+        // Jika 3 validasi sudah lengkap
+        if ($approvedCount === 3) {
+            $phc->update(['status' => 'ready']);
+            event(new PhcApprovalUpdatedEvent($phc));
+        }
     }
 
     public function render()

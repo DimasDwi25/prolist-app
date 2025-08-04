@@ -91,4 +91,23 @@ class PHC extends Model
         return $this->hasMany(PhcApproval::class, 'phc_id'); // foreign key yang benar
     }
 
+    // Tambahkan ini untuk memastikan ho_engineering_id bisa diisi
+    protected $attributes = [
+        'ho_engineering_id' => null
+    ];
+
+    // Tambahkan event observer
+    protected static function booted()
+    {
+        static::updating(function ($phc) {
+            if ($phc->isDirty('ho_engineering_id')) {
+                \Log::info("HO Engineering Updated", [
+                    'phc_id' => $phc->id,
+                    'old_value' => $phc->getOriginal('ho_engineering_id'),
+                    'new_value' => $phc->ho_engineering_id
+                ]);
+            }
+        });
+    }
+
 }

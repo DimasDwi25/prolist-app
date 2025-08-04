@@ -16,9 +16,9 @@
             </div>
 
             <div class="space-x-2">
-                @php $hasPhc = $project->phc; @endphp
+                @php $phc = $project->phc; @endphp
 
-                @if ($hasPhc->status == "ready")
+                @if ($phc && $phc->status == "ready")
                     <a href="{{ route('project_controller.phc.show', $project->phc->id) }}"
                         class="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm transition">
                         👁️ View PHC

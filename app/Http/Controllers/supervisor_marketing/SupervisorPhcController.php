@@ -141,27 +141,58 @@ class SupervisorPhcController extends Controller
         $validated['created_by'] = Auth::id();
         $validated['status'] = 'pending'; // default
 
+        // Buat PHC
         $phc = Phc::create($validated);
 
-        // Ambil 4 user dari field input PHC
-        $userIds = array_filter([
-            $request->ho_engineering_id,
+        // 1. Buat approval untuk HO Marketing dan PIC Marketing
+        $marketingApprovers = array_filter([
             $request->ho_marketings_id,
-            $request->pic_engineering_id,
-            $request->pic_marketing_id,
+            $request->pic_marketing_id
         ]);
 
-        foreach ($userIds as $id) {
+        foreach ($marketingApprovers as $userId) {
             PhcApproval::create([
                 'phc_id' => $phc->id,
-                'user_id' => $id,
+                'user_id' => $userId,
                 'status' => 'pending',
             ]);
         }
 
-        // Broadcast ke public channel
-        event(new PhcCreatedEvent($phc, $userIds));
+        // 2. Handle HO Engineering approval
+        $engineeringApprovers = [];
+        if (!empty($request->ho_engineering_id)) {
+            // Jika HO Engineering diisi manual
+            PhcApproval::create([
+                'phc_id' => $phc->id,
+                'user_id' => $request->ho_engineering_id,
+                'status' => 'pending',
+            ]);
+            $engineeringApprovers[] = $request->ho_engineering_id;
+        } else {
+            // Jika HO Engineering kosong, notifikasi ke PM/PC/SuperAdmin
+            $validatorUsers = User::whereHas('role', function ($q) {
+                $q->whereIn('name', ['project manager', 'project controller', 'super_admin']);
+            })->get();
 
+            foreach ($validatorUsers as $user) {
+                PhcApproval::create([
+                    'phc_id' => $phc->id,
+                    'user_id' => $user->id,
+                    'status' => 'pending',
+                ]);
+                $user->notify(new PhcValidationRequested($phc));
+                $engineeringApprovers[] = $user->id;
+            }
+        }
+
+        // 3. PIC Engineering tetap null (tidak dibuat approval-nya)
+
+        // Kirim event dengan semua user yang perlu approve
+        $allApproverIds = array_unique(array_merge(
+            $marketingApprovers,
+            $engineeringApprovers
+        ));
+        event(new PhcCreatedEvent($phc, $allApproverIds));
 
         session()->flash('resetStep', true);
 
@@ -271,6 +302,6 @@ class SupervisorPhcController extends Controller
     {
         $phc->load('project.quotation');
         $project = $phc->project;
-        return view('supervisor.phcs.show', compact('phc' , 'project'));
+        return view('supervisor.phcs.show', compact('phc', 'project'));
     }
 }

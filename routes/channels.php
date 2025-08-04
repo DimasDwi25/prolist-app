@@ -26,4 +26,9 @@ Broadcast::channel('phc.notifications', function ($user) {
     return in_array($user->id, [1, 2, 3, 4]); // Ganti dengan ID user target
 });
 
+Broadcast::channel('notifications.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
+
+
 

@@ -9,7 +9,12 @@ class PhcApproval extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['phc_id', 'user_id', 'status', 'validated_at'];
+    protected $fillable = [
+        'phc_id',
+        'user_id',
+        'status',
+        'validated_at',
+    ];
 
     public function user()
     {
