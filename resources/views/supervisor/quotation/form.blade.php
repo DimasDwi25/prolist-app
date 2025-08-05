@@ -41,9 +41,9 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700">Inquiry Date</label>
                 <input type="date" name="inquiry_date"
-                       value="{{ old('inquiry_date', isset($quotation) ? $quotation->inquiry_date->format('Y-m-d') : '') }}"
-                       class="w-full border border-gray-300 rounded px-3 py-2 mt-1"
-                      >
+                    value="{{ old('inquiry_date', isset($quotation->inquiry_date) ? optional($quotation->inquiry_date)->format('Y-m-d') : '') }}"
+                    class="w-full border border-gray-300 rounded px-3 py-2 mt-1">
+
                 @error('inquiry_date') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
             </div>
         </div>
@@ -51,8 +51,8 @@
         {{-- Quotation Title --}}
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Quotation Title</label>
-            <input type="text" name="title_quotation" value="{{ old('title_quotation', $quotation->title_quotation ?? '') }}"
-                   class="w-full border border-gray-300 rounded px-3 py-2 mt-1" required>
+            <input type="text" name="title_quotation" value="{{ old('title_quotation', $quotation->title_quotation ?? '') }}">
+
             @error('title_quotation') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
         </div>
 
@@ -62,7 +62,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700">Quotation Date</label>
                 <input type="date" name="quotation_date"
-                       value="{{ old('quotation_date', isset($quotation) ? $quotation->quotation_date->format('Y-m-d') : '') }}"
+                       value="{{ old('quotation_date', isset($quotation->quotation_date) ? $quotation->quotation_date->format('Y-m-d') : '') }}"
                        class="w-full border border-gray-300 rounded px-3 py-2 mt-1"
                        >
                 @error('quotation_date') <span class="text-sm text-red-600">{{ $message }}</span> @enderror

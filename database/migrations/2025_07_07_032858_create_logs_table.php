@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('categorie_log_id')->constrained('categorie_logs')->onDelete('cascade');
+            $table->foreignId('categorie_log_id')->constrained('categorie_logs')->noActionOnDelete();
             $table->foreignId('users_id')->constrained('users'); // created by
 
             $table->text('logs');
@@ -21,12 +21,12 @@ return new class extends Migration
 
             $table->enum('status', ['open', 'close']);
             $table->dateTime('closing_date')->nullable();
-            $table->foreignId('closing_users')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('closing_users')->nullable()->constrained('users')->noActionOnDelete();
 
-            $table->foreignId('response_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('response_by')->nullable()->constrained('users')->noActionOnDelete();
             $table->boolean('need_response')->default(false);
 
-            $table->foreignId('project_id')->nullable()->constrained('projects')->nullOnDelete();
+            $table->foreignId('project_id')->nullable()->constrained('projects', 'pn_number')->noActionOnDelete();
             $table->timestamps();
         });
     }

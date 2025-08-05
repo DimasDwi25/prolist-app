@@ -33,6 +33,7 @@
             <div>
                 <div class="p-4 border-b border-[#005f87] bg-white flex items-center space-x-3">
                     <img src="{{ asset('images/CITASys Logo.jpg') }}" alt="Logo" class="w-40 h-10">
+                     
                 </div>
 
                 <nav class="mt-4 space-y-1 px-4">

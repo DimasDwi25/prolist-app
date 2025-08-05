@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,17 +13,18 @@ return new class extends Migration
         Schema::create('phcs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')
-                ->constrained('projects')
-                ->onDelete('cascade');
+                ->nullable()
+                ->constrained('projects', 'pn_number')
+                ->noActionOnDelete();
             $table->foreignId('ho_marketings_id')
                 ->nullable()
                 ->constrained('users')
-                ->onDelete('cascade');
+                ->noActionOnDelete();
 
             $table->foreignId('ho_engineering_id')
                 ->nullable()
                 ->constrained('users')
-                ->onDelete('cascade');
+                ->noActionOnDelete();
 
             $table->foreignId('created_by')
                 ->constrained('users')
@@ -42,12 +42,12 @@ return new class extends Migration
             $table->foreignId('pic_engineering_id')
                 ->nullable()
                 ->constrained('users')
-                ->onDelete('cascade');
+                ->noActionOnDelete();
 
             $table->foreignId('pic_marketing_id')
                 ->nullable()
                 ->constrained('users')
-                ->onDelete('cascade');
+                ->noActionOnDelete();
 
             $table->dateTime('handover_date');
 

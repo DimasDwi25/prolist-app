@@ -21,7 +21,6 @@ class NotificationBell extends Component
     {
         $this->notifications = Auth::user()
                 ?->unreadNotifications()
-            ->latest()
             ->take(10)
             ->get() ?? collect();
     }

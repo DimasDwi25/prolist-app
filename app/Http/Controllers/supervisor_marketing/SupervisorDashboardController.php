@@ -11,6 +11,10 @@ class SupervisorDashboardController extends Controller
 {
     public function index()
     {
+        DB::listen(function ($query) {
+            // Simpan ke laravel.log
+            \Log::info('SQL: ' . $query->sql, $query->bindings);
+        });
         // Statistik utama
         $totalQuotation = Quotation::count();
         $totalQuotationValue = Quotation::sum('quotation_value');
@@ -21,10 +25,10 @@ class SupervisorDashboardController extends Controller
         $allStatusKeys = ['A', 'D', 'E', 'F', 'O'];
 
         $quotationStatusCount = collect($allStatusKeys)->mapWithKeys(function ($key) {
-            return [$key => \App\Models\Quotation::where('status', $key)->count()];
+            return [$key => Quotation::where('status', $key)->count()];
         });
 
-        // Mapping label untuk status
+        // Label dan warna status
         $statusLabels = [
             'A' => 'Quotation and PO Completed',
             'D' => 'Project belum ada PO',
@@ -33,43 +37,46 @@ class SupervisorDashboardController extends Controller
             'O' => 'On Going',
         ];
 
-        // Warna untuk pie chart
         $statusColors = [
-            'A' => '#10b981', // Green
-            'D' => '#3b82f6', // Blue
-            'E' => '#f59e0b', // Amber
-            'F' => '#ef4444', // Red
-            'O' => '#a855f7', // Purple
+            'A' => '#10b981',
+            'D' => '#3b82f6',
+            'E' => '#f59e0b',
+            'F' => '#ef4444',
+            'O' => '#a855f7',
         ];
 
         $labels = collect($allStatusKeys)->map(fn($k) => $statusLabels[$k]);
         $colors = collect($allStatusKeys)->map(fn($k) => $statusColors[$k]);
         $data = collect($allStatusKeys)->map(fn($k) => $quotationStatusCount[$k]);
 
-        // Ambil tren bulanan (12 bulan terakhir)
-        $months = collect(range(1, 12))->map(function ($m) {
-            return date('M', mktime(0, 0, 0, $m, 1));
-        })->toArray();
+        // Bulan untuk grafik
+        $months = collect(range(1, 12))->map(fn($m) => date('M', mktime(0, 0, 0, $m, 1)))->toArray();
 
+        // Data quotation per bulan (tanpa ORDER BY di SQL)
         $quotationPerMonth = Quotation::select(
-            DB::raw('MONTH(quotation_date) as month'),
+            DB::raw('MONTH(quotation_date) as month_num'),
             DB::raw('SUM(quotation_value) as total')
         )
             ->whereYear('quotation_date', now()->year)
-            ->groupBy('month')
-            ->pluck('total', 'month')
+            ->groupBy(DB::raw('MONTH(quotation_date)'))
+            ->pluck('total', 'month_num')
             ->toArray();
 
+        // Data sales per bulan (tanpa ORDER BY di SQL)
         $salesPerMonth = Quotation::select(
-            DB::raw('MONTH(po_date) as month'),
+            DB::raw('MONTH(po_date) as month_num'),
             DB::raw('SUM(po_value) as total')
         )
             ->whereYear('po_date', now()->year)
-            ->groupBy('month')
-            ->pluck('total', 'month')
+            ->groupBy(DB::raw('MONTH(po_date)'))
+            ->pluck('total', 'month_num')
             ->toArray();
 
-        // Normalize data (isi 0 untuk bulan yang tidak ada data)
+        // Urutkan secara manual di PHP
+        ksort($quotationPerMonth);
+        ksort($salesPerMonth);
+
+        // Normalisasi data (isi 0 untuk bulan kosong)
         $quotationPerMonthData = [];
         $salesPerMonthData = [];
         foreach (range(1, 12) as $m) {
@@ -89,9 +96,9 @@ class SupervisorDashboardController extends Controller
             'quotationStatusCount',
             'statusLabels',
             'statusColors',
-            'labels', // baru
-            'colors', // baru
-            'data'    // baru
+            'labels',
+            'colors',
+            'data'
         ));
     }
 }

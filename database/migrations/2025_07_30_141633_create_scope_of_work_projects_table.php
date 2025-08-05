@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('scope_of_work_projects', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('scope_of_work_id')->constrained('scope_of_works')->onDelete('cascade');
-            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            $table->foreignId('scope_of_work_id')->constrained('scope_of_works')->noActionOnDelete();
+            $table->foreignId('project_id')->constrained('projects', 'pn_number')->noActionOnDelete();
             $table->text('description');
             $table->timestamps();
         });

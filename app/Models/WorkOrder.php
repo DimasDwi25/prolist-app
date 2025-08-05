@@ -33,7 +33,7 @@ class WorkOrder extends Model
     // Relasi ke Project
     public function project()
     {
-        return $this->belongsTo(Project::class, 'project_id');
+        return $this->belongsTo(Project::class, 'project_id', 'pn_number');
     }
 
     // Relasi PIC - ubah nama method biar nggak bentrok dengan kolom
@@ -91,6 +91,6 @@ class WorkOrder extends Model
     // Relasi Log (berdasarkan project_id)
     public function logs()
     {
-        return $this->hasMany(Log::class, 'project_id', 'project_id');
+        return $this->hasMany(Log::class, 'project_id', 'pn_number');
     }
 }

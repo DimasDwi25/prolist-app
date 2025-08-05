@@ -9,6 +9,9 @@ class Project extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'pn_number';
+    public $incrementing = false; // karena kita generate manual
+
     protected $fillable = [
         'project_name',
         'project_number',
@@ -29,30 +32,39 @@ class Project extends Model
     protected static function booted(): void
     {
         static::creating(function ($project) {
-            $project->project_number = self::generateProjectNumber();
+            $project->pn_number = self::generatePnNumber();
+            $project->project_number = self::generateProjectNumber($project->pn_number);
         });
     }
 
-    public static function generateProjectNumber(): string
+    public static function generatePnNumber(): int
     {
-        $currentYear = now()->format('Y');
-        $yearShort = now()->format('y');
+        $yearShort = now()->format('y'); // contoh: '25' untuk 2025
 
-        // Ambil project terakhir berdasarkan tahun
-        $lastProject = self::whereYear('created_at', $currentYear)
-            ->orderByDesc('created_at')
+        // Ambil project terakhir untuk tahun ini
+        $last = self::whereRaw("LEFT(pn_number, 2) = ?", [$yearShort])
+            ->orderByDesc('pn_number')
             ->first();
 
-        $lastNumber = 0;
-
-        // Ambil angka setelah slash (misal: 001 dari PN-25/001)
-        if ($lastProject && preg_match('/PN-\d{2}\/(\d{3})/', $lastProject->project_number, $matches)) {
-            $lastNumber = (int) $matches[1];
+        if ($last) {
+            // Ambil nomor urut setelah 2 digit tahun
+            $lastNumber = (int) substr($last->pn_number, 2);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Kalau belum ada data tahun ini, mulai dari 1
+            $newNumber = 1;
         }
 
-        $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+        // Gabungkan: tahun singkat + nomor urut 3 digit
+        return (int) ($yearShort . str_pad($newNumber, 3, '0', STR_PAD_LEFT));
+    }
 
-        return "PN-{$yearShort}/{$newNumber}";
+
+    public static function generateProjectNumber(int $pnNumber): string
+    {
+        $yearShort = substr($pnNumber, 0, 2);
+        $number = substr($pnNumber, 2);
+        return "PN-{$yearShort}/" . str_pad($number, 3, '0', STR_PAD_LEFT);
     }
 
 

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('work_orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            $table->foreignId('project_id')->constrained('projects', 'pn_number')->onDelete('cascade');
             $table->dateTime('wo_date');
             $table->integer('wo_number_in_project');
             $table->string('wo_kode_no');

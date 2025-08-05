@@ -29,28 +29,7 @@ class ProjectTable extends DataTableComponent
 
     public function builder(): Builder
     {
-        $hasFilters = false;
-
-        // Cek apakah ada search
-        if ($this->hasSearch() && !empty($this->getSearch())) {
-            $hasFilters = true;
-        }
-
-        // Cek applied filters
-        $appliedFilters = $this->getAppliedFilters();
-        foreach ($appliedFilters as $filterValue) {
-            if (!empty($filterValue) && $filterValue !== '') {
-                $hasFilters = true;
-                break;
-            }
-        }
-
-        // Jika tidak ada filter/search, return query kosong
-        if (!$hasFilters) {
-            return Project::query()->whereRaw('1=0');
-        }
-
-        return Project::query()->with(['category', 'quotation']);
+        return Project::query()->with(['category', 'quotation'])->orderBy('projects.created_at', 'desc');
     }
 
     public function query(): Builder

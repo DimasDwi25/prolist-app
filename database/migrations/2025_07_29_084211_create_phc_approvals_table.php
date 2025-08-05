@@ -12,8 +12,8 @@ return new class extends Migration {
     {
         Schema::create('phc_approvals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('phc_id')->constrained('phcs')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('phc_id')->constrained('phcs')->noActionOnDelete();
+            $table->foreignId('user_id')->constrained('users')->noActionOnDelete();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamp('validated_at')->nullable();
             $table->string('pin_hash')->nullable();

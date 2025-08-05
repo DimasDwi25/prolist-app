@@ -15,7 +15,7 @@ class SupervisorQuotationController extends Controller
 {
     public function index()
     {
-        $quotations = Quotation::with('client', 'user')->get();
+        $quotations = Quotation::with('client', 'user')->orderBy('quotations.created_at', 'desc')->get();
         return view('supervisor.quotation.index', compact('quotations'));
     }
 
@@ -26,8 +26,11 @@ class SupervisorQuotationController extends Controller
         $noQuotationNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
         $formattedQuotation = Quotation::formatFullQuotationNo($noQuotationNumber);
 
-        return view('supervisor.quotation.form', compact('clients', 'noQuotationNumber', 'formattedQuotation'));
+        $quotation = null; // Tambahkan ini agar view tidak error
+
+        return view('supervisor.quotation.form', compact('clients', 'noQuotationNumber', 'formattedQuotation', 'quotation'));
     }
+
 
     public function ajaxClients(Request $request)
     {
@@ -72,9 +75,12 @@ class SupervisorQuotationController extends Controller
     {
         $this->validateRequest($request, $quotation->id);
 
+        // Generate ulang nomor quotation berdasarkan nomor yang dikirim dari form
+        $formattedNoQuotation = Quotation::formatFullQuotationNo($request->no_quotation);
+
         $quotation->update([
             ...$request->except(['no_quotation']),
-            'no_quotation' => $request->no_quotation,
+            'no_quotation' => $formattedNoQuotation,
         ]);
 
         return redirect()->route('quotation.index')->with('success', 'Quotation updated successfully!');
@@ -128,5 +134,5 @@ class SupervisorQuotationController extends Controller
         return redirect()->back()->with('success', 'Quotation status updated successfully.');
     }
 
-    
+
 }

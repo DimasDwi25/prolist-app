@@ -40,29 +40,8 @@ class MarketingReportTable extends DataTableComponent
 
     public function builder(): Builder
     {
-        // Cek apakah ada filter atau search yang aktif
-        $hasFilters = false;
 
-        // Cek search
-        if ($this->hasSearch() && !empty($this->getSearch())) {
-            $hasFilters = true;
-        }
-
-        // Cek applied filters
-        $appliedFilters = $this->getAppliedFilters();
-        foreach ($appliedFilters as $filterName => $filterValue) {
-            if (!empty($filterValue) && $filterValue !== '' && $filterValue !== 'all') {
-                $hasFilters = true;
-                break;
-            }
-        }
-
-        // Jika tidak ada filter aktif, return query kosong
-        if (!$hasFilters) {
-            return Quotation::query()->whereRaw('1 = 0')->with('client');
-        }
-
-        return Quotation::query()->with('client')->whereIn('status', ['A', 'D']);
+        return Quotation::query()->with('client')->whereIn('status', ['A', 'D'])->orderBy('quotations.created_at', 'desc');
     }
 
     public function query(): Builder
@@ -209,8 +188,8 @@ class MarketingReportTable extends DataTableComponent
         return Cache::remember('quotation-years', now()->addDay(), function () {
             $years = Quotation::query()
                 ->selectRaw('YEAR(quotation_date) as year')
-                ->groupBy('year')
-                ->orderBy('year', 'desc')
+                ->groupByRaw('YEAR(quotation_date)')
+                ->orderByRaw('YEAR(quotation_date) DESC')
                 ->pluck('year')
                 ->toArray();
 
@@ -230,7 +209,7 @@ class MarketingReportTable extends DataTableComponent
      */
     private function getMonthOptions(): array
     {
-        $months = [
+        return [
             '' => '🗓️ Select Month',
             '1' => 'January',
             '2' => 'February',
@@ -245,26 +224,6 @@ class MarketingReportTable extends DataTableComponent
             '11' => 'November',
             '12' => 'December',
         ];
-
-        // If a year is selected, only show months that have data for that year
-        if ($this->selectedYear) {
-            $validMonths = Quotation::query()
-                ->whereYear('quotation_date', $this->selectedYear)
-                ->selectRaw('MONTH(quotation_date) as month')
-                ->groupBy('month')
-                ->pluck('month')
-                ->toArray();
-
-            $filteredMonths = ['' => '🗓️ Select Month'];
-            foreach ($validMonths as $month) {
-                if (isset($months[$month])) {
-                    $filteredMonths[$month] = $months[$month];
-                }
-            }
-            return $filteredMonths;
-        }
-
-        return $months;
     }
 
     /**
