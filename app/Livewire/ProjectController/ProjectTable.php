@@ -73,12 +73,18 @@ class ProjectTable extends DataTableComponent
 
     public function filters(): array
     {
-        $years = Project::selectRaw("SUBSTRING_INDEX(SUBSTRING_INDEX(project_number, '/', 1), '-', -1) as year")
-            ->distinct()
+        $years = Project::selectRaw("
+    DISTINCT SUBSTRING(
+        project_number,
+        CHARINDEX('-', project_number) + 1,
+        CHARINDEX('/', project_number) - CHARINDEX('-', project_number) - 1
+    ) AS year
+")
+            ->orderBy('year', 'desc')
             ->pluck('year')
-            ->sortDesc()
             ->mapWithKeys(fn($year) => [$year => '20' . $year])
             ->toArray();
+
 
         return [
             SelectFilter::make('Tahun')
@@ -90,4 +96,5 @@ class ProjectTable extends DataTableComponent
                 }),
         ];
     }
+
 }

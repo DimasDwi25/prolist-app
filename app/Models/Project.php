@@ -11,6 +11,7 @@ class Project extends Model
 
     protected $primaryKey = 'pn_number';
     public $incrementing = false; // karena kita generate manual
+    protected $keyType = 'int'; // karena pn_number integer
 
     protected $fillable = [
         'project_name',
@@ -97,6 +98,11 @@ class Project extends Model
     public function schedules()
     {
         return $this->hasMany(ProjectSchedule::class);
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'pn_number';
     }
 
 

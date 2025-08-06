@@ -16,7 +16,7 @@ class ProjectTable extends DataTableComponent
 
     public function configure(): void
     {
-        $this->setPrimaryKey('id');
+        $this->setPrimaryKey('pn_number');
         $this->setDefaultSort('created_at', 'desc');
         $this->setColumnSelectDisabled();
         $this->setPaginationEnabled();
@@ -40,7 +40,9 @@ class ProjectTable extends DataTableComponent
     public function columns(): array
     {
         return [
-            Column::make('ID', 'id')->excludeFromColumnSelect()->hideIf(true),
+            Column::make('PN Number', 'pn_number')
+                ->excludeFromColumnSelect()
+                ->hideIf(true),
             Column::make('Project Number', 'project_number')->sortable()->searchable(),
             Column::make('Name', 'project_name')->sortable()->searchable(),
             Column::make('Category', 'category.name')->sortable()->searchable(),
@@ -53,12 +55,18 @@ class ProjectTable extends DataTableComponent
 
     public function filters(): array
     {
-        $years = Project::selectRaw("SUBSTRING_INDEX(SUBSTRING_INDEX(project_number, '/', 1), '-', -1) as year")
-            ->distinct()
+        $years = Project::selectRaw("
+    DISTINCT SUBSTRING(
+        project_number,
+        CHARINDEX('-', project_number) + 1,
+        CHARINDEX('/', project_number) - CHARINDEX('-', project_number) - 1
+    ) AS year
+")
+            ->orderBy('year', 'desc')
             ->pluck('year')
-            ->sortDesc()
             ->mapWithKeys(fn($year) => [$year => '20' . $year])
             ->toArray();
+
 
         return [
             SelectFilter::make('Tahun')

@@ -40,6 +40,7 @@ use App\Livewire\ProjectController\WeeklyProgressAll;
 use App\Livewire\ProjectController\WeeklyProgressBoard;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\UserExportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,6 +91,10 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
     Route::put('/admin/user/update/{user}', [UserController::class, 'update'])->name('user.update');
 
     Route::delete('/admin/user/delete/{user}', [UserController::class, 'destroy'])->name('user.destroy');
+
+
+
+    Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
 
 });
 

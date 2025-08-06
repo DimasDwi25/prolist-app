@@ -173,16 +173,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Init Select2 after page load
-        $(document).ready(function () {
-            $('.select2').select2({
-                placeholder: '-- Select Client --',
-                allowClear: true,
-                minimumResultsForSearch: 5,
-                width: 'resolve',
-                dropdownAutoWidth: true,
-            });
-        });
+        
 
         document.addEventListener('DOMContentLoaded', function () {
             // Initialize Pusher/Echo

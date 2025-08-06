@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\SuperAdmin;
 
+use App\Exports\UsersExport;
 use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\Role;
 use App\Models\User;
 use Hash;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
 {
@@ -71,5 +73,10 @@ class UserController extends Controller
     {
         $user->delete();
         return redirect()->route('admin.user')->with('success', 'User deleted successfully.');
+    }
+
+    public function export()
+    {
+        return Excel::download(new UsersExport, 'users.xlsx');
     }
 }

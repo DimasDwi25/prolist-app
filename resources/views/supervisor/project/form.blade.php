@@ -12,6 +12,16 @@
                 class="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1 transition">
                 ← Back to Projects
             </a>
+
+            @if ($errors->any())
+                <div class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4">
+                    <ul class="list-disc pl-5">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
         </div>
 
         {{-- Form --}}
@@ -50,7 +60,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Project Number</label>
                     <input type="text" name="project_number" readonly
                         class="w-full bg-gray-100 text-gray-500 border border-gray-300 rounded-lg px-3 py-2 shadow-sm"
-                        value="{{ old('project_number', $project->project_number ?? \App\Models\Project::generateProjectNumber()) }}">
+                        value="{{ old('project_number', $project->project_number ?? \App\Models\Project::generateProjectNumber(\App\Models\Project::generatePnNumber())) }}">
                 </div>
             </div>
 
@@ -61,7 +71,8 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Quotation</label>
                         <select name="quotations_id" id="quotations_id" required
-                            class="select2 w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" aria-placeholder="Select Quotation">
+                            class="select2 w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            aria-placeholder="Select Quotation">
                             <option value="">-- Select Quotation --</option>
                             @foreach ($quotations as $quotation)
                                 <option value="{{ $quotation->id }}" {{ old('quotations_id', $project->quotations_id ?? '') == $quotation->id ? 'selected' : '' }}>

@@ -15,12 +15,11 @@ class StatusProjectSeeder extends Seeder
     {
         //
         StatusProject::insert([
-            ['name' => 'Draft'],
             ['name' => 'On Progress'],
-            ['name' => 'Completed'],
-            ['name' => 'Cancelled'],
-            ['name' => 'Hold'],
-            ['name' => 'Closed']
+            ['name' => 'Document Completed'],
+            ['name' => 'Work Completed'],
+            ['name' => 'Hold By Customer'],
+            ['name' => 'Project Finished'],
         ]);
     }
 }
