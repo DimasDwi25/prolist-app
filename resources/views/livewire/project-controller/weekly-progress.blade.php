@@ -1,7 +1,7 @@
 <div class="bg-white rounded-xl shadow p-6 relative">
     {{-- Header --}}
     <div class="flex items-center justify-between mb-4">
-        <a href="{{ route('projects.schedule-tasks.index', [$project->id, $schedule->id]) }}"
+        <a href="{{ route('projects.schedule-tasks.index', [$project->pn_number, $schedule->id]) }}"
             class="inline-flex items-center text-sm text-gray-700 hover:text-blue-600">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                 stroke="currentColor" class="w-4 h-4 mr-1">

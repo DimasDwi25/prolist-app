@@ -4,57 +4,87 @@
     @php $isEdit = isset($workOrder); @endphp
 
     @if ($errors->any())
-        <div class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4">
-            <ul class="list-disc pl-5">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+        <div class="bg-red-50 text-red-600 px-4 py-3 rounded-md mb-6">
+            <div class="flex items-center">
+                <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <h3 class="text-sm font-medium">There were {{ $errors->count() }} error(s) with your submission</h3>
+            </div>
+            <div class="mt-2 text-sm pl-7">
+                <ul class="list-disc space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
         </div>
     @endif
 
-    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow border border-gray-200">
-        <div class="flex justify-between items-center mb-6">
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex justify-between items-center mb-8">
             <div>
-                <h2 class="text-2xl font-bold text-gray-800">
-                    {{ $isEdit ? '✏️ Edit Work Order' : '➕ Create Work Order' }}
+                <h2 class="text-2xl font-semibold text-gray-900">
+                    {{ $isEdit ? 'Edit Work Order' : 'Create New Work Order' }}
                 </h2>
                 <p class="text-sm text-gray-500 mt-1">
-                    Lengkapi data berikut untuk {{ $isEdit ? 'memperbarui' : 'membuat' }} WO
+                    {{ $isEdit ? 'Update the work order details below' : 'Fill in the form to create a new work order' }}
                 </p>
             </div>
             <a href="{{ route('project_controller.work_order') }}"
-                class="text-sm text-gray-600 hover:text-blue-600 hover:underline">← Kembali ke daftar WO</a>
+                class="inline-flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Work Orders
+            </a>
         </div>
 
         <form
             action="{{ $isEdit ? route('project_controller.work-orders.update', $workOrder) : route('project_controller.work-orders.store') }}"
-            method="POST">
+            method="POST"
+            class="space-y-6">
             @csrf
             @if($isEdit) @method('PUT') @endif
 
-            {{-- Project & Client --}}
-            <div class="grid md:grid-cols-2 gap-6 mb-6">
-                <x-form.select name="project_id" label="Project" :options="$projects" option-value="id"
-                    option-label="project_number" :selected="old('project_id', $workOrder->project_id ?? '')" required />
-                <x-input.text name="client_name" id="client_name" label="Client" readonly />
+            <!-- Project & Client Section -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
+                    <select name="project_id" id="project_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Select Project</option>
+                        @foreach($projects as $project)
+                            <option value="{{ $project->id }}" @selected(old('project_id', $workOrder->project_id ?? '') == $project->id)>
+                                {{ $project->project_number }} - {{ $project->project_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Client</label>
+                    <input type="text" name="client_name" id="client_name" readonly
+                        class="w-full rounded-md bg-gray-50 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
             </div>
 
-            {{-- WO Date & Kode --}}
-            <div class="grid md:grid-cols-3 gap-6 mb-6">
-                <x-input.date name="wo_date" label="WO Date" :value="old('wo_date', $workOrder->wo_date ?? '')" />
-
+            <!-- Work Order Details Section -->
+            <div class="grid md:grid-cols-3 gap-6">
                 <div>
-                    <label class="text-sm font-medium text-gray-700 block mb-1">WO Kode</label>
-                    <div class="flex items-center">
-                        <span id="wo_kode_prefix"
-                            class="inline-flex items-center bg-gray-100 px-3 py-2 rounded-l border border-r-0 border-gray-300 text-gray-700 text-sm font-mono">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">WO Date</label>
+                    <input type="date" name="wo_date" value="{{ old('wo_date', $workOrder->wo_date ?? '') }}"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">WO Number</label>
+                    <div class="flex rounded-md shadow-sm">
+                        <span id="wo_kode_prefix" class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm font-mono">
                             WO-00/000/
                         </span>
-                        <input type="number" id="wo_number_last" name="wo_number_last"
-                            class="w-24 border-gray-300 rounded-r-md shadow-sm"
+                        <input type="number" id="wo_number_last" name="wo_number_last" min="1"
                             value="{{ old('wo_number_last') ?? (isset($workOrder) ? explode('/', $workOrder->wo_kode_no)[2] : '') }}"
-                            min="1">
+                            class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                     </div>
                 </div>
             </div>
@@ -62,198 +92,267 @@
             <input type="hidden" name="wo_kode_no" id="wo_kode_no_real"
                 value="{{ old('wo_kode_no', $workOrder->wo_kode_no ?? '') }}">
 
-            {{-- PIC dan Role --}}
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">👥 PIC dan Role</h3>
-            <div class="grid md:grid-cols-2 gap-6 mb-6">
-                @foreach(range(1, 5) as $i)
-                    <x-form.select name="pic{{ $i }}" label="PIC {{ $i }}" :options="$users" :selected="old('pic' . $i, $workOrder->{'pic' . $i} ?? '')" />
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Role PIC {{ $i }}</label>
-                        <select name="role_pic_{{ $i }}" class="w-full border-gray-300 rounded-md shadow-sm"
-                            onchange="updateMandays()">
-                            <option value="">- Pilih Role -</option>
-                            @foreach ($roles->where('type_role', 2) as $role)
-                                <option value="{{ $role->id }}" data-role-name="{{ strtolower($role->name) }}"
-                                    @selected(old('role_pic_' . $i, $workOrder->{'role_pic_' . $i} ?? '') == $role->id)>
-                                    {{ $role->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endforeach
-            </div>
-
-            {{-- Mandays --}}
-            <div class="grid md:grid-cols-2 gap-6 mb-6">
-                <x-input.text name="total_mandays_eng" label="🛠️ Total Mandays Engineer" readonly />
-                <x-input.text name="total_mandays_elect" label="⚡ Total Mandays Elect" readonly />
-            </div>
-
-            {{-- Work Description --}}
-            <div class="mb-6">
-                <label class="text-sm font-medium text-gray-700 block mb-1">📝 Work Description</label>
-                <textarea name="work_description" rows="4"
-                    class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 px-3 py-2">{{ old('work_description', $workOrder->work_description ?? '') }}</textarea>
-            </div>
-
-            {{-- Modal Simpan ke Log --}}
-            <div x-data="{ open: false }">
-                <button type="button" @click="open = true"
-                    class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded shadow">
-                    💾 Submit
-                </button>
-
-                <div x-show="open" x-cloak
-                    class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-                    <div class="bg-white w-full max-w-lg rounded-lg shadow-lg p-6 relative">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Konfirmasi Simpan ke Log</h3>
-                        <p class="text-gray-600 mb-4">Apakah Anda ingin menyimpan *Work Description* ke log project?</p>
-
-                        <div id="log-fields">
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Log</label>
-                                <select name="categorie_log_id" id="categorie_log_id"
-                                    class="w-full border-gray-300 rounded-md shadow-sm" required>
-                                    <option value="">-- Pilih Kategori --</option>
-                                    @foreach($categorieLogs as $cat)
-                                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <select name="status" class="w-full border-gray-300 rounded-md shadow-sm" required>
-                                    <option value="open">Open</option>
-                                    <option value="close">Close</option>
-                                </select>
-                            </div>
-
-                            <div class="mb-4 flex items-center gap-2">
-                                <input type="checkbox" name="need_response" id="need_response" value="1"
-                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                <label for="need_response" class="text-sm text-gray-700">Perlu Respon?</label>
-                            </div>
+            <!-- PIC and Roles Section -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-medium text-gray-900">Person In Charge (PIC)</h3>
+                
+                <div class="space-y-4">
+                    @foreach(range(1, 5) as $i)
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">PIC {{ $i }}</label>
+                            <select name="pic{{ $i }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select Team Member</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" @selected(old('pic' . $i, $workOrder->{'pic' . $i} ?? '') == $user->id)>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
-
-                        <div class="flex justify-end gap-3">
-                            <button type="submit" name="save_log" value="yes"
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                                onclick="return validateLogFields()">Ya, Simpan ke Log</button>
-                            <button type="submit" name="save_log" value="no"
-                                class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">Tidak</button>
-                            <button type="button" @click="open = false"
-                                class="border border-gray-300 px-4 py-2 rounded">Batal</button>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Role for PIC {{ $i }}</label>
+                            <select name="role_pic_{{ $i }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pic-role-select">
+                                <option value="">Select Role</option>
+                                @foreach ($roles->where('type_role', 2) as $role)
+                                    <option value="{{ $role->id }}" data-role-name="{{ strtolower($role->name) }}"
+                                        @selected(old('role_pic_' . $i, $workOrder->{'role_pic_' . $i} ?? '') == $role->id)>
+                                        {{ $role->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
+                    @endforeach
                 </div>
             </div>
 
+            <!-- Mandays Calculation -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Engineer Mandays</label>
+                    <input type="text" name="total_mandays_eng" readonly
+                        class="w-full rounded-md bg-gray-50 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Electrician Mandays</label>
+                    <input type="text" name="total_mandays_elect" readonly
+                        class="w-full rounded-md bg-gray-50 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- Work Description -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Work Description</label>
+                <textarea name="work_description" rows="4"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('work_description', $workOrder->work_description ?? '') }}</textarea>
+            </div>
+
+            <!-- Submit Button with Log Modal -->
+            <div class="pt-4">
+                <button type="button" id="submit-button"
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    {{ $isEdit ? 'Update Work Order' : 'Create Work Order' }}
+                </button>
+            </div>
+
+            <!-- Log Modal (hidden by default) -->
+            <div id="log-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden w-full max-w-lg">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between">
+                            <h3 class="text-lg font-medium text-gray-900">Save to Project Log</h3>
+                            <button type="button" id="close-modal" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4 space-y-4">
+                            <p class="text-sm text-gray-500">Would you like to save the work description to the project log?</p>
+                            
+                            <div id="log-fields" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Log Category</label>
+                                    <select name="categorie_log_id" id="categorie_log_id"
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="">Select Category</option>
+                                        @foreach($categorieLogs as $cat)
+                                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                    <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="open">Open</option>
+                                        <option value="close">Close</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="need_response" id="need_response" value="1"
+                                        class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="need_response" class="ml-2 block text-sm text-gray-700">Requires Response</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit" name="save_log" value="yes"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Save to Log
+                        </button>
+                        <button type="submit" name="save_log" value="no"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Skip Log
+                        </button>
+                        <button type="button" id="cancel-modal"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
         </form>
     </div>
 @endsection
 
 @push('scripts')
-    <script>
-        document.addEventListener('turbo:before-cache', () => {
-            window.Livewire?.stop();
-        });
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize form elements
+    const projectSelect = document.getElementById('project_id');
+    const clientInput = document.getElementById('client_name');
+    const woKodePrefix = document.getElementById('wo_kode_prefix');
+    const woNumberLast = document.getElementById('wo_number_last');
+    const woKodeReal = document.getElementById('wo_kode_no_real');
+    const projects = @json($projects);
+    const projectWorkOrderCounts = @json($projectWorkOrderCounts);
+    const year = new Date().getFullYear().toString().slice(-2);
+    
+    // Modal elements
+    const submitButton = document.getElementById('submit-button');
+    const logModal = document.getElementById('log-modal');
+    const closeModal = document.getElementById('close-modal');
+    const cancelModal = document.getElementById('cancel-modal');
 
-        document.addEventListener('DOMContentLoaded', initWOForm); // Gunakan DOMContentLoaded agar pasti jalan
-
-        function initWOForm() {
-            const projectSelect = document.querySelector('select[name="project_id"]');
-            const clientInput = document.getElementById('client_name');
-            const woKodePrefix = document.getElementById('wo_kode_prefix');
-            const woNumberLast = document.getElementById('wo_number_last');
-            const woKodeReal = document.getElementById('wo_kode_no_real');
-            const projects = @json($projects);
-            const projectWorkOrderCounts = @json($projectWorkOrderCounts);
-            const year = new Date().getFullYear().toString().slice(-2);
-
-            if (!projectSelect) return;
-
-            function updatePrefix() {
-                const pid = projectSelect.value;
-                const project = projects.find(p => p.id == pid);
-                if (!project) {
-                    woKodePrefix.innerText = `WO-${year}/000/`;
-                    woNumberLast.value = 1;
-                    updateHiddenKode();
-                    return;
-                }
-
-                const match = project.project_number.match(/^PN-\d{2}\/(\d{3})$/);
-                const code = match ? match[1] : '000';
-                const prefix = `WO-${year}/${code}/`;
-                woKodePrefix.innerText = prefix;
-
-                // Isi default hanya jika user belum ubah
-                if (!woNumberLast.dataset.edited || woNumberLast.value === '') {
-                    woNumberLast.value = (parseInt(projectWorkOrderCounts[pid] ?? 0) + 1);
-                }
-                updateHiddenKode();
+    // Update project prefix and client when project changes
+    function updateProjectDetails() {
+        const pid = projectSelect.value;
+        const project = projects.find(p => p.id == pid);
+        
+        // Update WO prefix
+        if (project) {
+            const match = project.project_number.match(/^PN-\d{2}\/(\d{3})$/);
+            const code = match ? match[1] : '000';
+            woKodePrefix.textContent = `WO-${year}/${code}/`;
+            
+            // Set default WO number if not manually edited
+            if (!woNumberLast.dataset.edited || woNumberLast.value === '') {
+                woNumberLast.value = parseInt(projectWorkOrderCounts[pid] ?? 0) + 1;
             }
-
-            function updateHiddenKode() {
-                woKodeReal.value = woKodePrefix.innerText + (woNumberLast.value || '1');
-            }
-
-            function fetchClient() {
-                if (!projectSelect.value) {
-                    clientInput.value = '';
-                    return;
-                }
-                fetch(`/projects/${projectSelect.value}/client`)
-                    .then(res => res.json())
-                    .then(data => {
-                        clientInput.value = data.client_name ?? '';
-                    })
-                    .catch(() => {
-                        clientInput.value = '';
-                    });
-            }
-
-            // Tandai jika user manual edit nomor WO
-            woNumberLast.addEventListener('input', () => {
-                woNumberLast.dataset.edited = true;
-                updateHiddenKode();
-            });
-
-            projectSelect.addEventListener('change', () => {
-                woNumberLast.dataset.edited = false;
-                updatePrefix();
-                fetchClient();
-            });
-
-            // Jalankan sekali saat halaman load pertama kali
-            woNumberLast.dataset.edited = false;
-            updatePrefix();
-            fetchClient();
-            updateMandays();
+        } else {
+            woKodePrefix.textContent = `WO-${year}/000/`;
+            woNumberLast.value = 1;
         }
+        
+        updateHiddenKode();
+        fetchClient();
+    }
 
-        function updateMandays() {
-            let totalEng = 0, totalElect = 0;
-            for (let i = 1; i <= 5; i++) {
-                const select = document.querySelector(`select[name="role_pic_${i}"]`);
-                const selected = select?.options[select.selectedIndex];
-                const roleName = selected?.dataset.roleName?.toLowerCase();
+    // Update the hidden WO code field
+    function updateHiddenKode() {
+        woKodeReal.value = woKodePrefix.textContent + (woNumberLast.value || '1');
+    }
+
+    // Fetch client name for selected project
+    function fetchClient() {
+        if (!projectSelect.value) {
+            clientInput.value = '';
+            return;
+        }
+        
+        fetch(`/projects/${projectSelect.value}/client`)
+            .then(res => res.json())
+            .then(data => {
+                clientInput.value = data.client_name || '';
+            })
+            .catch(() => {
+                clientInput.value = '';
+            });
+    }
+
+    // Calculate mandays based on selected roles
+    function updateMandays() {
+        let totalEng = 0, totalElect = 0;
+        
+        document.querySelectorAll('.pic-role-select').forEach(select => {
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption) {
+                const roleName = selectedOption.dataset.roleName?.toLowerCase();
                 if (roleName === 'engineer') totalEng++;
                 else if (roleName === 'electrician') totalElect++;
             }
-            document.querySelector('input[name="total_mandays_eng"]').value = totalEng;
-            document.querySelector('input[name="total_mandays_elect"]').value = totalElect;
-        }
+        });
+        
+        document.querySelector('input[name="total_mandays_eng"]').value = totalEng;
+        document.querySelector('input[name="total_mandays_elect"]').value = totalElect;
+    }
 
-        function validateLogFields() {
-            const cat = document.getElementById('categorie_log_id');
-            if (!cat.value) {
-                alert('Pilih kategori log terlebih dahulu!');
-                return false;
-            }
-            return true;
+    // Validate log fields before submission
+    function validateLogFields() {
+        const category = document.getElementById('categorie_log_id');
+        if (!category.value) {
+            alert('Please select a log category');
+            return false;
         }
-    </script>
+        return true;
+    }
+
+    // Event Listeners
+    projectSelect.addEventListener('change', updateProjectDetails);
+    
+    woNumberLast.addEventListener('input', function() {
+        this.dataset.edited = true;
+        updateHiddenKode();
+    });
+    
+    document.querySelectorAll('.pic-role-select').forEach(select => {
+        select.addEventListener('change', updateMandays);
+    });
+    
+    // Modal handling
+    submitButton.addEventListener('click', function() {
+        logModal.classList.remove('hidden');
+    });
+    
+    closeModal.addEventListener('click', function() {
+        logModal.classList.add('hidden');
+    });
+    
+    cancelModal.addEventListener('click', function() {
+        logModal.classList.add('hidden');
+    });
+    
+    document.querySelector('button[name="save_log"][value="yes"]').addEventListener('click', function(e) {
+        if (!validateLogFields()) {
+            e.preventDefault();
+        }
+    });
+
+    // Initialize form on load
+    woNumberLast.dataset.edited = false;
+    updateProjectDetails();
+    updateMandays();
+});
+</script>
 @endpush

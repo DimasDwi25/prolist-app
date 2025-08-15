@@ -55,25 +55,33 @@ class ProjectTable extends DataTableComponent
 
     public function filters(): array
     {
-        $years = Project::selectRaw("
-    DISTINCT SUBSTRING(
-        project_number,
-        CHARINDEX('-', project_number) + 1,
-        CHARINDEX('/', project_number) - CHARINDEX('-', project_number) - 1
-    ) AS year
-")
+        $years = Project::query()
+            ->selectRaw("
+                DISTINCT 
+                CASE 
+                    WHEN project_number LIKE 'PN-__/%' THEN SUBSTRING(project_number, 4, 2)
+                    WHEN project_number LIKE 'CO-PN-__/%' THEN SUBSTRING(project_number, 7, 2)
+                    ELSE NULL
+                END AS year
+            ")
+            ->whereNotNull('project_number')
             ->orderBy('year', 'desc')
             ->pluck('year')
-            ->mapWithKeys(fn($year) => [$year => '20' . $year])
+            ->filter() // Hapus nilai null
+            ->mapWithKeys(function ($year) {
+                return [$year => '20' . $year]; // Format menjadi 2023, 2024, dst
+            })
             ->toArray();
-
 
         return [
             SelectFilter::make('Tahun')
                 ->options(['' => '📅 Select Year'] + $years)
                 ->filter(function (Builder $builder, string $value) {
                     if ($value !== '') {
-                        $builder->where('project_number', 'like', '%-' . $value . '/%');
+                        $builder->where(function($query) use ($value) {
+                            $query->where('project_number', 'like', 'PN-' . $value . '/%')
+                                ->orWhere('project_number', 'like', 'CO-PN-' . $value . '/%');
+                        });
                     }
                 }),
         ];

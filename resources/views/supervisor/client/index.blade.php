@@ -35,5 +35,4 @@
     <div wire:loading class="fixed top-0 left-0 right-0 bg-blue-500 text-white py-2 text-center z-50">
         Loading...
     </div>
-
 @endsection

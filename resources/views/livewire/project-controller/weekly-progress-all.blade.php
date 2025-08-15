@@ -17,7 +17,7 @@
                 + Task
             </button>
 
-            <a href="{{ route('project_controller.project.show', $project->id) }}"
+            <a href="{{ route('project_controller.project.show', $project->pn_number) }}"
                 class="inline-flex items-center gap-2 bg-gray-500 hover:bg-green-600 text-white px-4 py-2 text-sm font-semibold rounded-lg shadow transition duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">

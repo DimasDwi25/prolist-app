@@ -5,8 +5,8 @@
         @endphp
 
         <a href="{{ $role === 'project controller'
-    ? route('project_controller.project.show', $project->id)
-    : route('supervisor.project.show', $project->id) }}"
+    ? route('project_controller.project.show', $project->pn_number)
+    : route('supervisor.project.show', $project->pn_number) }}"
             class="inline-flex items-center bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 text-sm">
             ← Kembali
         </a>
@@ -149,7 +149,7 @@
 
 @push('scripts')
     <script>
-        window.projectId = @json($project->id);
+        window.projectId = @json($project->pn_number);
         
         Livewire.on('log-error', data => {
             Swal.fire({
@@ -170,7 +170,7 @@
         });
 
         document.addEventListener('DOMContentLoaded', function () {
-            Echo.channel('logs.project.{{ $project->id }}')
+            Echo.channel('logs.project.{{ $project->pn_number }}')
                 .listen('.log.created', (e) => {
                     Livewire.dispatch('refreshLogs');
                 })

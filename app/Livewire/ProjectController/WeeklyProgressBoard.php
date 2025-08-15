@@ -52,7 +52,7 @@ class WeeklyProgressBoard extends Component
             'schedule' // penting: agar bisa akses `schedule->name` dll nanti
         ])
             ->whereHas('schedule', function ($query) {
-                $query->where('project_id', $this->project->id);
+                $query->where('project_id', $this->project->pn_number);
             })
             ->get();
     }

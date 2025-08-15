@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Quotation;
 use App\Models\Project;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SupervisorDashboardController extends Controller
 {
@@ -13,12 +14,12 @@ class SupervisorDashboardController extends Controller
     {
         DB::listen(function ($query) {
             // Simpan ke laravel.log
-            \Log::info('SQL: ' . $query->sql, $query->bindings);
+            Log::info('SQL: ' . $query->sql, $query->bindings);
         });
         // Statistik utama
         $totalQuotation = Quotation::count();
         $totalQuotationValue = Quotation::sum('quotation_value');
-        $totalSalesValue = Quotation::sum('po_value');
+        $totalSalesValue = Project::sum('po_value');
         $totalProject = Project::count();
         $outstandingQuotation = Quotation::where('status', 'O')->count();
 
@@ -63,7 +64,7 @@ class SupervisorDashboardController extends Controller
             ->toArray();
 
         // Data sales per bulan (tanpa ORDER BY di SQL)
-        $salesPerMonth = Quotation::select(
+        $salesPerMonth = Project::select(
             DB::raw('MONTH(po_date) as month_num'),
             DB::raw('SUM(po_value) as total')
         )

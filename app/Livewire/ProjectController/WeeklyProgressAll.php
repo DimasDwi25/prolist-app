@@ -41,7 +41,7 @@ class WeeklyProgressAll extends Component
     {
         $this->project = $project;
 
-        $this->schedules = ProjectSchedule::with('tasks')->where('project_id', $project->id)->get()->toArray();
+        $this->schedules = ProjectSchedule::with('tasks')->where('project_id', $project->pn_number)->get()->toArray();
         $this->generateWeeks();
 
         $this->loadData();
@@ -86,7 +86,7 @@ class WeeklyProgressAll extends Component
             'tasks.task',
             'tasks.weekSchedules'
         ])
-            ->where('project_id', $this->project->id)
+            ->where('project_id', $this->project->pn_number)
             ->get(['id', 'project_id', 'name'])
             ->toArray();
 
@@ -136,7 +136,7 @@ class WeeklyProgressAll extends Component
         ]);
 
         ProjectSchedule::create([
-            'project_id' => $this->project->id,
+            'project_id' => $this->project->pn_number,
             'name' => $this->newSchedule['name'],
         ]);
 

@@ -51,7 +51,7 @@ class ProjectScheduleTaskController extends Controller
         ProjectScheduleTask::create($data);
 
         return redirect()
-            ->route('projects.schedule-tasks.index', [$project->id, $schedule->id])
+            ->route('projects.schedule-tasks.index', [$project->pn_number, $schedule->id])
             ->with('success', 'Task added successfully!');
     }
 
@@ -78,7 +78,7 @@ class ProjectScheduleTaskController extends Controller
         $task->update($data);
 
         return redirect()
-            ->route('projects.schedule-tasks.index', [$project->id, $schedule->id])
+            ->route('projects.schedule-tasks.index', [$project->pn_number, $schedule->id])
             ->with('success', 'Task updated successfully!');
     }
 
@@ -86,7 +86,7 @@ class ProjectScheduleTaskController extends Controller
     {
         $task->delete();
         return redirect()
-            ->route('projects.schedule-tasks.index', [$project->id, $schedule->id])
+            ->route('projects.schedule-tasks.index', [$project->pn_number, $schedule->id])
             ->with('success', 'Task deleted successfully!');
     }
 }

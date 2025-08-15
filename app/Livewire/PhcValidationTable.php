@@ -24,14 +24,15 @@ class PhcValidationTable extends Component
             // Tambahkan kondisi untuk exclude jika ho_engineering sudah diisi
             ->where(function ($query) {
                 $query->whereHas('phc', function ($q) {
-                    $q->whereNull('ho_engineering_id');
+                    $q->whereNull('ho_engineering_id')
+                    ->orWhereColumn('ho_engineering_id', 'user_id');
                 })->orWhereHas('user', function ($q) {
-                    // Tetap tampilkan untuk user yang bukan PM/PC/SuperAdmin
                     $q->whereHas('role', function ($r) {
                         $r->whereNotIn('name', ['project manager', 'project controller', 'super_admin']);
                     });
                 });
             })
+
             ->get();
     }
 

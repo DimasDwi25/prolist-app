@@ -1,314 +1,403 @@
 @extends('supervisor.layouts.app')
 
 @section('content')
-<div class="max-w-5xl mx-auto bg-white p-8 rounded-lg shadow">
-    <h2 class="text-2xl font-bold mb-6">
-        {{ isset($quotation) ? 'Edit Quotation' : 'Create Quotation' }}
-    </h2>
+<div class="max-w-5xl mx-auto p-8 bg-white rounded-xl shadow-lg">
+ @if ($errors->any())
+        <div class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4">
+            <ul class="list-disc pl-5">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+    <div class="mb-8 border-b pb-4">
+        <h1 class="text-2xl font-bold text-gray-800">
+            {{ optional($quotation)->exists ? 'Edit Quotation Details' : 'Create New Quotation' }}
+        </h1>
+        <p class="text-gray-600 mt-1">
+            {{ optional($quotation)->exists ? 'Update existing quotation information' : 'Fill in the form below to create a new quotation' }}
+        </p>
+    </div>
 
-    <form action="{{ isset($quotation) ? route('quotation.update', $quotation) : route('quotation.store') }}" method="POST">
+    <form action="{{ optional($quotation)->exists ? route('quotation.update', $quotation) : route('quotation.store') }}" method="POST">
         @csrf
-        @if(isset($quotation)) @method('PUT') @endif
-
+        @if(optional($quotation)->exists) @method('PUT') @endif
         <input type="hidden" name="user_id" value="{{ auth()->id() }}">
 
-        {{-- Client & Inquiry --}}
-        <div class="grid md:grid-cols-3 gap-4 mb-4">
-            {{-- Client --}}
+        <!-- Client Information Section -->
+        <div class="bg-blue-50 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+                Client Information
+            </h3>
+            
+            <div class="grid md:grid-cols-2 gap-4">
+                <!-- Client Selection -->
+                <div>
+                    <label for="client_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        Client <span class="text-red-500">*</span>
+                        <span class="text-xs text-gray-500 ml-1">(Select from existing clients)</span>
+                    </label>
+                    <select id="client_id" name="client_id" class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                        <option value="">-- Select Client --</option>
+                        @foreach($clients as $client)
+                            <option value="{{ $client->id }}" {{ old('client_id', $quotation->client_id ?? '') == $client->id ? 'selected' : '' }}>
+                                {{ $client->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('client_id')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+
+                <!-- Client PIC -->
+                <div>
+                    <label for="client_pic" class="block text-sm font-medium text-gray-700 mb-1">
+                        Point of Contact <span class="text-red-500">*</span>
+                        <span class="text-xs text-gray-500 ml-1">(Person in charge)</span>
+                    </label>
+                    <input type="text" id="client_pic" name="client_pic" value="{{ old('client_pic', optional($quotation)->client_pic) }}" 
+                           class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" 
+                           required placeholder="e.g. John Doe (Marketing Manager)">
+                    @error('client_pic')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+        </div>
+
+        <!-- Quotation Details Section -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2H5a1 1 0 010-2h12a2 2 0 001-2V4a2 2 0 00-2-2H6a2 2 0 00-2 2z" clip-rule="evenodd" />
+                </svg>
+                Quotation Details
+            </h3>
+
+            <!-- Title -->
             <div class="mb-4">
-                <label for="client_id" class="block text-sm font-semibold text-gray-800 mb-1">Client</label>
-                
-                <select id="client_id" name="client_id"
-                    class="js-example-basic-single w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 text-sm shadow-sm">
-                    <option value="">-- Select Client --</option>
-                </select>
-
-
-                @error('client_id')
-                    <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                <label for="title_quotation" class="block text-sm font-medium text-gray-700 mb-1">
+                    Project Title <span class="text-red-500">*</span>
+                    <span class="text-xs text-gray-500 ml-1">(Brief description of the project)</span>
+                </label>
+                <input type="text" id="title_quotation" name="title_quotation" value="{{ old('title_quotation', optional($quotation)->title_quotation) }}" 
+                       class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" 
+                       required placeholder="e.g. Electrical Installation for Office Tower">
+                @error('title_quotation')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
 
-
-            {{-- Client PIC --}}
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Client PIC</label>
-                <input type="text" name="client_pic" value="{{ old('client_pic', $quotation->client_pic ?? '') }}" class="w-full border border-gray-300 rounded px-3 py-2 mt-1" required>
-                @error('client_pic') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
-            </div>
-
-            {{-- Inquiry Date --}}
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Inquiry Date</label>
-                <input type="date" name="inquiry_date"
-                    value="{{ old('inquiry_date', isset($quotation->inquiry_date) ? optional($quotation->inquiry_date)->format('Y-m-d') : '') }}"
-                    class="w-full border border-gray-300 rounded px-3 py-2 mt-1">
-
-                @error('inquiry_date') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
-            </div>
-        </div>
-
-        {{-- Quotation Title --}}
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Quotation Title</label>
-            <input type="text" name="title_quotation" value="{{ old('title_quotation', $quotation->title_quotation ?? '') }}">
-
-            @error('title_quotation') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
-        </div>
-
-        {{-- Quotation Date & Number --}}
-        <div class="grid md:grid-cols-3 gap-4 mb-4">
-            {{-- Quotation Date --}}
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Quotation Date</label>
-                <input type="date" name="quotation_date"
-                       value="{{ old('quotation_date', isset($quotation->quotation_date) ? $quotation->quotation_date->format('Y-m-d') : '') }}"
-                       class="w-full border border-gray-300 rounded px-3 py-2 mt-1"
-                       >
-                @error('quotation_date') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Quotation Number</label>
-                <div class="flex items-center space-x-2 mt-1">
-                    <span class="px-2 py-2 border rounded bg-gray-100">Q-</span>
-                    <input type="text" name="no_quotation" value="{{ old('no_quotation', $noQuotationNumber) }}"
-                        class="border rounded px-3 py-2 w-24" required>
-                    <span class="px-2 py-2 border rounded bg-gray-100">/{{ \App\Models\Quotation::getCurrentMonthRoman() }}/{{ now()->format('y') }}</span>
+            <!-- Dates and Numbers -->
+            <div class="grid md:grid-cols-3 gap-4">
+               <!-- Inquiry Date -->
+                <div class="mb-4">
+                    <label for="inquiry_date" class="block text-sm font-medium text-gray-700 mb-1">
+                        Inquiry Date
+                        <span class="text-xs text-gray-500 ml-1">(When client first contacted)</span>
+                    </label>
+                    @if($quotation->exists)
+                        <input type="text" 
+                            value="{{ $quotation->inquiry_date?->format('Y-m-d') }}" 
+                            class="w-full rounded-md bg-gray-100 border-gray-300" 
+                            disabled>
+                        <input type="hidden" name="inquiry_date" value="{{ $quotation->inquiry_date?->format('Y-m-d') }}">
+                    @else
+                        <input type="date" 
+                            id="inquiry_date" 
+                            name="inquiry_date"
+                            value="{{ old('inquiry_date') }}"
+                            class="w-full rounded-md border-gray-300 shadow-sm"
+                            required>
+                    @endif
+                    @error('inquiry_date')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
-            </div>
 
-            {{-- Quotation Week --}}
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Quotation Week</label>
-                <input type="text" name="quotation_weeks" value="{{ old('quotation_weeks', $quotation->quotation_weeks ?? '') }}" class="w-full border border-gray-300 rounded px-3 py-2 mt-1 bg-gray-100" readonly>
-            </div>
-        </div>
+                <!-- Quotation Date -->
+                <div class="mb-4">
+                    <label for="quotation_date" class="block text-sm font-medium text-gray-700 mb-1">
+                        Quotation Date
+                        <span class="text-xs text-gray-500 ml-1">(When quote was prepared)</span>
+                    </label>
+                    @if($quotation->exists)
+                        <input type="text" 
+                            value="{{ $quotation->quotation_date?->format('Y-m-d') }}" 
+                            class="w-full rounded-md bg-gray-100 border-gray-300" 
+                            disabled>
+                        <input type="hidden" name="quotation_date" value="{{ $quotation->quotation_date?->format('Y-m-d') }}">
+                    @else
+                        <input type="date" 
+                            id="quotation_date" 
+                            name="quotation_date"
+                            value="{{ old('quotation_date') }}"
+                            class="w-full rounded-md border-gray-300 shadow-sm"
+                            required>
+                    @endif
+                    @error('quotation_date')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
 
-        {{-- Financial Info --}}
-        <div class="grid md:grid-cols-4 gap-4 mb-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Quotation Value</label>
-                <input type="number" name="quotation_value" value="{{ old('quotation_value', $quotation->quotation_value ?? '') }}"
-                       class="w-full border border-gray-300 rounded px-3 py-2 mt-1" required>
-            </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Revision Date</label>
-                <input type="date" name="revision_quotation_date"
-                       value="{{ old('revision_quotation_date', isset($quotation) ? optional($quotation->revision_quotation_date)->format('Y-m-d') : '') }}"
-                       class="w-full border border-gray-300 rounded px-3 py-2 mt-1">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Revisi</label>
-                <input type="text" name="revisi" value="{{ old('revisi', $quotation->revisi ?? '') }}"
-                       class="w-full border border-gray-300 rounded px-3 py-2 mt-1">
-            </div>
-
-            @if(isset($quotation))
+                <!-- Quotation Week (auto-generated) -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Status</label>
-                    <select name="status" id="status" class="w-full border border-gray-300 rounded px-3 py-2 mt-1">
-                        <option value="">-- Choose --</option>
-                        @foreach ([
-                            'A' => '(A) Quotation and PO Completed',
-                            'D' => '(D) Project belum ada PO',
-                            'E' => '(E) Penawaran Project Batal',
-                            'F' => '(F) Penawaran Project Kalah',
-                            'O' => '(O) On Going'
-                        ] as $key => $val)
-                            <option value="{{ $key }}" {{ old('status', $quotation->status ?? '') == $key ? 'selected' : '' }}>{{ $val }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            @else
-                {{-- Saat create, set value default 'O' tanpa form input --}}
-                <input type="hidden" name="status" value="O">
-            @endif
-
-        </div>
-        @if(isset($quotation))
-            {{-- PO Info --}}
-            <div id="po-info-section" class="border-t pt-6 mt-6 hidden">
-                <h3 class="text-lg font-semibold mb-4">PO Information</h3>
-                <div class="grid md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">PO Date</label>
-                        <input type="date" name="po_date" value="{{ old('po_date', optional($quotation->po_date ?? null)->format('Y-m-d')) }}" class="w-full border border-gray-300 rounded px-3 py-2 mt-1">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Sales Week</label>
-                        <input type="text" name="sales_weeks" value="{{ old('sales_weeks', $quotation->sales_weeks ?? '') }}"
-                            class="w-full border border-gray-300 rounded px-3 py-2 mt-1 bg-gray-100" readonly>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">PO Number</label>
-                        <input type="text" name="po_number" value="{{ old('po_number', $quotation->po_number ?? '') }}" class="w-full border border-gray-300 rounded px-3 py-2 mt-1">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">PO Value</label>
-                        <input type="number" name="po_value" value="{{ old('po_value', $quotation->po_value ?? '') }}" class="w-full border border-gray-300 rounded px-3 py-2 mt-1">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Project Value</label>
-                        <input type="number" name="project_value" value="{{ old('project_value', $quotation->project_value ?? '') }}" class="w-full border border-gray-300 rounded px-3 py-2 mt-1">
-                    </div>
+                    <label for="quotation_weeks" class="block text-sm font-medium text-gray-700 mb-1">
+                        Quotation Week
+                        <span class="text-xs text-gray-500 ml-1">(Auto-generated)</span>
+                    </label>
+                    <input type="text" id="quotation_weeks" name="quotation_weeks" 
+                           value="{{ old('quotation_weeks', optional($quotation)->quotation_weeks) }}" 
+                           class="w-full rounded-md border-gray-300 shadow-sm bg-gray-100" readonly>
                 </div>
             </div>
-        @endif
+
+            <!-- Quotation Number -->
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Quotation Number
+                    <span class="text-xs text-gray-500 ml-1">(Auto-generated)</span>
+                </label>
+                <div class="flex items-center">
+                    <span class="inline-flex items-center px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 text-sm rounded-l-md">Q-</span>
+                    <input type="text" 
+                        name="no_quotation" 
+                        value="{{ old('no_quotation', $quotation->exists ? substr($quotation->no_quotation, 2, 3) : ($noQuotationNumber ?? '')) }}" 
+                        class="flex-1 min-w-0 block w-full px-3 py-2 border-t border-b border-gray-300 bg-white text-sm"
+                        pattern="\d{1,3}"
+                        maxlength="3">
 
 
-        {{-- Action Buttons --}}
-        <div class="flex justify-end mt-8">
-            <a href="{{ route('quotation.index') }}" class="text-gray-600 hover:underline mr-6">Cancel</a>
-            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                {{ isset($quotation) ? 'Update' : 'Create' }}
+                    <span class="inline-flex items-center px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 text-sm rounded-r-md">
+                        /<span id="display_month_roman" class="mx-1">{{ $monthRoman }}</span>/
+                        <span id="display_year" class="ml-1">{{ optional($quotation->quotation_date ?? now())->format('y') }}</span>
+                    </span>
+                </div>
+                <input type="hidden" name="month_roman" value="{{ $monthRoman }}">
+                @if($quotation->exists)
+                    <input type="hidden" name="quotation_number" value="{{ $quotation->quotation_number }}">
+                @endif
+            </div>
+        </div>
+
+        <!-- Financial Information Section -->
+        <div class="bg-green-50 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold text-green-800 mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                </svg>
+                Financial Information
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <!-- Quotation Value -->
+                <div>
+                    <label for="quotation_value" class="block text-sm font-medium text-gray-700 mb-1">
+                        Quotation Value (IDR) <span class="text-red-500">*</span>
+                        <span class="text-xs text-gray-500 ml-1">(Total project value)</span>
+                    </label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">Rp</span>
+                        </div>
+                        <input type="text" id="quotation_value" name="quotation_value" 
+                            value="{{ old('quotation_value', $quotation->quotation_value ?? '') }}"
+                            class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-12 py-2 border-gray-300 rounded-md" 
+                            required placeholder="25.000.000">
+                        <div class="absolute inset-y-0 right-0 flex items-center">
+                        </div>
+                    </div>
+                    <!-- Hidden input to store the raw numeric value -->
+                    <input type="hidden" id="quotation_value_raw" name="quotation_value_raw" 
+                        value="{{ old('quotation_value_raw', optional($quotation)->quotation_value) }}">
+                    @error('quotation_value')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Revision Information Section -->
+        <div class="bg-yellow-50 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold text-yellow-800 mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                Revision Information
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <!-- Revision Date -->
+                <div>
+                    <label for="revision_quotation_date" class="block text-sm font-medium text-gray-700 mb-1">
+                        Revision Date
+                        <span class="text-xs text-gray-500 ml-1">(When last revised)</span>
+                    </label>
+                    <input 
+                        type="date" 
+                        id="revision_quotation_date" 
+                        name="revision_quotation_date" 
+                        value="{{ old('revision_quotation_date', optional($quotation?->revision_quotation_date)->format('Y-m-d')) }}" 
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white focus:ring-blue-500 focus:border-blue-500 @error('revision_quotation_date') border-red-500 @enderror"
+                    >
+                    @error('revision_quotation_date')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+
+                <!-- Revision Number -->
+                <div>
+                    <label for="revisi" class="block text-sm font-medium text-gray-700 mb-1">
+                        Revision Number
+                        <span class="text-xs text-gray-500 ml-1">(e.g. Rev.1, Rev.2)</span>
+                    </label>
+                    <input type="text" id="revisi" name="revisi" 
+                           value="{{ old('revisi', optional($quotation)->revisi) }}" 
+                           class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" 
+                           placeholder="e.g. Rev.1">
+                    @error('revisi')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-4 pt-6">
+            <a href="{{ route('quotation.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Cancel
+            </a>
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                {{ isset($quotation) && $quotation->exists ? 'Update Quotation' : 'Create Quotation' }}
             </button>
         </div>
     </form>
 </div>
-
 @endsection
 
 @push('scripts')
-<!-- jQuery and Select2 JS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/autonumeric@4.10.5"></script>
+
 
 <script>
     $(document).ready(function() {
-        // Initialize Select2 with better configuration
-        $(document).ready(function () {
-            console.log("Select2 Init Running"); // cek di console
-
-            $('#client_id').select2({
-                placeholder: "-- Search Client --",
-                allowClear: true,
-                width: '100%',
-                minimumInputLength: 0,
-                ajax: {
-                    url: "{{ route('ajax.clients') }}",
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        console.log("Kirim query:", params.term); // log query
-                        return { q: params.term || '' };
-                    },
-                    processResults: function (data) {
-                        console.log("Data dari server:", data); // log hasil
-                        return { results: data };
-                    },
-                    cache: true
-                }
-            });
-
-            @if(isset($quotation) && $quotation->client)
-                var clientOption = new Option("{{ $quotation->client->name }}", "{{ $quotation->client->id }}", true, true);
-                $('#client_id').append(clientOption).trigger('change');
-            @endif
+        // Initialize Select2 for client selection
+        $('#client_id').select2({
+            placeholder: "Search for a client...",
+            allowClear: true,
+            width: '100%',
+            ajax: {
+                url: "{{ route('ajax.clients') }}",
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data
+                    };
+                },
+                cache: true
+            },
+            {{-- minimumInputLength: 1 --}}
         });
 
+        @if(isset($quotation) && $quotation->client)
+            // Pre-select the client if editing
+            var clientOption = new Option("{{ $quotation->client->name }}", "{{ $quotation->client->id }}", true, true);
+            $('#client_id').append(clientOption).trigger('change');
+        @endif
 
-
-        // Rest of your existing JavaScript...
-        function getWeek(date) {
-            const d = new Date(date);
-            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-            return `${d.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
-        }
-
-        const quotationDateInput = document.querySelector('input[name="quotation_date"]');
-        const quotationWeekInput = document.querySelector('input[name="quotation_weeks"]');
-        const poDateInput = document.querySelector('input[name="po_date"]');
-        const salesWeekInput = document.querySelector('input[name="sales_weeks"]');
-        const statusSelect = document.querySelector('#status');
-        const poInfoSection = document.querySelector('#po-info-section');
-
-        function togglePOSection(status) {
-            if (status === 'A' || status === 'D') {
-                poInfoSection.classList.remove('hidden');
-            } else {
-                poInfoSection.classList.add('hidden');
+        // Auto-generate week number when date changes
+        $('input[name="quotation_date"]').on('change', function() {
+            if(this.value) {
+                const date = new Date(this.value);
+                const weekNumber = getWeekOfYear(date);
+                $('input[name="quotation_weeks"]').val(`${date.getFullYear()}-W${weekNumber}`);
+                
+                // Update Roman numeral month display
+                const month = date.getMonth() + 1;
+                $('#display_month_roman').text(convertToRoman(month));
+                $('#month_roman').val(convertToRoman(month));
+                
+                // Update year display
+                $('#display_year').text(date.getFullYear().toString().slice(-2));
             }
+        });
+
+        // Helper function to get week number
+        function getWeekOfYear(date) {
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+            return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
         }
 
-        if (quotationDateInput && quotationWeekInput) {
-            quotationDateInput.addEventListener('change', function () {
-                quotationWeekInput.value = this.value ? getWeek(this.value) : '';
-            });
+        // Helper function to convert to Roman numerals
+        function convertToRoman(num) {
+            const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+            return roman[num - 1] || '';
         }
 
-        if (poDateInput && salesWeekInput) {
-            poDateInput.addEventListener('change', function () {
-                salesWeekInput.value = this.value ? getWeek(this.value) : '';
-            });
-        }
+        // Inisialisasi AutoNumeric pada quotation_value
+        const quotationValueAutoNum = new AutoNumeric('#quotation_value', {
+            digitGroupSeparator: '.',
+            decimalCharacter: ',',
+            decimalPlaces: 0,
+            currencySymbol: 'Rp ',
+            currencySymbolPlacement: 'p', // prefix
+            unformatOnSubmit: true // biar otomatis kirim angka mentah kalau submit form
+        });
 
-        if (statusSelect && poInfoSection) {
-            // On page load
-            togglePOSection(statusSelect.value);
-
-            // On change
-            statusSelect.addEventListener('change', function () {
-                togglePOSection(this.value);
-            });
-        }
+        // Update hidden field setiap kali value berubah
+        $('#quotation_value').on('keyup change', function () {
+            $('#quotation_value_raw').val(quotationValueAutoNum.getNumber()); 
+        });    
     });
 </script>
+
 <style>
     .select2-container--default .select2-selection--single {
-        height: 44px;
+        height: 42px;
         border: 1px solid #d1d5db;
-        border-radius: 8px;
-        padding: 6px 12px;
-        font-size: 0.95rem;
-        background-color: #fff;
-        transition: border-color 0.2s;
+        border-radius: 0.375rem;
     }
-
-    .select2-container--default .select2-selection--single:hover {
-        border-color: #2563eb;
-    }
-
+    
     .select2-container--default .select2-selection--single .select2-selection__rendered {
-        color: #111827;
-        line-height: 28px;
-        padding-left: 4px;
+        line-height: 42px;
+        padding-left: 12px;
     }
-
+    
     .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 44px;
-        right: 10px;
+        height: 40px;
+        right: 8px;
     }
-
-    .select2-container--default .select2-results__option--highlighted[aria-selected] {
-        background-color: #2563eb;
-        color: white;
+    
+    .select2-container--default .select2-results__option--highlighted {
+        background-color: #3b82f6;
     }
-
-    .select2-container--default .select2-results__option {
-        padding: 10px 16px;
-        font-size: 0.9rem;
-    }
-
+    
     .select2-dropdown {
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    }
-
-    .select2-search--dropdown .select2-search__field {
-        border-radius: 6px;
         border: 1px solid #d1d5db;
-        padding: 8px 12px;
-        font-size: 0.9rem;
+        border-radius: 0.375rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 </style>
-
 @endpush
-
-

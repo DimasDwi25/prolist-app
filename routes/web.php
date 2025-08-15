@@ -41,7 +41,9 @@ use App\Livewire\ProjectController\WeeklyProgressBoard;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\UserExportController;
-
+use App\Livewire\ProjectController\ManPowerAllocationForm;
+use App\Livewire\SupervisorMarketing\MasterStatusProject;
+use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -72,7 +74,8 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 
     Route::get('/admin/department/edit/{department}', [DepartmentController::class, 'edit'])->name('department.edit');
     Route::put('/admin/department/update/{department}', [DepartmentController::class, 'update'])->name('department.update');
-    Route::delete('/admin/department/delete/{department}', [DepartmentController::class, 'destroy'])->name('department.destroy');
+    Route::get('/admin/department/delete/{department}', [DepartmentController::class, 'destroy'])->name('department.destroy');
+    Route::post('/admin/department/import', [DepartmentController::class, 'import'])->name('department.import');
 
     Route::get('/admin/role', [RoleController::class, 'index'])->name('admin.role');
     Route::get('/admin/role/create', [RoleController::class, 'create'])->name('role.create');
@@ -81,7 +84,7 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
     Route::get('/admin/role/edit/{role}', [RoleController::class, 'edit'])->name('role.edit');
     Route::put('/admin/role/update/{role}', [RoleController::class, 'update'])->name('role.update');
 
-    Route::delete('/admin/role/delete/{role}', [RoleController::class, 'destroy'])->name('role.destroy');
+    Route::get('/admin/role/delete/{role}', [RoleController::class, 'destroy'])->name('role.destroy');
 
     Route::get('/admin/user', [UserController::class, 'index'])->name('admin.user');
     Route::get('/admin/user/create', [UserController::class, 'create'])->name('user.create');
@@ -90,7 +93,8 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
     Route::get('/admin/user/edit/{user}', [UserController::class, 'edit'])->name('user.edit');
     Route::put('/admin/user/update/{user}', [UserController::class, 'update'])->name('user.update');
 
-    Route::delete('/admin/user/delete/{user}', [UserController::class, 'destroy'])->name('user.destroy');
+    Route::get('/admin/user/delete/{user}', [UserController::class, 'destroy'])->name('user.destroy');
+    Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
 
 
 
@@ -99,7 +103,7 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:super_admin'])->group(function () {
-    Route::delete('/client/delete/{client}', [SupervisorClientController::class, 'destroy'])->name('client.destroy');
+    Route::get('/client/delete/{client}', [SupervisorClientController::class, 'destroy'])->name('client.destroy');
 });
 
 Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(function () {
@@ -112,20 +116,22 @@ Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(func
     Route::put('/client/update/{client}', [SupervisorClientController::class, 'update'])->name('client.update');
     Route::get('/client/data', [SupervisorClientController::class, 'getData'])->name('client.data');
     Route::post('/client/import', [SupervisorClientController::class, 'import'])->name('client.import');
+    Route::get('/clients/{client}', [SupervisorClientController::class, 'show'])->name('client.show');
+
 
     Route::get('/categorie-project', [SupervisorCategorieProjectController::class, 'index'])->name('supervisor.category');
     Route::get('/categorie-project/create', [SupervisorCategorieProjectController::class, 'create'])->name('category.create');
     Route::post('/categorie-project/store', [SupervisorCategorieProjectController::class, 'store'])->name('category.store');
     Route::get('/categorie-project/edit/{category}', [SupervisorCategorieProjectController::class, 'edit'])->name('category.edit');
     Route::put('/categorie-project/update/{category}', [SupervisorCategorieProjectController::class, 'update'])->name('category.update');
-    Route::delete('/categorie-project/delete/{category', [SupervisorCategorieProjectController::class, 'destroy'])->name('category.destroy');
+    Route::get('/categorie-project/delete/{category', [SupervisorCategorieProjectController::class, 'destroy'])->name('category.destroy');
 
     Route::get('/quotation', [SupervisorQuotationController::class, 'index'])->name('quotation.index');
     Route::get('/quotation/create', [SupervisorQuotationController::class, 'create'])->name('quotation.create');
     Route::post('/quotation/store', [SupervisorQuotationController::class, 'store'])->name('quotation.store');
     Route::get('/quotation/edit/{quotation}', [SupervisorQuotationController::class, 'edit'])->name('quotation.edit');
     Route::put('/quotation/update/{quotation}', [SupervisorQuotationController::class, 'update'])->name('quotation.update');
-    Route::delete('/quotation/destroy/{quotation}', [SupervisorQuotationController::class, 'destroy'])->name('quotation.destroy');
+    Route::get('/quotation/destroy/{quotation}', [SupervisorQuotationController::class, 'destroy'])->name('quotation.destroy');
     Route::get('/quotation/show/{quotation}', [SupervisorQuotationController::class, 'show'])->name('quotation.show');
     Route::patch('/quotation/{quotation}/status', [SupervisorQuotationController::class, 'updateStatus'])->name('quotation.updateStatus');
     Route::get('/ajax/clients', [SupervisorQuotationController::class, 'ajaxClients'])
@@ -139,9 +145,32 @@ Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(func
     Route::get('/project/create', [SupervisorProjectController::class, 'create'])->name('project.create');
     Route::post('/project/store', [SupervisorProjectController::class, 'store'])->name('project.store');
     Route::get('/project/edit/{project}', [SupervisorProjectController::class, 'edit'])->name('project.edit');
-    Route::post('/project/update/{project}', [SupervisorProjectController::class, 'update'])->name('project.update');
+    Route::put('/project/update/{project}', [SupervisorProjectController::class, 'update'])->name('project.update');
     Route::delete('/project/destroy/{project}', [SupervisorProjectController::class, 'destroy'])->name('project.destroy');
     Route::get('/project/view/{project}', [SupervisorProjectController::class, 'show'])->name('supervisor.project.show');
+
+    Route::get('/master-status-project', MasterStatusProject::class)->name('status_project');
+
+    // Ambil nomor project terbaru (PN atau CO)
+    Route::get('/projects/generate-number', function (Request $request) {
+        $isCO = filter_var($request->query('is_co'), FILTER_VALIDATE_BOOLEAN);
+
+        $lastProject = \App\Models\Project::latest()->first();
+        $nextNumber = $lastProject ? $lastProject->pn_number + 1 : 25001; // contoh start: 25xxx
+
+        return [
+            'project_number' => \App\Models\Project::generateProjectNumber($nextNumber, $isCO),
+            'pn_number' => $nextNumber
+        ];
+    });
+
+    // Ambil info project induk
+    Route::get('/projects/info/{pn_number}', function ($pn_number) {
+        return \App\Models\Project::with(['category', 'quotation.client'])
+            ->where('pn_number', $pn_number)
+            ->firstOrFail();
+    });
+
 
 
 
@@ -194,7 +223,7 @@ Route::middleware(['auth', 'role:engineer'])->group(function () {
     Route::post('/engineer/work-order/store', [WorkOrderController::class, 'store'])->name('work-orders.store');
     Route::get('/engineer/work-order/edit/{workOrder}', [WorkOrderController::class, 'edit'])->name('work-orders.edit');
     Route::put('/engineer/work-order/update/{workOrder}', [WorkOrderController::class, 'update'])->name('work-orders.update');
-    Route::delete('/engineer/work-order/delete/{workOrder}', [WorkOrderController::class, 'destroy'])->name('work_orders.destroy');
+    Route::get('/engineer/work-order/delete/{workOrder}', [WorkOrderController::class, 'destroy'])->name('work_orders.destroy');
 
     // Route::post('/work-orders/{id}/add-log', [WorkOrderController::class, 'insertLogFromWO'])->name('work-orders.insert-log');
 
@@ -210,13 +239,17 @@ Route::middleware(['auth', 'role:project controller'])->group(function () {
     Route::get('/project-controller/project/view/{project}', [ProjectControllerProjectController::class, 'show'])->name('project_controller.project.show');
 
     Route::get('/project-controller/phc/show/{phc}', [ProjectControllerPhcController::class, 'show'])->name('project_controller.phc.show');
+    Route::get('/project-controller/phc/edit/{phc}', [ProjectControllerPhcController::class, 'edit'])->name('project_controller.phc.edit');
+    Route::put('/project-controller/phc/update/{phc}', [ProjectControllerPhcController::class, 'update'])->name('project_controller.phc.update');
 
     Route::get('/project-controller/work-order', [ProjectControllerWorkOrderController::class, 'index'])->name('project_controller.work_order');
     Route::get('/project-controller/work-order/create', [ProjectControllerWorkOrderController::class, 'create'])->name('project_controller.work-orders.create');
     Route::post('/project-controller/work-order/store', [ProjectControllerWorkOrderController::class, 'store'])->name('project_controller.work-orders.store');
     Route::get('/project-controller/work-order/edit/{workOrder}', [ProjectControllerWorkOrderController::class, 'edit'])->name('project_controller.work-orders.edit');
     Route::put('/project-controller/work-order/update/{workOrder}', [ProjectControllerWorkOrderController::class, 'update'])->name('project_controller.work-orders.update');
-    Route::delete('/project-controller/work-order/delete/{workOrder}', [ProjectControllerWorkOrderController::class, 'destroy'])->name('project_controller.work_orders.destroy');
+    Route::get('/project-controller/work-order/delete/{workOrder}', [ProjectControllerWorkOrderController::class, 'destroy'])->name('project_controller.work_orders.destroy');
+
+    Route::get('/project-controller/{project}/man-power-allocation', ManPowerAllocationForm::class)->name('man-power');
 
     Route::get('/master-tasks', MasterTasks::class)->name('tasks');
     Route::get('/master-scope-of-work', MasterScopeOfWork::class)->name('scope_of_work');
@@ -237,7 +270,7 @@ Route::middleware(['auth', 'role:project controller'])->group(function () {
         Route::post('schedules', [ProjectScheduleController::class, 'store'])->name('schedules.store');
         Route::get('schedules/{schedule}/edit', [ProjectScheduleController::class, 'edit'])->name('schedules.edit');
         Route::put('schedules/{schedule}', [ProjectScheduleController::class, 'update'])->name('schedules.update');
-        Route::delete('schedules/{schedule}', [ProjectScheduleController::class, 'destroy'])->name('schedules.destroy');
+        Route::get('schedules/{schedule}', [ProjectScheduleController::class, 'destroy'])->name('schedules.destroy');
     });
 
     Route::prefix('projects/{project}/schedules/{schedule}')
@@ -248,7 +281,7 @@ Route::middleware(['auth', 'role:project controller'])->group(function () {
             Route::post('tasks', [ProjectScheduleTaskController::class, 'store'])->name('store');
             Route::get('tasks/{task}/edit', [ProjectScheduleTaskController::class, 'edit'])->name('edit');
             Route::put('tasks/{task}', [ProjectScheduleTaskController::class, 'update'])->name('update');
-            Route::delete('tasks/{task}', [ProjectScheduleTaskController::class, 'destroy'])->name('destroy');
+            Route::get('tasks/{task}', [ProjectScheduleTaskController::class, 'destroy'])->name('destroy');
         });
 
     Route::get(

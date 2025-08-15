@@ -1,47 +1,65 @@
 @extends('project-controller.layouts.app')
 
 @section('content')
-    @php
-        $role = Auth::user()->role->name ?? '';
-    @endphp
-
-    <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow border border-gray-200">
-
-        {{-- Header --}}
-        <div class="flex justify-between items-center mb-4">
+    <div class="max-w-7xl mx-auto bg-white p-6 rounded-2xl shadow-lg border border-gray-100 space-y-8">
+        {{-- Header Section --}}
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
             <div>
-                <h2 class="text-2xl font-bold">View Project</h2>
-                <a href="{{ route('project_controller.project.index') }}" class="text-sm text-gray-600 hover:underline">←
-                    Back to Projects</a>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Project Details</h1>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium 
+                        @if($project->statusProject->name === 'Active') bg-green-100 text-green-800
+                        @elseif($project->statusProject->name === 'On Hold') bg-yellow-100 text-yellow-800
+                        @elseif($project->statusProject->name === 'Completed') bg-blue-100 text-blue-800
+                        @else bg-gray-100 text-gray-800 @endif">
+                        {{ $project->statusProject->name }}
+                    </span>
+                </div>
+                <div class="flex items-center mt-2">
+                    <a href="{{ route('project_controller.project.index') }}" class="text-sm text-blue-600 hover:text-blue-800 transition flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Projects
+                    </a>
+                </div>
             </div>
 
-            <div class="space-x-2">
-                @php $phc = $project->phc; @endphp
+            <div class="flex flex-wrap gap-2">
 
-                @if ($phc && $phc->status == "ready")
-                    <a href="{{ route('project_controller.phc.show', $project->phc->id) }}"
-                        class="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm transition">
-                        👁️ View PHC
+                @if ($phc && $phc->status == 'ready')
+                    <a href="{{ route('project_controller.phc.edit', $phc->id) }}" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit PHC
                     </a>
-                @else
-                    <span class="inline-block bg-gray-300 text-gray-600 px-4 py-2 rounded text-sm cursor-not-allowed"
-                        title="PHC belum tersedia">
-                        🔒 View PHC
-                    </span>
+                    
+                    <a href="{{ route('project_controller.phc.show', $phc->id) }}" class="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        View PHC
+                    </a>
                 @endif
+                    
 
-                <a href="{{ route('projects.logs', $project->id) }}"
-                    class="inline-flex items-center bg-gray-400 text-white px-3 py-1.5 rounded hover:bg-gray-800 text-sm">
-                    📋 View Logs
+                {{-- View Logs --}}
+                <a href="{{ route('supervisor.projects.logs', $project->pn_number) }}" class="flex items-center gap-1 bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    View Logs
                 </a>
 
                 {{-- Tombol Project Schedule --}}
-                <a href="{{ route('projects.schedules.index', $project->id) }}"
+                <a href="{{ route('projects.schedules.index', $project->pn_number) }}"
                     class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm transition">
                     🗓️ Project Schedule
                 </a>
 
-                <a href="{{ route('projects.schedule.weekly-progress-all', [$project->id]) }}"
+                <a href="{{ route('projects.schedule.weekly-progress-all', [$project->pn_number]) }}"
                     class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow transition duration-300 ease-in-out">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
@@ -50,74 +68,283 @@
                     Lihat S-Curve
                 </a>
 
+                <a href="{{ route('man-power', $project->pn_number) }}" 
+                    class="inline-flex items-center bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">
+                    Man Power Allocation
+                </a>
 
 
 
             </div>
         </div>
 
-        {{-- Tabs --}}
-        <div x-data="{ tab: 'info' }">
-            <div class="border-b mb-4">
-                <nav class="flex space-x-4 text-sm font-medium text-gray-600">
-                    <button class="px-4 py-2 focus:outline-none transition"
-                        :class="tab === 'info' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'hover:text-blue-500'"
-                        @click="tab = 'info'">
-                        📁 Informasi Proyek
+        {{-- Tabs Navigation --}}
+        <div x-data="{ activeTab: 'project' }" class="mt-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <button @click="activeTab = 'project'" 
+                        :class="activeTab === 'project' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" 
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Project Information
                     </button>
-                    <button class="px-4 py-2 focus:outline-none transition"
-                        :class="tab === 'status' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'hover:text-blue-500'"
-                        @click="tab = 'status'">
-                        📊 Status Proyek
+                    <button @click="activeTab = 'quotation'" 
+                        :class="activeTab === 'quotation' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" 
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Quotation Details
+                    </button>
+                    <button @click="activeTab = 'relationships'" 
+                        :class="activeTab === 'relationships' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" 
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Project Relationships
+                    </button>
+                    <button @click="activeTab = 'status'" 
+                        :class="activeTab === 'status' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" 
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Status & Timeline
                     </button>
                 </nav>
             </div>
 
-            @php
-                $display = fn($value) => $value ?: '—';
-                $formatDate = fn($date) => $date ? \Carbon\Carbon::parse($date)->translatedFormat('d M Y') : '—';
-                $formatDecimal = fn($decimal) => is_numeric($decimal) ? number_format($decimal, 0, ',', '.') : '—';
-            @endphp
+            {{-- Project Information Tab --}}
+            <div x-show="activeTab === 'project'" x-cloak class="py-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Project Number</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $display($project->project_number) }}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Project Name</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $display($project->project_name) }}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Category</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $display($project->category->name ?? null) }}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Mandays (Engineer)</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $display($project->mandays_engineer) }}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Mandays (Technician)</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $display($project->mandays_technician) }}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Target Date</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $formatDate($project->target_dates) }}</p>
+                    </div>
 
-            {{-- Info Project --}}
-            <div x-show="tab === 'info'" x-cloak>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                    <x-view.label label="Project Number" :value="$display($project->project_number)" />
-                    <x-view.label label="Project Name" :value="$display($project->project_name)" />
-                    <x-view.label label="Categorie Name" :value="$display($project->category->name)" />
-                </div>
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">PO Date</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $formatDate($project->po_date) }}</p>
+                    </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                    <x-view.label label="Mandays Engineer" :value="$display($project->mandays_engineer)" />
-                    <x-view.label label="Mandays Technician" :value="$display($project->mandays_technician)" />
-                    <x-view.label label="Target Date" :value="$formatDate($project->target_dates)" />
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">PO Week</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $project->sales_weeks ?? '—' }}</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">PO Value</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">
+                            @isset($project->po_value)
+                                Rp {{ number_format(floatval($project->po_value), 0, ',', '.') }}
+                            @else
+                                -
+                            @endisset
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $display($project->po_number) }}</p>
+                    </div>
                 </div>
             </div>
 
-            {{-- Status Project --}}
-            <div x-show="tab === 'status'" x-cloak>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
-                    <x-view.label label="Status Proyek" :value="$display($project->statusProject->name)" />
+            {{-- Quotation Details Tab --}}
+            <div x-show="activeTab === 'quotation'" x-cloak class="py-6">
+                @if($project->quotation)
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Quotation Number</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $display($project->quotation->no_quotation) }}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Client</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $display($project->quotation->client->name) }}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Quotation Value</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">Rp {{ $formatDecimal($project->quotation->quotation_value) }}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Quotation Date</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $formatDate($project->quotation->quotation_date) }}</p>
+                    </div>
+  
                 </div>
+                @else
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                No quotation information available for this project.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                @endif
+            </div>
 
+            {{-- Project Relationships Tab --}}
+            <div x-show="activeTab === 'relationships'" x-cloak class="py-6">
+                 @if($hasParent || $hasVariants)
+                    <div class="space-y-6">
+                        {{-- Parent Project Section --}}
+                        @if($hasParent)
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-3">Parent Project</h3>
+                                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <h4 class="text-xs font-medium text-blue-800 uppercase tracking-wider">Project Number</h4>
+                                            <p class="mt-1 text-sm font-medium text-blue-900">{{ $parentProject->project_number }}</p>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-medium text-blue-800 uppercase tracking-wider">Project Name</h4>
+                                            <p class="mt-1 text-sm font-medium text-blue-900">{{ $parentProject->project_name }}</p>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-medium text-blue-800 uppercase tracking-wider">Status</h4>
+                                            <p class="mt-1 text-sm font-medium text-blue-900">{{ $parentProject->statusProject->name ?? 'N/A' }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <a href="{{ route('supervisor.project.show', $parentProject) }}" class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800">
+                                            View Parent Project
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Child Projects Section --}}
+                        @if($hasVariants)
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-3">Variant Orders</h3>
+                                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                                    <ul class="divide-y divide-gray-200">
+                                        @foreach($childProjects as $child)
+                                        <li>
+                                            <div class="px-4 py-4 sm:px-6">
+                                                <div class="flex items-center justify-between">
+                                                    <p class="text-sm font-medium text-indigo-600 truncate">{{ $child->project_number }}</p>
+                                                    <div class="ml-2 flex-shrink-0 flex">
+                                                        <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                            @if($child->statusProject->name === 'Active') bg-green-100 text-green-800
+                                                            @elseif($child->statusProject->name === 'On Hold') bg-yellow-100 text-yellow-800
+                                                            @elseif($child->statusProject->name === 'Completed') bg-blue-100 text-blue-800
+                                                            @else bg-gray-100 text-gray-800 @endif">
+                                                            {{ $child->statusProject->name ?? 'N/A' }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2 sm:flex sm:justify-between">
+                                                    <div class="sm:flex">
+                                                        <p class="flex items-center text-sm text-gray-500">
+                                                            <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                                            </svg>
+                                                            Target: {{ $formatDate($child->target_dates) }}
+                                                        </p>
+                                                    </div>
+                                                    <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                                        <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                                        </svg>
+                                                        Created: {{ $formatDate($child->created_at) }}
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <a href="{{ route('supervisor.project.show', $child) }}" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900">
+                                                        View Details
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No project relationships</h3>
+                        <p class="mt-1 text-sm text-gray-500">This project doesn't have any parent or variant projects associated with it.</p>
+                    </div>
+                @endif
+            </div>
+
+            {{-- Status & Timeline Tab --}}
+            <div x-show="activeTab === 'status'" x-cloak class="py-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <x-view.label label="Created At" :value="$formatDate($project->created_at)" />
-                    <x-view.label label="Updated At" :value="$formatDate($project->updated_at)" />
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Current Status</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $display($project->statusProject->name) }}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $formatDate($project->created_at) }}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $formatDate($project->updated_at) }}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Target Completion</h3>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $formatDate($project->target_dates) }}</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        {{-- Project Logs --}}
+        {{-- Recent Activity Section --}}
         <div class="mt-8">
-            <h3 class="text-xl font-bold text-gray-700 mb-4">📜 Project Logs</h3>
-            <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
-
-                {{-- Desktop (DataTable) --}}
-                <div class="">
-                    @livewire('log.log-table', ['projectId' => $project->id])
-                </div>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Recent Activity</h3>
+                <a href="{{ route('supervisor.projects.logs', $project->pn_number) }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                    View all activity
+                </a>
+            </div>
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                @livewire('log.log-table', ['projectId' => $project->pn_number, 'perPage' => 5])
             </div>
         </div>
     </div>
-
 @endsection

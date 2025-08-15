@@ -10,7 +10,7 @@
             <select wire:model.live="project_id" class="w-full border rounded p-2">
                 <option value="">-- Select Project --</option>
                 @foreach ($projects as $project)
-                    <option value="{{ $project->id }}">{{ $project->project_number }}</option>
+                    <option value="{{ $project->pn_number }}">{{ $project->project_number }}</option>
                 @endforeach
             </select>
             @if ($client_name)

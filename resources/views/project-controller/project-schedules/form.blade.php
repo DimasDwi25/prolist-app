@@ -7,7 +7,7 @@
             <h2 class="text-2xl font-bold text-gray-900">
                 {{ $schedule->exists ? 'Edit Schedule' : 'Add New Schedule' }}
             </h2>
-            <a href="{{ route('projects.schedules.index', $project->id) }}"
+            <a href="{{ route('projects.schedules.index', $project->pn_number) }}"
                 class="inline-flex items-center bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow transition duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                     stroke="currentColor" class="w-5 h-5 mr-1">
@@ -19,8 +19,8 @@
 
         {{-- Form --}}
         <form method="POST" action="{{ $schedule->exists
-        ? route('projects.schedules.update', [$project->id, $schedule->id])
-        : route('projects.schedules.store', $project->id) }}" class="space-y-6">
+        ? route('projects.schedules.update', [$project->pn_number, $schedule->id])
+        : route('projects.schedules.store', $project->pn_number) }}" class="space-y-6">
             @csrf
             @if($schedule->exists)
                 @method('PUT')

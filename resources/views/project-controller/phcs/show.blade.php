@@ -6,18 +6,18 @@
             <div class="flex-1 min-w-[200px]">
                 <h2 class="text-xl md:text-2xl font-bold text-gray-800">📁 Project Handover Checklist (PHC)</h2>
                 <p class="text-xs md:text-sm text-gray-500">
-                    Informasi lengkap dan dokumen yang disiapkan untuk serah terima proyek
+                    Complete information and documents prepared for project handover
                 </p>
             </div>
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <a href="{{ route('project_controller.project.show', $phc->project_id) }}"
                     class="flex justify-center items-center bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 text-sm w-full sm:w-auto">
-                    ← Kembali
+                    ← Back
                 </a>
                 @if ($phc->status === 'pending')
                     <a href="{{ route('project_controller.dashboard') }}"
                         class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm shadow transition">
-                        ✅ Lanjut Validasi PHC
+                        ✅ Next to PHC Validation
                     </a>
                 @endif
             </div>
@@ -79,7 +79,7 @@
                 <div>
                     <p class="text-sm text-gray-500">Notes</p>
                     <div class="bg-gray-100 p-4 rounded text-sm text-gray-700 whitespace-pre-line">
-                        {{ $phc->notes ?: '— Tidak ada catatan —' }}
+                        {{ $phc->notes ?: '——' }}
                     </div>
                 </div>
             </div>
@@ -97,7 +97,7 @@
             <div x-show="tab === 'docs'" x-cloak class="space-y-4">
                 @if($phc->scope_of_work_approval === 1)
                     <div class="mt-4">
-                        <livewire:project-controller.view-sow :projectId="$project->id" />
+                        <livewire:project-controller.view-sow :projectId="$project->pn_number" />
                     </div>
                 @endif
                 @php

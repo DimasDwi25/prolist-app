@@ -37,7 +37,7 @@ class LogThread extends Component
 
         $exists = Log::where('users_id', Auth::id())
             ->whereDate('tgl_logs', $today)
-            ->where('project_id', $this->project->id)
+            ->where('project_id', $this->project->pn_number)
             ->exists();
 
         if ($exists) {
@@ -57,7 +57,7 @@ class LogThread extends Component
             'logs' => $this->logContent,
             'tgl_logs' => now(),
             'status' => 'open',
-            'project_id' => $this->project->id,
+            'project_id' => $this->project->pn_number,
             'need_response' => $this->need_response,
             'response_by' => $this->need_response ? $this->responseBy : null,
         ]);
@@ -136,7 +136,7 @@ class LogThread extends Component
     public function render()
     {
         $logs = Log::with(['user', 'category', 'responseUser'])
-            ->where('project_id', $this->project->id)
+            ->where('project_id', $this->project->pn_number)
             ->orderByDesc('tgl_logs')
             ->paginate(5);
 

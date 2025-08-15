@@ -2,6 +2,13 @@
 
 @section('content')
     <h1 class="text-2xl font-bold mb-4">User List</h1>
+    
+    <form action="{{ route('users.import') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    <input type="file" name="file" required>
+    <button type="submit">Import Users</button>
+</form>
+
 
     <div class="flex justify-end mb-4">
         <a href="{{ route('user.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">+ Add

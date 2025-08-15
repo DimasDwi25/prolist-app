@@ -15,8 +15,31 @@ class DepartmentSeeder extends Seeder
     {
         //
         Department::insert([
-            ['name' => 'Administration'],
-            ['name' => 'Marketing']
+            ['name' => 'MARKETING'
+        ],
+        [
+            'name' => 'ENGINEERING'
+        ],
+        [
+            'name' => 'SUPPLY CHAIN'
+        ],
+        [
+            'name' => 'ACC FIN'
+        ],
+        [
+            'name' => 'HRGA'
+        ],
+        [
+            'name' => 'TOP MANAGEMENT'
+        ],
+        [
+            'name' => 'CMP'
+        ],
+
+        [
+            'name' => 'SUC-HR'
+        ],
+
         ]);
     }
 }

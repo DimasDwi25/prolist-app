@@ -1,6 +1,20 @@
 @extends('admin.layouts.app')
 
 @section('content')
+
+{{-- Import Form --}}
+    <form action="{{ route('department.import') }}" method="POST" enctype="multipart/form-data"
+        class="bg-white p-4 border border-gray-200 rounded-xl shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+        @csrf
+        <label class="text-sm text-gray-700 font-medium">📥 Import Excel:</label>
+        <input type="file" name="file" required
+            class="block text-sm file:bg-blue-600 file:text-white file:px-4 file:py-2 file:rounded-md file:font-semibold file:border-0 file:cursor-pointer border border-gray-300 rounded-md w-full sm:w-auto">
+        <button type="submit"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition w-full sm:w-auto">
+            Import
+        </button>
+    </form>
+
     <h1 class="text-2xl font-bold mb-4">Department List</h1>
     <div class="flex justify-end mb-4">
         <a href="{{ route('department.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">+ Add

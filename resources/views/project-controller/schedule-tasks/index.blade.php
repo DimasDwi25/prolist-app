@@ -13,7 +13,7 @@
             </div>
             <div class="flex items-center gap-2">
                 {{-- Back Button --}}
-                <a href="{{ route('projects.schedules.index', $project->id) }}"
+                <a href="{{ route('projects.schedules.index', $project->pn_number) }}"
                     class="inline-flex items-center bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow transition duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-5 h-5 mr-1">
@@ -23,7 +23,7 @@
                 </a>
 
                 {{-- Add Task Button --}}
-                <a href="{{ route('projects.schedule-tasks.create', [$project->id, $schedule->id]) }}"
+                <a href="{{ route('projects.schedule-tasks.create', [$project->pn_number, $schedule->id]) }}"
                     class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-5 h-5 mr-1">
@@ -86,16 +86,16 @@
 
                             {{-- Actions --}}
                             <td class="p-3 text-center space-x-2">
-                                <a href="{{ route('projects.schedule-tasks.edit', [$project->id, $schedule->id, $task->id]) }}"
+                                <a href="{{ route('projects.schedule-tasks.edit', [$project->pn_number, $schedule->id, $task->id]) }}"
                                     class="inline-block bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 py-1 rounded-lg shadow transition duration-150">
                                     Edit
                                 </a>
-                                <a href="{{ route('projects.schedule-tasks.weekly-progress', [$project->id, $schedule->id, $task->id]) }}"
+                                <a href="{{ route('projects.schedule-tasks.weekly-progress', [$project->pn_number, $schedule->id, $task->id]) }}"
                                     class="inline-block bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-lg shadow transition duration-150">
                                     Weekly Progress
                                 </a>
                                 <form
-                                    action="{{ route('projects.schedule-tasks.destroy', [$project->id, $schedule->id, $task->id]) }}"
+                                    action="{{ route('projects.schedule-tasks.destroy', [$project->pn_number, $schedule->id, $task->id]) }}"
                                     method="POST" class="inline"
                                     onsubmit="return confirm('Are you sure you want to delete this task?');">
                                     @csrf @method('DELETE')

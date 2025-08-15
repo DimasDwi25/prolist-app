@@ -79,22 +79,18 @@ return [
         ],
 
         'sqlsrv' => [
-            'driver' => 'sqlsrv',
-            'host' => env('DB_HOST', 'localhost'),
-            'port' => env('DB_PORT', '1433'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => '',
-            'password' => '',
-            'charset' => 'utf8',
-            'TrustServerCertificate' => true,
-            'odbc' => false,
-            'options' => [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            ],
-            'dsn' => 'sqlsrv:Server=' . env('DB_HOST', 'localhost') . ',' . env('DB_PORT', '1433') .
-                ';Database=' . env('DB_DATABASE', 'forge') .
-                ';IntegratedSecurity=true;TrustServerCertificate=true'
+        'driver' => 'sqlsrv',
+        'host' => env('DB_HOST', 'localhost'),
+        'port' => env('DB_PORT', '1433'),
+        'database' => env('DB_DATABASE', 'forge'),
+        'username' => env('DB_USERNAME', 'forge'),  // ✅ ambil dari .env
+        'password' => env('DB_PASSWORD', ''),       // ✅ ambil dari .env
+        'charset' => 'utf8',
+        'TrustServerCertificate' => true,
+        'options' => [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         ],
+    ],
 
 
 

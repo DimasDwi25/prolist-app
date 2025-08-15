@@ -51,6 +51,49 @@
                                 Users</a>
                         </div>
                     </div>
+
+                    <!-- Quotation -->
+                    <div x-data="{ open: false }">
+                        <button @click="open = !open"
+                            class="flex justify-between w-full px-4 py-2 rounded hover:bg-[#005f87] transition">
+                            <span>📑 Quotation</span>
+                            <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform" fill="none"
+                                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="open" x-transition class="pl-4 mt-1 space-y-1 text-sm">
+                            <a href="{{ route('supervisor.marketing.report') }}"
+                                class="block px-4 py-2 rounded hover:bg-[#005f87]">📈 Marketing Reports</a>
+                            <a href="{{ route('supervisor.sales.report') }}"
+                                class="block px-4 py-2 rounded hover:bg-[#005f87]">📈 Sales Reports</a>
+                            <a href="{{ route('quotation.index') }}"
+                                class="block px-4 py-2 rounded hover:bg-[#005f87]">🧾 Manage Quotation</a>
+                        </div>
+                    </div>
+
+                    <!-- Project -->
+                    <div x-data="{ open: false }">
+                        <button @click="open = !open"
+                            class="flex justify-between w-full px-4 py-2 rounded hover:bg-[#005f87] transition">
+                            <span>🛠 Project</span>
+                            <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform" fill="none"
+                                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="open" x-transition class="pl-4 mt-1 space-y-1 text-sm">
+                            <a href="{{ route('supervisor.category') }}"
+                                class="block px-4 py-2 rounded hover:bg-[#005f87]">📁 Categories</a>
+                            <a href="{{ route('supervisor.project') }}"
+                                class="block px-4 py-2 rounded hover:bg-[#005f87]">🛠 Projects</a>
+                            <a href="{{ route('status_project') }}"
+                                class="block px-4 py-2 rounded hover:bg-[#005f87] transition">📁 Status Project</a>
+                        </div>
+                    </div>
+
+                    <a href="{{ route('supervisor.client') }}"
+                        class="block px-4 py-2 rounded hover:bg-[#005f87] transition">👥 Client</a>
                 </nav>
             </div>
         </div>

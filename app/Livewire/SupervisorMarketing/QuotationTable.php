@@ -23,7 +23,7 @@ class QuotationTable extends DataTableComponent
 
     public function configure(): void
     {
-        $this->setPrimaryKey('id'); // 👈 Tambahkan ini untuk menghindari error
+        $this->setPrimaryKey('quotation_number'); // 👈 Tambahkan ini untuk menghindari error
         $this->setColumnSelectDisabled();
         $this->setPaginationEnabled();
         $this->setPerPageAccepted([5, 10, 25, 50]);
@@ -58,7 +58,7 @@ class QuotationTable extends DataTableComponent
     public function columns(): array
     {
         return [
-            Column::make('ID', 'id')
+            Column::make('quotation_number', 'quotation_number')
                 ->excludeFromColumnSelect()
                 ->hideIf(true),
             Column::make('No', 'no_quotation')
@@ -77,11 +77,11 @@ class QuotationTable extends DataTableComponent
                 ->sortable()
                 ->searchable(),
 
-            Column::make('Date', 'quotation_date')
+            Column::make('Quotation Date', 'quotation_date')
                 ->sortable()
                 ->format(fn($value) => \Carbon\Carbon::parse($value)->format('d M Y')),
 
-            Column::make('Value', 'quotation_value')
+            Column::make('Quotation Value', 'quotation_value')
                 ->sortable()
                 ->format(fn($value) => 'Rp' . number_format($value, 0, ',', '.')),
             Column::make('Status', 'status')
@@ -104,30 +104,30 @@ class QuotationTable extends DataTableComponent
                 ->buttons([
                     LinkColumn::make('View')
                         ->title(fn($row) => '👁 View')
-                        ->location(fn($row) => url('/quotation/show/' . $row->id)),
+                        ->location(fn($row) => url('/quotation/show/' . $row->quotation_number)),
 
                     LinkColumn::make('Edit')
                         ->title(fn($row) => '✏️ Edit')
-                        ->location(fn($row) => url('/quotation/edit/' . $row->id)),
+                        ->location(fn($row) => url('/quotation/edit/' . $row->quotation_number)),
 
                     LinkColumn::make('Status')
                         ->title(fn() => '🔁 Status')
                         ->location(fn() => '#')
                         ->attributes(fn($row) => [
                             'x-data' => '{}',
-                            'x-on:click.prevent' => "\$dispatch('open-status-modal', { id: {$row->id} })",
+                            'x-on:click.prevent' => "\$dispatch('open-status-modal', { id: {$row->quotation_number} })",
                             'class' => 'text-yellow-600 hover:underline cursor-pointer',
                         ]),
 
-                    // auth()->user()?->role?->name === 'super_admin'
-                    // ? LinkColumn::make('Delete')
-                    //     ->title(fn() => '🗑 Delete')
-                    //     ->location(fn() => url('/quotation/destroy/' . $row->id))
-                    //     ->attributes(fn() => [
-                    //         'onclick' => "return confirm('Delete this quotation?')",
-                    //         'class' => 'text-red-500',
-                    //     ])
-                    // : null,
+                    auth()->user()?->role?->name === 'super_admin'
+                    ? LinkColumn::make('Delete')
+                        ->title(fn() => '🗑 Delete')
+                        ->location(fn($row) => route('quotation.destroy', $row->quotation_number))
+                        ->attributes(fn() => [
+                            'onclick' => "return confirm('Delete this quotation?')",
+                            'class' => 'text-red-500',
+                        ])
+                    : null,
                 ]),
         ];
     }

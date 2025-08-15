@@ -7,24 +7,23 @@ use Livewire\Component;
 
 class ChangeQuotationStatusModal extends Component
 {
-    public $quotationId;
+    public $quotationNumber;  // Changed from $quotationId to $quotationNumber
     public $status;
 
     public $statusOptions = [
-        'A' => '✓ Completed',
-        'D' => '⏳ No PO Yet',
-        'E' => '❌ Cancelled',
-        'F' => '⚠️ Lost Bid',
-        'O' => '🕒 On Going',
+        'A' => '[A] ✓ Completed',
+        'D' => '[D] ⏳ No PO Yet',
+        'E' => '[E] ❌ Cancelled',
+        'F' => '[F] ⚠️ Lost Bid',
+        'O' => '[O] 🕒 On Going',
     ];
 
-    public function openStatusModal($id)
+    public function openStatusModal($quotationNumber)  // Changed parameter name
     {
-        $quotation = Quotation::findOrFail($id);
-        $this->quotationId = $quotation->id;
+        $quotation = Quotation::where('quotation_number', $quotationNumber)->firstOrFail();
+        $this->quotationNumber = $quotation->quotation_number;  // Using the correct key
         $this->status = $quotation->status;
 
-        // trigger AlpineJS untuk buka modal
         $this->dispatch('open-status-modal-browser');
     }
 
@@ -32,7 +31,9 @@ class ChangeQuotationStatusModal extends Component
     {
         $this->validate(['status' => 'required|in:A,D,E,F,O']);
 
-        Quotation::findOrFail($this->quotationId)->update(['status' => $this->status]);
+        Quotation::where('quotation_number', $this->quotationNumber)  // Updated query
+                ->firstOrFail()
+                ->update(['status' => $this->status]);
 
         $this->dispatch('close-status-modal');
         $this->dispatch('refreshDatatable');

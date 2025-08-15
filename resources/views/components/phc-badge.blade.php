@@ -1,9 +1,9 @@
 @props(['label', 'value'])
 
-<div>
-    <p class="text-sm text-gray-500">{{ $label }}</p>
-    <span class="inline-block px-3 py-1 text-sm rounded 
-        {{ $value ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-500' }}">
-        {{ $value ?? '❌ N/A' }}
+<div class="space-y-1">
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ $label }}</p>
+    <span class="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full border
+        {{ $value ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200' }}">
+        {{ $value ? 'A' : 'N/A' }}
     </span>
 </div>

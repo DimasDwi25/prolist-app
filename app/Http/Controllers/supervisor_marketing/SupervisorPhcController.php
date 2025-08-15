@@ -12,6 +12,7 @@ use App\Notifications\PhcAllApprovedNotification;
 use App\Notifications\PhcValidationRequested;
 use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 
 class SupervisorPhcController extends Controller
 {
@@ -59,17 +60,17 @@ class SupervisorPhcController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'project_id' => 'required|exists:projects,id',
+            'project_id' => 'required|exists:projects,pn_number',
             'handover_date' => 'nullable|date',
             'start_date' => 'nullable|date',
             'target_finish_date' => 'nullable|date',
-            'client_name' => 'nullable|string',
+            'client_pic_name' => 'nullable|string',
             'client_mobile' => 'nullable|string',
             'client_reps_office_address' => 'nullable|string',
             'client_site_representatives' => 'nullable|string',
             'client_site_address' => 'nullable|string',
             'site_phone_number' => 'nullable|string',
-            'marketing_pic_id' => 'nullable|exists:users,id',
+            'pic_marketing_id' => 'nullable|exists:users,id',
             'pic_engineering_id' => 'nullable|exists:users,id',
             'ho_marketings_id' => 'nullable|exists:users,id',
             'ho_engineering_id' => 'nullable|exists:users,id',
@@ -136,15 +137,21 @@ class SupervisorPhcController extends Controller
         ];
 
 
+        // Mapping A/NA → boolean
         $booleanData = $this->mapToBoolean($request->all(), $checklistFields);
         $validated = array_merge($validated, $booleanData);
-        $validated['created_by'] = Auth::id();
-        $validated['status'] = 'pending'; // default
+
+        $validated['created_by'] = FacadesAuth::id();
+        $validated['status'] = 'pending';
 
         // Buat PHC
         $phc = Phc::create($validated);
 
-        // 1. Buat approval untuk HO Marketing dan PIC Marketing
+        $allApproverIds = [];
+
+        /**
+         * 1. Approval HO Marketing & PIC Marketing
+         */
         $marketingApprovers = array_filter([
             $request->ho_marketings_id,
             $request->pic_marketing_id
@@ -156,20 +163,26 @@ class SupervisorPhcController extends Controller
                 'user_id' => $userId,
                 'status' => 'pending',
             ]);
+            $allApproverIds[] = $userId;
         }
 
-        // 2. Handle HO Engineering approval
-        $engineeringApprovers = [];
+        /**
+         * 2. HO Engineering Approval
+         */
         if (!empty($request->ho_engineering_id)) {
-            // Jika HO Engineering diisi manual
+            // Jika diisi manual, approval hanya ke user itu
             PhcApproval::create([
                 'phc_id' => $phc->id,
                 'user_id' => $request->ho_engineering_id,
                 'status' => 'pending',
             ]);
-            $engineeringApprovers[] = $request->ho_engineering_id;
+            $allApproverIds[] = $request->ho_engineering_id;
+
+            // Notifikasi hanya ke user tersebut
+            User::find($request->ho_engineering_id)?->notify(new PhcValidationRequested($phc));
+
         } else {
-            // Jika HO Engineering kosong, notifikasi ke PM/PC/SuperAdmin
+            // Jika kosong, kirim ke semua PM/PC/SuperAdmin
             $validatorUsers = User::whereHas('role', function ($q) {
                 $q->whereIn('name', ['project manager', 'project controller', 'super_admin']);
             })->get();
@@ -181,22 +194,22 @@ class SupervisorPhcController extends Controller
                     'status' => 'pending',
                 ]);
                 $user->notify(new PhcValidationRequested($phc));
-                $engineeringApprovers[] = $user->id;
+                $allApproverIds[] = $user->id;
             }
         }
 
-        // 3. PIC Engineering tetap null (tidak dibuat approval-nya)
+        /**
+         * 3. PIC Engineering tidak dibuat approval
+         */
 
-        // Kirim event dengan semua user yang perlu approve
-        $allApproverIds = array_unique(array_merge(
-            $marketingApprovers,
-            $engineeringApprovers
-        ));
+        // Kirim event dengan semua approver
+        $allApproverIds = array_unique($allApproverIds);
         event(new PhcCreatedEvent($phc, $allApproverIds));
 
         session()->flash('resetStep', true);
 
-        return redirect()->route('supervisor.project.show', $request->project_id)
+        return redirect()
+            ->route('supervisor.project.show', $request->project_id)
             ->with('success', 'PHC created successfully and waiting for approval.');
     }
 

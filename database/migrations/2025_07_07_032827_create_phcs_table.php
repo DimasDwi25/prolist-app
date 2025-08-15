@@ -75,7 +75,6 @@ return new class extends Migration {
             $table->boolean('job_safety_analysis')->default(false);
             $table->boolean('risk_assessment')->default(false);
             $table->boolean('tool_list')->default(false);
-            $table->dateTime('handover_dates')->nullable();
             $table->timestamps();
         });
     }

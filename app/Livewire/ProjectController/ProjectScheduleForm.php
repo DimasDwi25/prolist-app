@@ -68,7 +68,7 @@ class ProjectScheduleForm extends Component
             'schedule.name' => 'required|string|max:255',
         ]);
 
-        $this->schedule->project_id = $this->project->id;
+        $this->schedule->project_id = $this->project->pn_number;
         $this->schedule->save();
 
         foreach ($this->tasks as $taskData) {
@@ -98,7 +98,7 @@ class ProjectScheduleForm extends Component
         }
 
         session()->flash('success', 'Project Schedule berhasil dibuat.');
-        return redirect()->route('project_controller.project.show', $this->project->id);
+        return redirect()->route('project_controller.project.show', $this->project->pn_number);
     }
 
     public function render()

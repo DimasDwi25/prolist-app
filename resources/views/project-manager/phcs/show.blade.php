@@ -98,7 +98,7 @@
             <div x-show="tab === 'docs'" x-cloak class="space-y-4">
                 @if($phc->scope_of_work_approval === 1)
                     <div class="mt-4">
-                        <livewire:project-controller.view-sow :projectId="$project->id" />
+                        <livewire:project-controller.view-sow :projectId="$project->pn_number" />
                     </div>
                 @endif
                 @php

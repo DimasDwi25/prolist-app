@@ -17,7 +17,7 @@
     @endif
 
     <div class="mb-4">
-        <a href="{{ route('supervisor.project.show', $project->id ?? $phc->project_id) }}"
+        <a href="{{ route('supervisor.project.show', $project->pn_number ?? $phc->project_id) }}"
            class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
             ⬅️ Back to Project
         </a>
@@ -26,13 +26,13 @@
     <form action="{{ isset($phc) ? route('phc.update', $phc) : route('phc.store') }}" method="POST">
         @csrf
         @if(isset($phc)) @method('PUT') @endif
-        <input type="hidden" name="project_id" value="{{ old('project_id', $project->id ?? $phc->project_id) }}">
+        <input type="hidden" name="project_id" value="{{ old('project_id', $project->pn_number ?? $phc->project_id) }}">
 
         {{-- AlpineJS Component --}}
         <div x-data="phcForm()" x-cloak>
             {{-- Step Indicator --}}
            <div class="mb-4 md:mb-6 text-center text-gray-600 font-medium text-sm md:text-base">
-                <template x-if="step === 1"><span>🔹 <strong>Step 1 of 3:</strong> Informasi Umum</span></template>
+                <template x-if="step === 1"><span>🔹 <strong>Step 1 of 3:</strong> General Information</span></template>
                 <template x-if="step === 2"><span>📋 <strong>Step 2 of 3:</strong> Handover Checklist</span></template>
                 <template x-if="step === 3"><span>📄 <strong>Step 3 of 3:</strong> Document Preparation</span></template>
             </div>
@@ -46,25 +46,37 @@
                             'bg-gray-200 text-gray-700': step !== i
                         }"
                         class="px-4 py-2 rounded-md font-medium transition w-full md:w-40 text-sm md:text-base">
-                        <span x-text="i === 1 ? '1️⃣ Informasi' : (i === 2 ? '2️⃣ Checklist' : '3️⃣ Dokumen')"></span>
+                        <span x-text="i === 1 ? '1️⃣ Information' : (i === 2 ? '2️⃣ Checklist' : '3️⃣ Documents')"></span>
                     </button>
                 </template>
             </div>
 
-            {{-- STEP 1: Informasi Umum --}}
+            {{-- STEP 1: General Information --}}
             <div x-show="step === 1" x-transition class="space-y-5 md:space-y-6">
                 <x-input.text name="project_name" label="Project" disabled :value="$project->project_name ?? $phc->project->project_name" />
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {{-- Handover Date --}}
                     <div>
-                        <label for="handover_date" class="block text-sm font-medium text-gray-700 mb-1">Handover Date</label>
+                        <label for="handover_date" class="block text-sm font-medium text-gray-700 mb-1">
+                            Handover Date
+                        </label>
                         @php
-                            $handoverDate = old('handover_date') ?? (isset($phc) && $phc->handover_date ? \Illuminate\Support\Carbon::parse($phc->handover_date)->format('Y-m-d') : '');
+                            $handoverDate = old('handover_date') 
+                                ?? (isset($phc) && $phc->handover_date 
+                                    ? \Illuminate\Support\Carbon::parse($phc->handover_date)->format('Y-m-d') 
+                                    : '');
                         @endphp
-                        <input type="date" name="handover_date" id="handover_date" value="{{ $handoverDate }}"
-                            class="w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md shadow-sm px-3 py-2">
+                        <input 
+                            type="date" 
+                            name="handover_date" 
+                            id="handover_date" 
+                            value="{{ $handoverDate }}"
+                            class="w-full rounded-lg border-gray-300 shadow-sm px-3 py-2 text-sm 
+                                focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition"
+                        >
                     </div>
+
                     <x-input.text name="project_number" label="PN No" disabled :value="$project->project_number ?? $phc->project->project_number" />
                 </div>
 
@@ -79,32 +91,45 @@
                             class="w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md shadow-sm px-3 py-2">
                     </div>
                     <div>
-                        <label for="target_finish_date" class="block text-sm font-medium text-gray-700 mb-1">Target Finish Date</label>
+                        <label for="target_finish_date" class="block text-sm font-medium text-gray-700 mb-1">
+                            Target Finish Date
+                        </label>
                         @php
-                            $targetFinishDate = old('target_finish_date') ?? (isset($phc) && $phc->target_finish_date ? \Illuminate\Support\Carbon::parse($phc->target_finish_date)->format('Y-m-d') : '');
+                            $targetFinishDate = old('target_finish_date') 
+                                ?? (isset($phc) && $phc->target_finish_date
+                                    ? \Illuminate\Support\Carbon::parse($phc->target_finish_date)->format('Y-m-d')
+                                    : '');
                         @endphp
-                        <input type="date" name="target_finish_date" id="target_finish_date" value="{{ $targetFinishDate }}"
-                            class="w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md shadow-sm px-3 py-2">
+                        <input 
+                            type="date" 
+                            name="target_finish_date" 
+                            id="target_finish_date" 
+                            value="{{ $targetFinishDate }}"
+                            class="w-full rounded-lg border-gray-300 shadow-sm px-3 py-2 text-sm
+                                focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition"
+                        >
                     </div>
+
                 </div>
 
                 {{-- Quotation Info --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <x-input.text name="no_quotation" label="No Quotation" disabled :value="$phc->no_quotation ?? $project->quotation->no_quotation" />
+                    <x-input.text name="no_quotation" label="Quotation No" disabled :value="$phc->no_quotation ?? $project->quotation->no_quotation" />
                     <x-input.text name="quotation_date" label="Quotation Date" disabled :value="optional($project->quotation->quotation_date)->format('d M Y')" />
                 </div>
 
                 {{-- Client Info --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <x-input.text name="client_name" label="Client Name" :value="old('client_name', $phc->client_name ?? '')" />
+                    <x-input.text name="client_pic_name" label="Client Name" :value="old('client_pic_name', $phc->client_pic_name ?? '')" />
                     <x-input.text name="client_mobile" label="Client Mobile" :value="old('client_mobile', $phc->client_mobile ?? '')" />
-                    <x-input.text name="client_reps_office_address" label="Client Reps Office Address" :value="old('client_reps_office_address', $phc->client_reps_office_address ?? '')" />
+                    <x-input.text name="client_reps_office_address" label="Client Representative Office Address" :value="old('client_reps_office_address', $phc->client_reps_office_address ?? '')" />
                 </div>
 
                 {{-- Client Info --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <x-input.text name="client_site_address" label="Client Site Address" :value="old('client_site_address', $phc->client_site ?? '')" />
-                    <x-input.text name="client_site_representative" label="Client Site Representative" :value="old('client_site_representative', $phc->client_site_representative ?? '')" />
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <x-input.text name="client_site_address" label="Client Site Address" :value="old('client_site_address', $phc->client_site_address ?? '')" />
+                    <x-input.text name="client_site_representatives" label="Client Site Representative" :value="old('client_site_representatives', $phc->client_site_representatives ?? '')" />
+                    <x-input.text name="site_phone_number" label="Site Phone Number" :value="old('site_phone_number', $phc->client_site_address ?? '')" />
                 </div>
 
                 {{-- Engineer --}}
@@ -115,7 +140,7 @@
                             HO Engineer
                         </label>
                         <select id="ho_engineering_id" name="ho_engineering_id" class="select2 w-full" wire:ignore>
-                            <option value="">-- Pilih HO Engineer --</option>
+                            <option value="">-- Select HO Engineer --</option>
                             <optgroup label="Engineer">
                                 @foreach ($users->filter(fn($u) => 
                                     $u->role && in_array(strtolower($u->role->name), ['engineer', 'supervisor engineer', 'project manager', 'project controller', 'admin engineer'])
@@ -134,9 +159,8 @@
                             PIC Engineer
                         </label>
                         <select id="pic_engineering_id" name="pic_engineering_id" class="select2 w-full" wire:ignore>
-                            <option value="">-- Pilih PIC Engineer --</option>
+                            <option value="">-- Select PIC Engineer --</option>
                             <optgroup label="Engineer">
-                                
                                 @foreach ($users->filter(fn($u) => 
                                     $u->role && in_array(strtolower($u->role->name), ['engineer', 'supervisor engineer', 'project manager', 'project controller', 'admin engineer'])
                                 )->take(5) as $user)
@@ -157,7 +181,7 @@
                             HO Marketing
                         </label>
                         <select id="ho_marketings_id" name="ho_marketings_id" class="select2 w-full" wire:ignore>
-                            <option value="">-- Pilih HO Marketing --</option>
+                            <option value="">-- Select HO Marketing --</option>
                             <optgroup label="Marketing">
                                 @foreach ($users->filter(fn($u) => 
                                     $u->role && in_array(strtolower($u->role->name), ['supervisor marketing', 'admin marketing', 'estimator'])
@@ -176,9 +200,9 @@
                             PIC Marketing
                         </label>
                         <select id="pic_marketing_id" name="pic_marketing_id" class="select2 w-full" wire:ignore>
-                            <option value="">-- Pilih PIC Marketing --</option>
+                            <option value="">-- Select PIC Marketing --</option>
                             <optgroup label="Marketing">
-                                 @foreach ($users->filter(fn($u) => 
+                                @foreach ($users->filter(fn($u) => 
                                     $u->role && in_array(strtolower($u->role->name), ['supervisor marketing', 'admin marketing', 'estimator'])
                                 )->take(5) as $user)
                                     <option value="{{ $user->id }}" {{ old('pic_marketing_id', $phc->pic_marketing_id ?? '') == $user->id ? 'selected' : '' }}>
@@ -243,7 +267,7 @@
                     <button type="button" @click="setStep(1)"
                             class="px-5 py-2 border rounded text-sm md:text-base w-full md:w-auto">⬅️ Back</button>
                     <button type="button" @click="setStep(3)"
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded text-sm md:text-base w-full md:w-auto">⏭️ Next: Dokumen</button>
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded text-sm md:text-base w-full md:w-auto">⏭️ Next: Documents</button>
                 </div>
             </div>
 
@@ -252,13 +276,13 @@
                 <h3 class="text-lg md:text-xl font-semibold text-gray-800">📄 Document Preparation</h3>
 
                 @foreach([
-                    '📐 Desain & Gambar' => [
+                    '📐 Design & Drawings' => [
                         'scope_of_work_approval' => 'Scope of Work Approval',
                         'design_approval_draw' => 'Design Approval Drawings',
                         'shop_draw' => 'Shop Drawing',
                         'as_build_draw' => 'As-Built Drawings',
                     ],
-                    '📋 Laporan & Form' => [
+                    '📋 Reports & Forms' => [
                         'project_schedule' => 'Project Schedule',
                         'progress_claim_report' => 'Progress Claim Report',
                         'fat_sat_forms' => 'FAT/SAT Forms',
@@ -266,7 +290,7 @@
                         'site_testing_commissioning_report' => 'Testing & Commissioning Report',
                         'accomplishment_report' => 'Accomplishment Report',
                     ],
-                    '🧰 Dokumen Penunjang' => [
+                    '🧰 Supporting Documents' => [
                         'organization_chart' => 'Organization Chart',
                         'component_approval_list' => 'Component Approval List',
                         'do_packing_list' => 'DO / Packing List',
@@ -297,25 +321,20 @@
                                             </label>
                                         </div>
 
-                                        {{-- Tombol Modal SOW --}}
+                                        {{-- SOW Modal Button --}}
                                         <template x-if="sow === 'A'">
                                             <div class="mt-2">
-                                               
-                                               
                                                 <button type="button"
                                                         onclick="Livewire.dispatch('openModal')"
                                                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm w-full md:w-auto">
-                                                    + Tambah SOW
+                                                    + Add SOW
                                                 </button>
-                                               
                                             </div>
                                         </template>
 
-                                        {{-- Modal SOW --}}
+                                        {{-- SOW Modal --}}
                                         <div class="w-full">
-                                            
-                                                @livewire('supervisor-marketing.scope-of-work-form-modal', ['projectId' => $project->id])
-                                           
+                                            @livewire('supervisor-marketing.scope-of-work-form-modal', ['projectId' => $project->pn_number])
                                         </div>
                                     </div>
                                 @else
@@ -354,9 +373,9 @@
 <script>
     $(document).ready(function() {
         $('.select2').select2({
-            placeholder: '-- Pilih --',
+            placeholder: '-- Select --',
             width: '100%',
-            minimumResultsForSearch: 5, // search aktif jika opsi > 5
+            minimumResultsForSearch: 5, // enable search if options > 5
         });
     });
 </script>

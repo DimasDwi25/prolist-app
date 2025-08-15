@@ -11,21 +11,16 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('quotations', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedInteger('quotation_number')->nullable()->index();
-            $table->dateTime('inquiry_date');
+            $table->unsignedBigInteger('quotation_number')->primary();
+            $table->dateTime('inquiry_date')->nullable();
             //
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
 
-            $table->string('title_quotation');
-            $table->dateTime('quotation_date');
+            $table->string('title_quotation')->nullable();
+            $table->dateTime('quotation_date')->nullable();
             $table->string('no_quotation')->unique();
             $table->string('quotation_weeks');
             $table->decimal('quotation_value', 15, 2);
-            $table->dateTime('po_date')->nullable();
-            $table->string('sales_weeks')->nullable();
-            $table->string('po_number')->nullable();
-            $table->decimal('po_value')->nullable();
             $table->dateTime('revision_quotation_date')->nullable();
             $table->string('client_pic');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');

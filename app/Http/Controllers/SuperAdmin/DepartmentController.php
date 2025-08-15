@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Imports\ClientImport;
+use App\Imports\DepartmentImport;
 use App\Models\Department;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DepartmentController extends Controller
 {
@@ -48,5 +51,16 @@ class DepartmentController extends Controller
     {
         $department->delete();
         return redirect()->route('admin.department')->with('success', 'Department deleted.');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls',
+        ]);
+
+        Excel::import(new DepartmentImport, $request->file('file'));
+
+        return back()->with('success', 'Client data imported successfully.');
     }
 }

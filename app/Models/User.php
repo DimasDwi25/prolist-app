@@ -61,5 +61,11 @@ class User extends Authenticatable
         return $this->hasMany(Quotation::class);
     }
 
+    // di app/Models/User.php
+    public function hasAnyRole($roles)
+    {
+        return $this->role()->whereIn('name', (array)$roles)->exists();
+    }
+
     
 }

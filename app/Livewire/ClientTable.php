@@ -39,15 +39,20 @@ class ClientTable extends DataTableComponent
             Column::make('Country', 'country')->sortable(),
 
             ButtonGroupColumn::make('Actions')->buttons(array_filter([
+
+                LinkColumn::make('👁 View')
+                    ->title(fn($row) => '👁 View')
+                    ->location(fn($row) => route('client.show', $row)),
+
                 LinkColumn::make('✏️ Edit')
-                    ->title(fn() => '✏️ Edit')
+                    ->title(fn($row) => '✏️ Edit')
                     ->location(fn($row) => route('client.edit', $row)),
 
                 Auth::user()?->role?->name === 'super_admin'
                 ? LinkColumn::make('🗑 Delete')
-                    ->title(fn() => '🗑 Delete')
+                    ->title(fn($row) => '🗑 Delete')
                     ->location(fn($row) => route('client.destroy', $row))
-                    ->attributes(fn() => [
+                    ->attributes(fn($row) => [
                         'onclick' => "return confirm('Delete this client?')",
                         'class' => 'text-red-500',
                     ])
@@ -55,4 +60,5 @@ class ClientTable extends DataTableComponent
             ])),
         ];
     }
+
 }

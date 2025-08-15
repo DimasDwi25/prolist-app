@@ -18,19 +18,13 @@ class UserSeeder extends Seeder
         //
         User::insert([
             [
-                'name' => 'Super Admin',
-                'email' => 'admin@example.com',
-                'password' => bcrypt('password'),
+                'name' => 'Andry',
+                'email' => 'andry@citasys.com',
+                'password' => bcrypt('AndTM#1899'),
                 'role_id' => 1,
                 'department_id' => 1,
+                'pin' => 727813
             ],
-            [
-                'name' => 'Marketing',
-                'email' => 'marketing@example.com',
-                'password' => bcrypt('password'),
-                'role_id' => 2,
-                'department_id' => 2,
-            ]
         ]);
     }
 }

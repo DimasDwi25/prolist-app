@@ -28,13 +28,36 @@ class Project extends Model
         'jumlah_invoice',
         'status_project_id',
         'project_progress',
+        'po_date',
+        'sales_weeks',
+        'po_number',
+        'po_value',
+        'is_confirmation_order',
+        'parent_pn_number',
     ];
+
+    public function getRouteKeyName()
+    {
+        return 'pn_number';
+    }
 
     protected static function booted(): void
     {
         static::creating(function ($project) {
             $project->pn_number = self::generatePnNumber();
-            $project->project_number = self::generateProjectNumber($project->pn_number);
+            $project->project_number = self::generateProjectNumber(
+                $project->pn_number,
+                (bool) $project->is_confirmation_order // pastikan boolean
+            );
+        });
+
+        static::updating(function ($project) {
+            if (!empty($project->pn_number)) {
+                $project->project_number = self::generateProjectNumber(
+                    $project->pn_number,
+                    (bool) $project->is_confirmation_order
+                );
+            }
         });
     }
 
@@ -60,19 +83,18 @@ class Project extends Model
         return (int) ($yearShort . str_pad($newNumber, 3, '0', STR_PAD_LEFT));
     }
 
-
-    public static function generateProjectNumber(int $pnNumber): string
+    public static function generateProjectNumber(int $pnNumber, bool $isCO = false): string
     {
         $yearShort = substr($pnNumber, 0, 2);
         $number = substr($pnNumber, 2);
-        return "PN-{$yearShort}/" . str_pad($number, 3, '0', STR_PAD_LEFT);
+
+        $prefix = $isCO ? 'CO-PN' : 'PN';
+        return "{$prefix}-{$yearShort}/" . str_pad($number, 3, '0', STR_PAD_LEFT);
     }
-
-
 
     public function quotation()
     {
-        return $this->belongsTo(Quotation::class, 'quotations_id');
+        return $this->belongsTo(Quotation::class, 'quotations_id', 'quotation_number');
     }
 
     public function category()
@@ -82,7 +104,7 @@ class Project extends Model
 
     public function phc()
     {
-        return $this->hasOne(PHC::class, 'project_id');
+        return $this->hasOne(PHC::class, 'project_id', 'pn_number');
     }
 
     public function statusProject()
@@ -97,13 +119,35 @@ class Project extends Model
 
     public function schedules()
     {
-        return $this->hasMany(ProjectSchedule::class);
+        return $this->hasMany(ProjectSchedule::class, 'project_id', 'pn_number');
     }
 
-    public function getRouteKeyName()
+
+    // Parent project
+    public function parent()
     {
-        return 'pn_number';
+        return $this->belongsTo(Project::class, 'parent_pn_number', 'pn_number');
     }
 
+    // Child variations
+    public function variants()
+    {
+        return $this->hasMany(Project::class, 'parent_pn_number', 'pn_number');
+    }
+
+    public function manPowerAllocations()
+    {
+        return $this->hasMany(ManPowerAllocation::class, 'project_id', 'pn_number');
+    }
+
+    protected $casts = [
+        'target_dates' => 'datetime',
+        'po_date' => 'datetime',
+        'phc_dates' => 'datetime',
+        'dokumen_finish_date' => 'datetime',
+        'engineering_finish_date' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
 }

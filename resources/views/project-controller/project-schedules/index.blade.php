@@ -22,7 +22,7 @@
                 </a>
 
                 {{-- Add Schedule Button --}}
-                <a href="{{ route('projects.schedules.create', $project->id) }}"
+                <a href="{{ route('projects.schedules.create', $project->pn_number) }}"
                     class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-5 h-5 mr-1">
@@ -62,17 +62,17 @@
                             </td>
                             <td class="p-3 text-center space-x-2">
                                 {{-- Edit --}}
-                                <a href="{{ route('projects.schedules.edit', [$project->id, $schedule->id]) }}"
+                                <a href="{{ route('projects.schedules.edit', [$project->pn_number, $schedule->id]) }}"
                                     class="inline-block bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 py-1 rounded-lg shadow transition duration-150">
                                     Edit
                                 </a>
                                 {{-- Manage Tasks --}}
-                                <a href="{{ route('projects.schedule-tasks.index', [$project->id, $schedule->id]) }}"
+                                <a href="{{ route('projects.schedule-tasks.index', [$project->pn_number, $schedule->id]) }}"
                                     class="inline-block bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-lg shadow transition duration-150">
                                     Manage Tasks
                                 </a>
                                 {{-- Delete --}}
-                                <form action="{{ route('projects.schedules.destroy', [$project->id, $schedule->id]) }}"
+                                <form action="{{ route('projects.schedules.destroy', [$project->pn_number, $schedule->id]) }}"
                                     method="POST" class="inline"
                                     onsubmit="return confirm('Are you sure to delete this schedule?');">
                                     @csrf @method('DELETE')

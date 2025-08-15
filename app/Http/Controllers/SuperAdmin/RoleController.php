@@ -35,7 +35,7 @@ class RoleController extends Controller
     {
         //
         $request->validate(['name' => 'required|string|max:255', 'type_role' => 'required|in:1,2'], );
-        Role::create($request->only('name'));
+        Role::create($request->only('name', 'type_role'));
         return redirect()->route('admin.role')->with('success', 'Role created.');
     }
 

@@ -24,11 +24,17 @@ class SupervisorQuotationController extends Controller
         $clients = Client::all();
         $nextNumber = Quotation::getNextQuotationNumber();
         $noQuotationNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-        $formattedQuotation = Quotation::formatFullQuotationNo($noQuotationNumber);
+        $monthRoman = old('month_roman');
+        $formattedQuotation = Quotation::formatFullQuotationNo($noQuotationNumber, $monthRoman);
+        $quotation = new Quotation();
 
-        $quotation = null; // Tambahkan ini agar view tidak error
-
-        return view('supervisor.quotation.form', compact('clients', 'noQuotationNumber', 'formattedQuotation', 'quotation'));
+        return view('supervisor.quotation.form', compact(
+            'quotation',
+            'clients', 
+            'noQuotationNumber', 
+            'formattedQuotation', 
+            'monthRoman'
+        ));
     }
 
 
@@ -54,37 +60,65 @@ class SupervisorQuotationController extends Controller
     {
         $this->validateRequest($request);
 
-        Quotation::create([
-            ...$request->except(['no_quotation']),
-            'no_quotation' => $request->no_quotation,
-            'quotation_number' => $request->no_quotation,
-        ]);
+        $number = str_pad($request->no_quotation, 3, '0', STR_PAD_LEFT);
+        $quotationDate = \Carbon\Carbon::parse($request->quotation_date);
+        $romanMonth = Quotation::convertMonthToRoman($quotationDate->format('m'));
+        $yearShort = $quotationDate->format('y');
+
+        $formattedNoQuotation = "Q-{$number}/{$romanMonth}/{$yearShort}";
+        $quotationNumber = $quotationDate->format('Y') . $number;
+
+        $quotation = new Quotation($request->except(['month_roman']));
+        $quotation->status = $request->status ?? 'O';
+        $quotation->quotation_date = $quotationDate;
+        $quotation->no_quotation = $formattedNoQuotation;
+        $quotation->quotation_number = $quotationNumber; // primary key
+
+        $quotation->save();
 
         return redirect()->route('quotation.index')->with('success', 'Quotation created successfully!');
     }
 
+
     public function edit(Quotation $quotation)
     {
         $clients = Client::all();
-        $noQuotationNumber = str_pad($quotation->quotation_number ?? 1, 3, '0', STR_PAD_LEFT);
-
-        return view('supervisor.quotation.form', compact('quotation', 'clients', 'noQuotationNumber'));
+        
+        // Extract the Roman month from the existing quotation number
+        $quotationParts = explode('/', $quotation->no_quotation);
+        $romanMonth = $quotationParts[1] ?? null;
+        
+        $noQuotationNumber = substr($quotation->no_quotation, 2, 3); // Extract the numeric part (001, 002, etc.)
+        $monthRoman = $romanMonth; // This is already in Roman format
+        
+        return view('supervisor.quotation.form', compact(
+            'quotation',
+            'clients', 
+            'noQuotationNumber', 
+            'monthRoman'
+        ));
     }
 
     public function update(Request $request, Quotation $quotation)
     {
-        $this->validateRequest($request, $quotation->id);
+        $this->validateRequest($request, $quotation->quotation_number);
 
-        // Generate ulang nomor quotation berdasarkan nomor yang dikirim dari form
-        $formattedNoQuotation = Quotation::formatFullQuotationNo($request->no_quotation);
+        $number = str_pad($request->no_quotation, 3, '0', STR_PAD_LEFT);
+        $quotationDate = \Carbon\Carbon::parse($request->quotation_date);
+        $romanMonth = Quotation::convertMonthToRoman($quotationDate->format('m'));
+        $yearShort = $quotationDate->format('y');
+
+        $formattedNoQuotation = "Q-{$number}/{$romanMonth}/{$yearShort}";
 
         $quotation->update([
-            ...$request->except(['no_quotation']),
+            ...$request->except(['no_quotation', 'month_roman']),
             'no_quotation' => $formattedNoQuotation,
         ]);
 
         return redirect()->route('quotation.index')->with('success', 'Quotation updated successfully!');
     }
+
+
 
     public function destroy(Quotation $quotation)
     {
@@ -111,16 +145,39 @@ class SupervisorQuotationController extends Controller
             'revision_quotation_date' => 'nullable|date',
             'revisi' => 'nullable|string|max:255',
             'status' => 'nullable|in:A,D,E,F,O',
-            'po_date' => 'nullable|date',
-            'po_number' => 'nullable|string|max:255',
-            'po_value' => 'nullable|numeric|min:0',
-            'sales_weeks' => 'nullable|string',
         ])->validate();
     }
 
     public function show(Quotation $quotation)
     {
-        return view('supervisor.quotation.show', compact('quotation'));
+        // Eager load relationships to prevent N+1 queries
+        $quotation->load([
+            'client',
+            'user',
+        ]);
+
+        // Prepare additional data if needed
+        $statusOptions = [
+            'A' => 'Completed',
+            'D' => 'No PO Yet',
+            'E' => 'Cancelled',
+            'F' => 'Project Lost',
+            'O' => 'On Going'
+        ];
+
+        // Get related quotations (example)
+        $relatedQuotations = Quotation::where('client_id', $quotation->client_id)
+                                    ->where('quotation_number', '!=', $quotation->quotation_number)
+                                    ->latest()
+                                    ->take(5)
+                                    ->get();
+
+        return view('supervisor.quotation.show', [
+            'quotation' => $quotation,
+            'statusOptions' => $statusOptions,
+            'relatedQuotations' => $relatedQuotations,
+            'pageTitle' => "Quotation: {$quotation->no_quotation}"
+        ]);
     }
 
     public function updateStatus(Request $request, Quotation $quotation)

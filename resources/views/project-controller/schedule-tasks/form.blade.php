@@ -7,7 +7,7 @@
             <h2 class="text-2xl font-bold text-gray-900">
                 {{ $task->exists ? 'Edit Task' : 'Add Task' }}
             </h2>
-            <a href="{{ route('projects.schedule-tasks.index', [$project->id, $schedule->id]) }}"
+            <a href="{{ route('projects.schedule-tasks.index', [$project->pn_number, $schedule->id]) }}"
                 class="inline-flex items-center bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow transition duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                     stroke="currentColor" class="w-5 h-5 mr-1">
@@ -19,8 +19,8 @@
 
         {{-- Form --}}
         <form method="POST" action="{{ $task->exists
-        ? route('projects.schedule-tasks.update', [$project->id, $schedule->id, $task->id])
-        : route('projects.schedule-tasks.store', [$project->id, $schedule->id]) }}" class="space-y-6">
+        ? route('projects.schedule-tasks.update', [$project->pn_number, $schedule->id, $task->id])
+        : route('projects.schedule-tasks.store', [$project->pn_number, $schedule->id]) }}" class="space-y-6">
             @csrf
             @if($task->exists)
                 @method('PUT')

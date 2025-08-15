@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class PHC extends Model
 {
@@ -19,7 +20,7 @@ class PHC extends Model
         'notes',
         'start_date',
         'target_finish_date',
-        'client_name',
+        'client_pic_name',
         'client_mobile',
         'client_reps_office_address',
         'client_site_address',
@@ -101,7 +102,7 @@ class PHC extends Model
     {
         static::updating(function ($phc) {
             if ($phc->isDirty('ho_engineering_id')) {
-                \Log::info("HO Engineering Updated", [
+                Log::info("HO Engineering Updated", [
                     'phc_id' => $phc->id,
                     'old_value' => $phc->getOriginal('ho_engineering_id'),
                     'new_value' => $phc->ho_engineering_id

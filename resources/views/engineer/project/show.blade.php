@@ -32,7 +32,7 @@
                         👁️ View PHC
                     </a>
                 @else
-                    <a href="{{ route('phc', $project->id) }}"
+                    <a href="{{ route('phc', $project->pn_number) }}"
                         class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
                         ➕ Create PHC
                     </a>
@@ -40,7 +40,7 @@
 
 
                 {{-- Tombol View Log --}}
-                <a href="{{ route('projects.logs', $project->id) }}"
+                <a href="{{ route('projects.logs', $project->pn_number) }}"
                     class="inline-flex items-center bg-gray-700 text-white px-3 py-1.5 rounded hover:bg-gray-800 text-sm">
                     📋 View Logs
                 </a>

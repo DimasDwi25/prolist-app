@@ -22,6 +22,12 @@ class SupervisorClientController extends Controller
         return view('supervisor.client.create');
     }
 
+    public function show(Client $client)
+    {
+        return view('supervisor.client.show', compact('client'));
+    }
+
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -33,7 +39,7 @@ class SupervisorClientController extends Controller
             'province' => 'required|string|max:100',
             'country' => 'required|string|max:100',
             'zip_code' => 'required|string|max:20',
-            'web' => 'required|string|max:255',
+            'web' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
         ]);
 

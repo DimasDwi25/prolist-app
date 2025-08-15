@@ -24,7 +24,7 @@ class MarketingReportTable extends DataTableComponent
 
     public function configure(): void
     {
-        $this->setPrimaryKey('id'); // 👈 Tambahkan ini untuk menghindari error
+        $this->setPrimaryKey('quotation_number'); // 👈 Tambahkan ini untuk menghindari error
         $this->setColumnSelectDisabled();
         $this->setPaginationEnabled();
         $this->setPerPageAccepted([5, 10, 25, 50]);
@@ -60,7 +60,7 @@ class MarketingReportTable extends DataTableComponent
     public function columns(): array
     {
         return [
-            Column::make('ID', 'id')
+            Column::make('ID', 'quotation_number')
                 ->excludeFromColumnSelect()
                 ->hideIf(true),
             Column::make('No', 'no_quotation')
@@ -132,8 +132,7 @@ class MarketingReportTable extends DataTableComponent
                     if (!empty($value)) {
                         $query->whereMonth('quotation_date', $value);
                     }
-                })
-                ->filterPillTitle('Month'),
+                }),
             SelectFilter::make('Status')
                 ->options([
                     'all' => '📂 All Status', // ✅ Tidak kosong

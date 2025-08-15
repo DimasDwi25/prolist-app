@@ -34,6 +34,10 @@ class ProjectsExport implements FromCollection, WithHeadings, WithMapping, Shoul
             'jumlah_invoice',
             'status_project_id',
             'project_progress',
+            'po_date',
+            'sales_weeks',
+            'po_number',
+            'po_value',
         ];
     }
 
@@ -54,6 +58,10 @@ class ProjectsExport implements FromCollection, WithHeadings, WithMapping, Shoul
             $project->jumlah_invoice,
             $project->status_project_id,
             $project->project_progress,
+            optional($project->po_date)->format('Y-m-d'),
+            $project->sales_weeks,
+            $project->po_number,
+            $project->po_value,
         ];
     }
 

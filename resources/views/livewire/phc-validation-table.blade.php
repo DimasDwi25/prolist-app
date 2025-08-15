@@ -30,6 +30,9 @@
                             case 'project controller':
                                 $route = route('project_controller.phc.show', $phcId);
                                 break;
+                            case 'project manager':
+                                $route = route('project_manager.phc.show', $phcId);
+                                break;
                             default:
                                 $route = route('phc.show', $phcId); // fallback universal show route
                                 break;
