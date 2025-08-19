@@ -57,9 +57,9 @@
         @endif
 
         {{-- Form --}}
-        <form action="{{ (isset($project) && $project->pn_number) ? route('project.update', $project->pn_number) : route('project.store') }}" method="POST" class="space-y-6">
+        <form action="{{ optional($project)->exists ? route('project.update', $project->pn_number) : route('project.store') }}" method="POST" class="space-y-6">
             @csrf
-            @if(isset($project)) @method('PUT') @endif
+            @if(optional($project)->exists) @method('PUT') @endif
 
             <input type="hidden" name="status_project_id" value="{{ $project->status_project_id ?? 1 }}">
 
@@ -152,6 +152,25 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Client Selection -->
+            <div>
+                <label for="client_id" class="block text-sm font-medium text-gray-700 mb-1">
+                    Client
+                    <span class="text-xs text-gray-500 ml-1">(Select from existing clients)</span>
+                </label>
+                <select id="client_id" name="client_id" class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">-- Select Client --</option>
+                    @foreach($clients as $client)
+                        <option value="{{ $client->id }}" {{ old('client_id', $project->client_id ?? '') == $client->id ? 'selected' : '' }}>
+                            {{ $client->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('client_id')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
             </div>
 
             {{-- Project Information Section --}}
@@ -466,6 +485,20 @@
     }
 
     $(document).ready(function () {
+
+        // Initialize Select2 for client selection
+        $('#client_id').select2({
+            placeholder: "Search for a client...",
+            allowClear: true,
+            width: '100%'
+        });
+
+        @if(isset($project) && $project->client)
+            // Pre-select the client if editing
+            var clientOption = new Option("{{ $project->client->name }}", "{{ $project->client->id }}", true, true);
+            $('#client_id').append(clientOption).trigger('change');
+        @endif
+
         // Initialize select2
         $('#client_select, #quotations_id, #parent_pn_number').select2({
             placeholder: 'Select...',

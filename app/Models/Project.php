@@ -11,7 +11,7 @@ class Project extends Model
 
     protected $primaryKey = 'pn_number';
     public $incrementing = false; // karena kita generate manual
-    protected $keyType = 'int'; // karena pn_number integer
+    protected $keyType = 'string'; // karena pn_number integer
 
     protected $fillable = [
         'project_name',
@@ -34,6 +34,7 @@ class Project extends Model
         'po_value',
         'is_confirmation_order',
         'parent_pn_number',
+        'client_id',
     ];
 
     public function getRouteKeyName()
@@ -138,6 +139,11 @@ class Project extends Model
     public function manPowerAllocations()
     {
         return $this->hasMany(ManPowerAllocation::class, 'project_id', 'pn_number');
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class, 'client_id');
     }
 
     protected $casts = [

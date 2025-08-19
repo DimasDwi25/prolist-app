@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\Project;
 use App\Models\Quotation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SupervisorProjectController extends Controller
 {
@@ -36,6 +37,8 @@ class SupervisorProjectController extends Controller
 
     public function store(Request $request)
     {
+         Log::debug('Store method reached'); 
+         Log::debug('Method:', ['method' => $request->method()]); // Harusnya POST
         $validated = $request->validate([
             'project_name' => 'required|string|max:255',
             'categories_project_id' => 'nullable|exists:project_categories,id',
@@ -52,10 +55,11 @@ class SupervisorProjectController extends Controller
             'po_value' => 'nullable|numeric',
             'is_confirmation_order' => 'nullable|boolean',
             'parent_pn_number' => 'nullable|exists:projects,pn_number',
-
+            'client_id' => 'nullable|exists:clients,id',
            
         ]);
 
+        
         // Set default false jika checkbox tidak dicentang
         $validated['is_confirmation_order'] = $request->has('is_confirmation_order');
 
@@ -99,6 +103,7 @@ class SupervisorProjectController extends Controller
             'po_value' => 'nullable|numeric',
             'is_confirmation_order' => 'nullable|boolean',
             'parent_pn_number' => 'nullable|exists:projects,pn_number',
+            'client_id' => 'nullable|exists:clients,id',
         ]);
 
         $validated['is_confirmation_order'] = $request->has('is_confirmation_order');
@@ -121,8 +126,6 @@ class SupervisorProjectController extends Controller
 
         return back()->with('success', 'Project deleted successfully');
     }
-
-
 
 
     public function show(Project $project)

@@ -246,28 +246,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelModal = document.getElementById('cancel-modal');
 
     // Update project prefix and client when project changes
-    function updateProjectDetails() {
-        const pid = projectSelect.value;
-        const project = projects.find(p => p.id == pid);
+    // Update project prefix and client when project changes
+function updateProjectDetails() {
+    const pid = projectSelect.value;
+    const project = projects.find(p => p.id == pid);
+    
+    // Update WO prefix
+    if (project) {
+        // Extract the last 3 digits from project_number (assuming format PN-25/001)
+        const match = project.project_number.match(/^PN-\d{2}\/(\d{3})$/);
+        const code = match ? match[1] : '000';
         
-        // Update WO prefix
-        if (project) {
-            const match = project.project_number.match(/^PN-\d{2}\/(\d{3})$/);
-            const code = match ? match[1] : '000';
-            woKodePrefix.textContent = `WO-${year}/${code}/`;
-            
-            // Set default WO number if not manually edited
-            if (!woNumberLast.dataset.edited || woNumberLast.value === '') {
-                woNumberLast.value = parseInt(projectWorkOrderCounts[pid] ?? 0) + 1;
-            }
-        } else {
-            woKodePrefix.textContent = `WO-${year}/000/`;
-            woNumberLast.value = 1;
+        // Get current year's last 2 digits
+        const currentYear = new Date().getFullYear().toString().slice(-2);
+        
+        // Set WO prefix format: WO-25/001/
+        woKodePrefix.textContent = `WO-${currentYear}/${code}/`;
+        
+        // Set default WO number if not manually edited
+        if (!woNumberLast.dataset.edited || woNumberLast.value === '') {
+            // Get count of existing WOs for this project and add 1
+            woNumberLast.value = parseInt(projectWorkOrderCounts[pid] ?? 0) + 1;
         }
-        
-        updateHiddenKode();
-        fetchClient();
+    } else {
+        // Default format when no project selected
+        const currentYear = new Date().getFullYear().toString().slice(-2);
+        woKodePrefix.textContent = `WO-${currentYear}/000/`;
+        woNumberLast.value = 1;
     }
+    
+    updateHiddenKode();
+    fetchClient();
+}
 
     // Update the hidden WO code field
     function updateHiddenKode() {

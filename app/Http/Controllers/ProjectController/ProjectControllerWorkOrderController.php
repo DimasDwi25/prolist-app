@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\WorkOrder;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB as FacadesDB;
 
 class ProjectControllerWorkOrderController extends Controller
 {
@@ -45,7 +46,7 @@ class ProjectControllerWorkOrderController extends Controller
         $projects = Project::with('quotation.client')->get();
         $users = User::all();
         $roles = Role::where('type_role', 2)->get();
-        $projectWorkOrderCounts = WorkOrder::select('project_id', DB::raw('count(*) as total'))
+        $projectWorkOrderCounts = WorkOrder::select('project_id', FacadesDB::raw('count(*) as total'))
             ->groupBy('project_id')->pluck('total', 'project_id');
         $categorieLogs = \App\Models\CategorieLog::all();
 

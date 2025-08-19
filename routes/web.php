@@ -136,6 +136,7 @@ Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(func
     Route::patch('/quotation/{quotation}/status', [SupervisorQuotationController::class, 'updateStatus'])->name('quotation.updateStatus');
     Route::get('/ajax/clients', [SupervisorQuotationController::class, 'ajaxClients'])
         ->name('ajax.clients');
+
     Route::post('/quotation/import', [ImportQuotationController::class, 'import'])->name('quotation.import');
 
     Route::get('/marketing-report', [MarketingReportController::class, 'index'])->name('supervisor.marketing.report');

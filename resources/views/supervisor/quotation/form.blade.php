@@ -298,27 +298,10 @@
     $(document).ready(function() {
         // Initialize Select2 for client selection
         $('#client_id').select2({
-            placeholder: "Search for a client...",
-            allowClear: true,
-            width: '100%',
-            ajax: {
-                url: "{{ route('ajax.clients') }}",
-                dataType: 'json',
-                delay: 250,
-                data: function(params) {
-                    return {
-                        q: params.term
-                    };
-                },
-                processResults: function(data) {
-                    return {
-                        results: data
-                    };
-                },
-                cache: true
-            },
-            {{-- minimumInputLength: 1 --}}
-        });
+        placeholder: "Search for a client...",
+        allowClear: true,
+        width: '100%'
+    });
 
         @if(isset($quotation) && $quotation->client)
             // Pre-select the client if editing
