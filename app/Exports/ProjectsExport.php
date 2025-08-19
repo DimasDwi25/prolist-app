@@ -38,6 +38,7 @@ class ProjectsExport implements FromCollection, WithHeadings, WithMapping, Shoul
             'sales_weeks',
             'po_number',
             'po_value',
+            'client_id',
         ];
     }
 

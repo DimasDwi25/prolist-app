@@ -16,13 +16,16 @@ return new class extends Migration {
             $table->string('project_number');
             $table->foreignId('categories_project_id')
                 ->constrained('project_categories');
-            $table->foreignId('quotations_id')
-                ->constrained('quotations', 'quotation_number');
+            $table->unsignedBigInteger('quotation_number');
+            $table->foreign('quotation_number')
+                ->references('quotation_number')
+                ->on('quotations')
+                ->onDelete('cascade');
             $table->dateTime('phc_dates')->nullable();
             $table->integer('mandays_engineer')->nullable();
             $table->integer('mandays_technician')->nullable();
             $table->dateTime('target_dates')->nullable();
-            $table->enum('material_status', ['ready', 'not ready'])->nullable();
+            $table->string('material_status')->nullable();
             $table->dateTime('dokumen_finish_date')->nullable();
             $table->dateTime('engineering_finish_date')->nullable();
             $table->decimal('jumlah_invoice', 15, 2)->nullable();
@@ -32,7 +35,7 @@ return new class extends Migration {
             $table->dateTime('po_date')->nullable();
             $table->string('sales_weeks')->nullable();
             $table->string('po_number')->nullable();
-            $table->decimal('po_value')->nullable();
+            $table->decimal('po_value', 15,2)->nullable();
             $table->boolean('is_confirmation_order')->default(false);
             $table->unsignedBigInteger('parent_pn_number')->nullable();
             $table->timestamps();

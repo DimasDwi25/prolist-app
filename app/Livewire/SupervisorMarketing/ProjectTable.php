@@ -5,6 +5,7 @@ namespace App\Livewire\SupervisorMarketing;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
@@ -29,13 +30,16 @@ class ProjectTable extends DataTableComponent
 
     public function builder(): Builder
     {
-        return Project::query()->with(['category', 'quotation'])->orderBy('projects.created_at', 'desc');
+        return Project::query()
+            ->with(['category', 'quotation'])
+            ->select('*', DB::raw("
+                CAST(SUBSTRING(project_number, 4, 2) AS INT) AS year_number,
+                CAST(SUBSTRING(project_number, 7, LEN(project_number) - 6) AS INT) AS seq_number
+            "))
+            ->orderBy('year_number', 'desc')
+            ->orderBy('seq_number', 'desc');
     }
 
-    public function query(): Builder
-    {
-        return Project::query()->with(['category', 'quotation']);
-    }
 
     public function columns(): array
     {

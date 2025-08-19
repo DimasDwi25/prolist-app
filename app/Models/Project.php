@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -35,6 +36,7 @@ class Project extends Model
         'is_confirmation_order',
         'parent_pn_number',
         'client_id',
+        'pn_number',
     ];
 
     public function getRouteKeyName()
@@ -147,13 +149,68 @@ class Project extends Model
     }
 
     protected $casts = [
-        'target_dates' => 'datetime',
-        'po_date' => 'datetime',
-        'phc_dates' => 'datetime',
-        'dokumen_finish_date' => 'datetime',
-        'engineering_finish_date' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'target_dates' => \App\Casts\IndonesianDateCast::class,
+        'po_date' => \App\Casts\IndonesianDateCast::class,
+        'phc_dates' => \App\Casts\IndonesianDateCast::class,
+        'dokumen_finish_date' => \App\Casts\IndonesianDateCast::class,
+        'engineering_finish_date' => \App\Casts\IndonesianDateCast::class,
+        'created_at' => \App\Casts\IndonesianDateCast::class,
+        'updated_at' => \App\Casts\IndonesianDateCast::class,
     ];
+
+
+    // Parsing otomatis dari inputan bulan Indonesia → Carbon
+    public function setAttribute($key, $value)
+    {
+        if (in_array($key, array_keys($this->casts)) && !empty($value)) {
+            $value = $this->parseIndonesianDate($value);
+        }
+        return parent::setAttribute($key, $value);
+    }
+
+    // Getter otomatis → format tanggal pakai bulan Indonesia
+    protected function asDateTime($value)
+    {
+        return parent::asDateTime($value);
+    }
+
+    public function getTargetDatesIndAttribute()
+    {
+        return $this->target_dates ? $this->target_dates->translatedFormat('d F Y') : null;
+    }
+
+    public function getPoDateIndAttribute()
+    {
+        return $this->po_date ? $this->po_date->translatedFormat('d F Y') : null;
+    }
+
+
+
+    // Fungsi parser untuk input
+    protected function parseIndonesianDate($value)
+    {
+        if ($value instanceof Carbon) {
+            return $value;
+        }
+
+        $months = [
+            'Januari' => 'January',
+            'Februari' => 'February',
+            'Maret' => 'March',
+            'April' => 'April',
+            'Mei' => 'May',
+            'Juni' => 'June',
+            'Juli' => 'July',
+            'Agustus' => 'August',
+            'September' => 'September',
+            'Oktober' => 'October',
+            'November' => 'November',
+            'Desember' => 'December',
+        ];
+
+        $value = str_ireplace(array_keys($months), array_values($months), $value);
+
+        return Carbon::parse($value);
+    }
 
 }

@@ -47,25 +47,25 @@ class QuotationsImport implements ToModel, WithHeadingRow
 
         $this->successCount++;
 
-Quotation::updateOrCreate(
-    ['quotation_number' => $quotationNumber],
-    [
-        'no_quotation' => $noQuotation,
-        'inquiry_date' => $this->parseDate($row['inquiry_date'] ?? null),
-        'quotation_date' => $this->parseDate($row['quotation_date'] ?? null),
-        'client_id' => $clientId,
-        'title_quotation' => $row['title_quotation'] ?? null,
-        'quotation_weeks' => $this->formatWeek($row['quotation_weeks'] ?? null),
-        'quotation_value' => $this->formatNumber($row['quotation_value'] ?? 0),
-        'revision_quotation_date' => $this->parseDate($row['revision_quotation_date'] ?? null),
-        'status' => $row['status'] ?? null,
-        'client_pic' => $row['client_pic'] ?? null,
-        'revisi' => $row['revisi'],
-        'user_id' => $row['user_id'] ?? null,
-    ]
-);
+        Quotation::updateOrCreate(
+            ['quotation_number' => $quotationNumber],
+            [
+                'no_quotation' => $noQuotation,
+                'inquiry_date' => $this->parseDate($row['inquiry_date'] ?? null),
+                'quotation_date' => $this->parseDate($row['quotation_date'] ?? null),
+                'client_id' => $clientId,
+                'title_quotation' => $row['title_quotation'] ?? null,
+                'quotation_weeks' => $this->formatWeek($row['quotation_weeks'] ?? null),
+                'quotation_value' => $this->formatNumber($row['quotation_value'] ?? 0),
+                'revision_quotation_date' => $this->parseDate($row['revision_quotation_date'] ?? null),
+                'status' => $row['status'] ?? null,
+                'client_pic' => $row['client_pic'] ?? null,
+                'revisi' => $row['revisi'],
+                'user_id' => $row['user_id'] ?? null,
+            ]
+        );
 
-return null; // Karena data sudah diinsert/update, return null
+        return null; // Karena data sudah diinsert/update, return null
 
 
     } catch (\Exception $e) {
