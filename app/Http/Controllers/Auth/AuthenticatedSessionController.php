@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,25 +26,31 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
         $request->session()->regenerate();
-        if (Auth::user() && Auth::user()->role->name == 'super_admin') {
-            return redirect()->route('admin.dashboard');
-        } elseif (Auth::user() && Auth::user()->role->name == 'supervisor marketing') {
-            return redirect()->route('supervisor.dashboard');
-        } elseif (Auth::user() && Auth::user()->role->name == 'administration marketing') {
-            return redirect()->route('administration_marketing.dashboard');
-        } elseif (Auth::user() && Auth::user()->role->name == 'estimator') {
-            return redirect()->route('estimator.dashboard');
-        } elseif (Auth::user() && Auth::user()->role->name == 'engineer') {
-            return redirect()->route('engineer.dashboard');
-        } elseif (Auth::user() && Auth::user()->role->name == 'project controller') {
-            return redirect()->route('project_controller.dashboard');
-        } elseif (Auth::user() && Auth::user()->role->name == 'project manager') {
-            return redirect()->route('project_manager.dashboard');
+
+        $user = Auth::user();
+
+        // Mapping role ke nama route dashboard
+        $roleRedirects = [
+            'super_admin'             => 'admin.dashboard',
+            'marketing_director'      => 'marketing_director.dashboard',
+            'supervisor marketing'    => 'marketing.dashboard',
+            'manager_marketing'       => 'marketing.dashboard',
+            'sales_supervisor'        => 'marketing.dashboard',
+            'administration marketing'=> 'administration_marketing.dashboard',
+            'estimator'               => 'estimator.dashboard',
+            'engineer'                => 'engineer.dashboard',
+            'project controller'      => 'project_controller.dashboard',
+            'project manager'         => 'project_manager.dashboard',
+        ];
+
+        // Redirect sesuai role
+        if ($user && array_key_exists($user->role->name, $roleRedirects)) {
+            return redirect()->route($roleRedirects[$user->role->name]);
         }
-        else {
-            Auth::guard('web')->logout();
-            return redirect()->route('login')->with('status', 'You are not authorized to access this page.');
-        }
+
+        // Kalau role tidak dikenali
+        Auth::guard('web')->logout();
+        return redirect()->route('login')->with('status', 'You are not authorized to access this page.');
     }
 
     /**
@@ -56,7 +61,6 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

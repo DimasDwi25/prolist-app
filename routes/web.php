@@ -8,6 +8,13 @@ use App\Http\Controllers\Auth\LoginRedirectController;
 use App\Http\Controllers\Engineer\EngineerDashboardController;
 use App\Http\Controllers\Engineer\EngineerProjectController;
 use App\Http\Controllers\Engineer\WorkOrderController;
+use App\Http\Controllers\MarketingDirector\DashboardController as MarketingDirectorDashboardController;
+use App\Http\Controllers\MarketingDirector\MarketingDirectorClientController;
+use App\Http\Controllers\MarketingDirector\MarketingDirectorMarketingReportController;
+use App\Http\Controllers\MarketingDirector\MarketingDirectorPhcController;
+use App\Http\Controllers\MarketingDirector\MarketingDirectorProjectController;
+use App\Http\Controllers\MarketingDirector\MarketingDirectorQuotationController;
+use App\Http\Controllers\MarketingDirector\MarketingDirectorSalesReportController;
 use App\Http\Controllers\ProjectController\ProjectControllerDashboardController;
 use App\Http\Controllers\ProjectController\ProjectControllerPhcController;
 use App\Http\Controllers\ProjectController\ProjectControllerProjectController;
@@ -41,6 +48,8 @@ use App\Livewire\ProjectController\WeeklyProgressBoard;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\UserExportController;
+use App\Livewire\MarketingDirector\MarketingReportTable;
+use App\Livewire\MarketingDirector\SalesReportTable;
 use App\Livewire\ProjectController\ManPowerAllocationForm;
 use App\Livewire\SupervisorMarketing\MasterStatusProject;
 use Illuminate\Http\Request;
@@ -106,8 +115,9 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
     Route::get('/client/delete/{client}', [SupervisorClientController::class, 'destroy'])->name('client.destroy');
 });
 
-Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(function () {
-    Route::get('/supervisor-marketing', [SupervisorDashboardController::class, 'index'])->name('supervisor.dashboard');
+Route::middleware(['auth', 'role:marketing_director,supervisor marketing,manager_marketing,sales_supervisor'])->group(function () {
+    Route::get('/marketing', [SupervisorDashboardController::class, 'index'])->name('marketing.dashboard');
+    Route::get('/marketing-director', [MarketingDirectorDashboardController::class, 'index'])->name('marketing_director.dashboard');
 
     Route::get('/client', [SupervisorClientController::class, 'index'])->name('supervisor.client');
     Route::get('/client/create', [SupervisorClientController::class, 'create'])->name('client.create');
@@ -207,11 +217,6 @@ Route::middleware(['auth', 'role:supervisor marketing,super_admin'])->group(func
 
 });
 
-Route::middleware(['auth', 'role:super_admin,supervisor marketing,engineer, project controller'])->group(function () {
-    Route::get('/phc/show/{phc}', [SupervisorPhcController::class, 'show'])->name('phc.show');
-    Route::get('/projects/{id}/logs', [ProjectLogController::class, 'show'])->name('projects.logs');
-
-});
 
 Route::middleware(['auth', 'role:engineer'])->group(function () {
     Route::get('/engineer', [EngineerDashboardController::class, 'index'])->name('engineer.dashboard');

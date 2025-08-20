@@ -1,4 +1,16 @@
-@extends('supervisor.layouts.app')
+@php
+    $roleLayouts = [
+        'super_admin'              => 'admin.layouts.app',
+        'marketing_director'       => 'marketing-director.layouts.app',
+        'supervisor marketing'     => 'supervisor.layouts.app',
+        'manager_marketing'        => 'supervisor.layouts.app',
+        'sales_supervisor'         => 'supervisor.layouts.app',
+    ];
+
+    $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
+@endphp
+
+@extends($layout)
 
 @section('content')
     <div class="max-w-5xl mx-auto p-8 bg-white rounded-xl shadow-lg">

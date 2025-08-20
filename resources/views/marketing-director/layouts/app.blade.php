@@ -37,8 +37,24 @@
                 </div>
 
                 <nav class="mt-4 space-y-1 px-4">
-                    <a href="{{ route('marketing.dashboard') }}"
-                        class="block px-4 py-2 rounded hover:bg-[#005f87] transition">📊 Dashboard</a>
+                    <!-- Dashboard -->
+                    <div x-data="{ open: false }">
+                        <button @click="open = !open"
+                            class="flex justify-between w-full px-4 py-2 rounded hover:bg-[#005f87] transition">
+                            <span>📊 Dashboard</span>
+                            <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform" fill="none"
+                                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="open" x-transition class="pl-4 mt-1 space-y-1 text-sm">
+                             <a href="{{ route('marketing_director.dashboard') }}"
+                                class="block px-4 py-2 rounded hover:bg-[#005f87] transition">📊 Marketing Dashboard</a>
+                            <a href="#"
+                                class="block px-4 py-2 rounded hover:bg-[#005f87]">📊 Engineer Dashboard</a>
+                        </div>
+                    </div>
+                   
 
                     <a href="{{ route('quotation.index') }}"
                             class="block px-4 py-2 rounded hover:bg-[#005f87]">🧾 Quotation</a>

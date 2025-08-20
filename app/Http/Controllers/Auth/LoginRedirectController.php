@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Fortify\Contracts\LoginResponse;
 
 class LoginRedirectController extends Controller
 {
@@ -17,28 +16,30 @@ class LoginRedirectController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+            $role = $user->role->name;
 
-            // Redirect dinamis berdasarkan role
-            if ($user->role->name === 'super_admin') {
-                return redirect()->intended('/admin');
-            } elseif ($user->role->name === 'supervisor marketing') {
-                return redirect()->intended('/supervisor-marketing');
-            } elseif ($user->role->name === 'administration marketing') {
-                return redirect()->intended('/administration-marketing');
-            } elseif ($user->role->name === 'estimator') {
-                return redirect()->intended('/estimator');
-            } elseif ($user->role->name === 'engineer') {
-                return redirect()->intended('/engineer');
-            } elseif ($user->role->name === 'project controller') {
-                return redirect()->intended('/project-controller');
-            } elseif ($user->role->name === 'project manager') {
-                return redirect()->intended('/project-manager');
-            } 
-            else {
-                Auth::guard('web')->logout();
-                return redirect()->route('login')->with('status', 'You are not authorized to access this page.');
+            // Mapping role ke route
+            $roleRedirects = [
+                'super_admin'            => '/admin',
+                'marketing_director'     => '/marketing-director',
+                'supervisor marketing'   => '/marketing',
+                'manager_marketing'      => '/marketing',
+                'sales_supervisor'       => '/marketing',
+                'administration marketing' => '/administration-marketing',
+                'estimator'              => '/estimator',
+                'engineer'               => '/engineer',
+                'project controller'     => '/project-controller',
+                'project manager'        => '/project-manager',
+            ];
+
+            // Cari redirect path sesuai role
+            if (array_key_exists($role, $roleRedirects)) {
+                return redirect()->intended($roleRedirects[$role]);
             }
 
+            // Jika role tidak dikenali
+            Auth::guard('web')->logout();
+            return redirect()->route('login')->with('status', 'You are not authorized to access this page.');
         }
 
         return back()->withErrors([
