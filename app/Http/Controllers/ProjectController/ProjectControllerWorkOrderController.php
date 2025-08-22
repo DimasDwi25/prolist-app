@@ -44,7 +44,10 @@ class ProjectControllerWorkOrderController extends Controller
     public function create()
     {
         $projects = Project::with('quotation.client')->get();
-        $users = User::all();
+        $users = User::whereHas('role', function ($q) {
+            $q->whereIn('name', ['engineer', 'electrician']);
+        })->get();
+
         $roles = Role::where('type_role', 2)->get();
         $projectWorkOrderCounts = WorkOrder::select('project_id', FacadesDB::raw('count(*) as total'))
             ->groupBy('project_id')->pluck('total', 'project_id');
@@ -75,7 +78,7 @@ class ProjectControllerWorkOrderController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'project_id' => 'required|exists:projects,id',
+            'project_id' => 'required|exists:projects,pn_number',
             'wo_date' => 'required|date',
             'wo_kode_no' => 'required|string',
             'wo_number_last' => 'required|integer',
@@ -139,7 +142,7 @@ class ProjectControllerWorkOrderController extends Controller
     public function update(Request $request, WorkOrder $workOrder)
     {
         $request->validate([
-            'project_id' => 'required|exists:projects,id',
+            'project_id' => 'required|exists:projects,pn_number',
             'wo_date' => 'required|date',
             'wo_number_in_project' => 'required|integer',
             'wo_kode_no' => 'required|string|max:255',

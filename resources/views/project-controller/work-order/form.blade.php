@@ -51,10 +51,10 @@
             <div class="grid md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
-                    <select name="project_id" id="project_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <select name="project_id" id="project_id" class="select2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Select Project</option>
                         @foreach($projects as $project)
-                            <option value="{{ $project->id }}" @selected(old('project_id', $workOrder->project_id ?? '') == $project->id)>
+                            <option value="{{ $project->pn_number }}" @selected(old('project_id', $workOrder->project_id ?? '') == $project->pn_number)>
                                 {{ $project->project_number }} - {{ $project->project_name }}
                             </option>
                         @endforeach
@@ -101,7 +101,7 @@
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">PIC {{ $i }}</label>
-                            <select name="pic{{ $i }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <select name="pic{{ $i }}" class="select2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">Select Team Member</option>
                                 @foreach($users as $user)
                                     <option value="{{ $user->id }}" @selected(old('pic' . $i, $workOrder->{'pic' . $i} ?? '') == $user->id)>
@@ -113,7 +113,7 @@
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Role for PIC {{ $i }}</label>
-                            <select name="role_pic_{{ $i }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pic-role-select">
+                            <select name="role_pic_{{ $i }}" class="select2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pic-role-select">
                                 <option value="">Select Role</option>
                                 @foreach ($roles->where('type_role', 2) as $role)
                                     <option value="{{ $role->id }}" data-role-name="{{ strtolower($role->name) }}"
@@ -245,39 +245,59 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModal = document.getElementById('close-modal');
     const cancelModal = document.getElementById('cancel-modal');
 
+    // Inisialisasi semua select2
+    $('.select2').select2({
+        theme: "classic", // bisa "bootstrap-5" kalau pakai bootstrap theme
+        width: '100%',
+        placeholder: 'Pilih opsi',
+        allowClear: true
+    });
+
+
     // Update project prefix and client when project changes
-    // Update project prefix and client when project changes
-function updateProjectDetails() {
-    const pid = projectSelect.value;
-    const project = projects.find(p => p.id == pid);
-    
-    // Update WO prefix
-    if (project) {
-        // Extract the last 3 digits from project_number (assuming format PN-25/001)
-        const match = project.project_number.match(/^PN-\d{2}\/(\d{3})$/);
-        const code = match ? match[1] : '000';
+    function updateProjectDetails() {
+        const pid = projectSelect.value;
+        const project = projects.find(p => p.pn_number == pid);
         
-        // Get current year's last 2 digits
-        const currentYear = new Date().getFullYear().toString().slice(-2);
-        
-        // Set WO prefix format: WO-25/001/
-        woKodePrefix.textContent = `WO-${currentYear}/${code}/`;
-        
-        // Set default WO number if not manually edited
-        if (!woNumberLast.dataset.edited || woNumberLast.value === '') {
-            // Get count of existing WOs for this project and add 1
-            woNumberLast.value = parseInt(projectWorkOrderCounts[pid] ?? 0) + 1;
+        // Update WO prefix
+        if (project) {
+            // Extract the last 3 digits from project_number (PN-25/001 atau CO-PN-25/001)
+            const match = project.project_number.match(/^(?:CO-)?PN-\d{2}\/(\d{3})$/);
+            const code = match ? match[1] : '000';
+
+            
+            // Get current year's last 2 digits
+            const currentYear = new Date().getFullYear().toString().slice(-2);
+            
+            // Set WO prefix format: WO-25/001/
+            woKodePrefix.textContent = `WO-${currentYear}/${code}/`;
+            
+            // Set default WO number if not manually edited
+            if (!woNumberLast.dataset.edited || woNumberLast.value === '') {
+                // Get count of existing WOs for this project and add 1
+                woNumberLast.value = parseInt(projectWorkOrderCounts[pid] ?? 0) + 1;
+            }
+        } else {
+            // Default format when no project selected
+            const currentYear = new Date().getFullYear().toString().slice(-2);
+            woKodePrefix.textContent = `WO-${currentYear}/000/`;
+            woNumberLast.value = 1;
         }
-    } else {
-        // Default format when no project selected
-        const currentYear = new Date().getFullYear().toString().slice(-2);
-        woKodePrefix.textContent = `WO-${currentYear}/000/`;
-        woNumberLast.value = 1;
+        
+        updateHiddenKode();
+        fetchClient();
     }
-    
-    updateHiddenKode();
-    fetchClient();
-}
+
+    // Event untuk select2 project
+    $('#project_id').on('select2:select', function () {
+        updateProjectDetails();
+    });
+
+    // Event untuk select2 role PIC
+    $(document).on('select2:select', '.pic-role-select', function () {
+        updateMandays();
+    });
+
 
     // Update the hidden WO code field
     function updateHiddenKode() {
@@ -304,19 +324,20 @@ function updateProjectDetails() {
     // Calculate mandays based on selected roles
     function updateMandays() {
         let totalEng = 0, totalElect = 0;
-        
+
         document.querySelectorAll('.pic-role-select').forEach(select => {
-            const selectedOption = select.options[select.selectedIndex];
-            if (selectedOption) {
-                const roleName = selectedOption.dataset.roleName?.toLowerCase();
-                if (roleName === 'engineer') totalEng++;
-                else if (roleName === 'electrician') totalElect++;
-            }
+            const roleId = select.value;
+            const option = select.querySelector(`option[value="${roleId}"]`);
+            const roleName = option?.dataset.roleName?.toLowerCase();
+
+            if (roleName === 'engineer') totalEng++;
+            else if (roleName === 'electrician') totalElect++;
         });
-        
+
         document.querySelector('input[name="total_mandays_eng"]').value = totalEng;
         document.querySelector('input[name="total_mandays_elect"]').value = totalElect;
     }
+
 
     // Validate log fields before submission
     function validateLogFields() {
@@ -361,8 +382,21 @@ function updateProjectDetails() {
 
     // Initialize form on load
     woNumberLast.dataset.edited = false;
-    updateProjectDetails();
-    updateMandays();
+    // Event Listeners
+    projectSelect.addEventListener('change', updateProjectDetails);
+    $('#project_id').on('select2:select', updateProjectDetails);
+
+    woNumberLast.addEventListener('input', function() {
+        this.dataset.edited = true;
+        updateHiddenKode();
+    });
+
+    document.querySelectorAll('.pic-role-select').forEach(select => {
+        select.addEventListener('change', updateMandays);
+    });
+    $(document).on('select2:select', '.pic-role-select', updateMandays);
+
+
 });
 </script>
 @endpush

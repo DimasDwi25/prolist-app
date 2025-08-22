@@ -24,9 +24,10 @@ class WorkOrderTable extends DataTableComponent
             'class' => 'bg-white shadow rounded-2xl overflow-hidden',
         ]);
 
-        // Add this line to prevent relationship column issues
-        $this->setDefaultSort('wo_date', 'desc');
+        // Fix: pakai prefix tabel
+        $this->setDefaultSort('work_orders.wo_date', 'desc');
     }
+
 
     public function columns(): array
     {
@@ -40,7 +41,7 @@ class WorkOrderTable extends DataTableComponent
                 ->sortable(function ($builder, $direction) {
                     return $builder->orderBy(
                         \App\Models\Project::select('project_name')
-                            ->whereColumn('projects.id', 'work_orders.project_id'),
+                            ->whereColumn('projects.pn_number', 'work_orders.project_id'),
                         $direction
                     );
                 }),
