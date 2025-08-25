@@ -111,11 +111,7 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'role:super_admin'])->group(function () {
-    Route::get('/client/delete/{client}', [SupervisorClientController::class, 'destroy'])->name('client.destroy');
-});
-
-Route::middleware(['auth', 'role:marketing_director,supervisor marketing,manager_marketing,sales_supervisor'])->group(function () {
+Route::middleware(['auth', 'role:super_admin,marketing_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin'])->group(function () {
     Route::get('/marketing', [SupervisorDashboardController::class, 'index'])->name('marketing.dashboard');
     Route::get('/marketing-director', [MarketingDirectorDashboardController::class, 'index'])->name('marketing_director.dashboard');
 
@@ -127,6 +123,7 @@ Route::middleware(['auth', 'role:marketing_director,supervisor marketing,manager
     Route::get('/client/data', [SupervisorClientController::class, 'getData'])->name('client.data');
     Route::post('/client/import', [SupervisorClientController::class, 'import'])->name('client.import');
     Route::get('/clients/{client}', [SupervisorClientController::class, 'show'])->name('client.show');
+    Route::get('/client/delete/{client}', [SupervisorClientController::class, 'destroy'])->name('client.destroy');
 
 
     Route::get('/categorie-project', [SupervisorCategorieProjectController::class, 'index'])->name('supervisor.category');
@@ -189,6 +186,7 @@ Route::middleware(['auth', 'role:marketing_director,supervisor marketing,manager
     Route::post('/project/phc/store', [SupervisorPhcController::class, 'store'])->name('phc.store');
     Route::get('/phc/edit/{phc}', [SupervisorPhcController::class, 'edit'])->name('phc.edit');
     Route::put('/phc/update/{phc}', [SupervisorPhcController::class, 'update'])->name('phc.update');
+    Route::get('/phc/show/{phc}', [SupervisorPhcController::class, 'show'])->name('phc.show');
 
     Route::get('/client/export', function () {
         return Excel::download(new ClientsExport, 'clients.xlsx');
@@ -238,24 +236,24 @@ Route::middleware(['auth', 'role:engineer'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'role:project controller'])->group(function () {
-    Route::get('/project-controller', [ProjectControllerDashboardController::class, 'index'])->name('project_controller.dashboard');
+Route::middleware(['auth', 'role:project controller,engineer,engineering_manager'])->group(function () {
+    Route::get('/engineer', [ProjectControllerDashboardController::class, 'index'])->name('engineer.dashboard');
 
-    Route::get('/project-controller/project', [ProjectControllerProjectController::class, 'index'])->name('project_controller.project.index');
-    Route::get('/project-controller/project/view/{project}', [ProjectControllerProjectController::class, 'show'])->name('project_controller.project.show');
+    Route::get('/engineer/project', [ProjectControllerProjectController::class, 'index'])->name('engineer.project.index');
+    Route::get('/engineer/project/view/{project}', [ProjectControllerProjectController::class, 'show'])->name('engineer.project.show');
 
-    Route::get('/project-controller/phc/show/{phc}', [ProjectControllerPhcController::class, 'show'])->name('project_controller.phc.show');
-    Route::get('/project-controller/phc/edit/{phc}', [ProjectControllerPhcController::class, 'edit'])->name('project_controller.phc.edit');
-    Route::put('/project-controller/phc/update/{phc}', [ProjectControllerPhcController::class, 'update'])->name('project_controller.phc.update');
+    Route::get('/engineer/phc/show/{phc}', [ProjectControllerPhcController::class, 'show'])->name('engineer.phc.show');
+    Route::get('/engineer/phc/edit/{phc}', [ProjectControllerPhcController::class, 'edit'])->name('engineer.phc.edit');
+    Route::put('/engineer/phc/update/{phc}', [ProjectControllerPhcController::class, 'update'])->name('engineer.phc.update');
 
-    Route::get('/project-controller/work-order', [ProjectControllerWorkOrderController::class, 'index'])->name('project_controller.work_order');
-    Route::get('/project-controller/work-order/create', [ProjectControllerWorkOrderController::class, 'create'])->name('project_controller.work-orders.create');
-    Route::post('/project-controller/work-order/store', [ProjectControllerWorkOrderController::class, 'store'])->name('project_controller.work-orders.store');
-    Route::get('/project-controller/work-order/edit/{workOrder}', [ProjectControllerWorkOrderController::class, 'edit'])->name('project_controller.work-orders.edit');
-    Route::put('/project-controller/work-order/update/{workOrder}', [ProjectControllerWorkOrderController::class, 'update'])->name('project_controller.work-orders.update');
-    Route::get('/project-controller/work-order/delete/{workOrder}', [ProjectControllerWorkOrderController::class, 'destroy'])->name('project_controller.work_orders.destroy');
+    Route::get('/engineer/work-order', [ProjectControllerWorkOrderController::class, 'index'])->name('engineer.work_order');
+    Route::get('/engineer/work-order/create', [ProjectControllerWorkOrderController::class, 'create'])->name('engineer.work-orders.create');
+    Route::post('/engineer/work-order/store', [ProjectControllerWorkOrderController::class, 'store'])->name('engineer.work-orders.store');
+    Route::get('/engineer/work-order/edit/{workOrder}', [ProjectControllerWorkOrderController::class, 'edit'])->name('engineer.work-orders.edit');
+    Route::put('/engineer/work-order/update/{workOrder}', [ProjectControllerWorkOrderController::class, 'update'])->name('engineer.work-orders.update');
+    Route::get('/engineer/work-order/delete/{workOrder}', [ProjectControllerWorkOrderController::class, 'destroy'])->name('engineer.work_orders.destroy');
 
-    Route::get('/project-controller/{project}/man-power-allocation', ManPowerAllocationForm::class)->name('man-power');
+    Route::get('/engineer/{project}/man-power-allocation', ManPowerAllocationForm::class)->name('man-power');
 
     Route::get('/master-tasks', MasterTasks::class)->name('tasks');
     Route::get('/master-scope-of-work', MasterScopeOfWork::class)->name('scope_of_work');
@@ -267,7 +265,7 @@ Route::middleware(['auth', 'role:project controller'])->group(function () {
 
 
     // Endpoint AJAX ambil nama client
-    Route::get('/projects/{project}/client', [ProjectControllerWorkOrderController::class, 'getClient'])->name('project_controller.projects.client');
+    Route::get('/projects/{project}/client', [ProjectControllerWorkOrderController::class, 'getClient'])->name('engineer.projects.client');
     Route::get('/projects/{id}/logs', [ProjectLogController::class, 'show'])->name('projects.logs');
 
     Route::prefix('projects/{project}')->name('projects.')->group(function () {

@@ -30,12 +30,15 @@ class SupervisorPhcController extends Controller
         $users = User::whereHas('role', function ($q) {
             $q->whereIn('name', [
                 'engineer',
-                'supervisor engineer',
+                'engineer_supervisor',
                 'project manager',
                 'project controller',
-                'admin engineer',
+                'engineering_admin',
                 'supervisor marketing',
-                'administration marketing',
+                'marketing_admin',
+                'marketing_director',
+                'marketing_estimator',
+                'sales_supervisor'
             ]);
         })->with('role')->get();
 
@@ -79,8 +82,8 @@ class SupervisorPhcController extends Controller
             'costing_by_marketing' => 'nullable|in:A,NA',
             'boq' => 'nullable|in:A,NA',
             'retention' => 'nullable|string',
-            'warranty' => 'nullable|in:A,NA',
-            'penalty' => 'nullable|in:A,NA',
+            'warranty' => 'nullable|string',
+            'penalty' => 'nullable|string',
             'scope_of_work_approval' => 'nullable|in:A,NA',
             'organization_chart' => 'nullable|in:A,NA',
             'project_schedule' => 'nullable|in:A,NA',
@@ -108,12 +111,9 @@ class SupervisorPhcController extends Controller
         $checklistFields = [
             'costing_by_marketing',
             'boq',
-            'retention_applicability',
             'retention',
             'warranty',
-            'warranty_detail',
             'penalty',
-            'penalty_detail',
             'scope_of_work_approval',
             'organization_chart',
             'project_schedule',
@@ -137,8 +137,12 @@ class SupervisorPhcController extends Controller
         ];
 
 
-        // Mapping A/NA → boolean
-        $booleanData = $this->mapToBoolean($request->all(), $checklistFields);
+        $exclude = ['retention', 'warranty', 'penalty'];
+
+        // ambil semua field kecuali 3 itu
+        $booleanFields = array_diff($checklistFields, $exclude);
+
+        $booleanData = $this->mapToBoolean($request->all(), $booleanFields);
         $validated = array_merge($validated, $booleanData);
 
         $validated['created_by'] = FacadesAuth::id();
@@ -244,8 +248,8 @@ class SupervisorPhcController extends Controller
             'costing_by_marketing' => 'nullable|in:A,NA',
             'boq' => 'nullable|in:A,NA',
             'retention' => 'nullable|string',
-            'warranty' => 'nullable|in:A,NA',
-            'penalty' => 'nullable|in:A,NA',
+            'warranty' => 'nullable|string',
+            'penalty' => 'nullable|string',
             'scope_of_work_approval' => 'nullable|in:A,NA',
             'organization_chart' => 'nullable|in:A,NA',
             'project_schedule' => 'nullable|in:A,NA',
@@ -272,12 +276,9 @@ class SupervisorPhcController extends Controller
         $checklistFields = [
             'costing_by_marketing',
             'boq',
-            'retention_applicability',
             'retention',
             'warranty',
-            'warranty_detail',
             'penalty',
-            'penalty_detail',
             'scope_of_work_approval',
             'organization_chart',
             'project_schedule',
@@ -300,7 +301,12 @@ class SupervisorPhcController extends Controller
             'tool_list',
         ];
 
-        $booleanData = $this->mapToBoolean($request->all(), $checklistFields);
+        $exclude = ['retention', 'warranty', 'penalty'];
+
+        // ambil semua field kecuali 3 itu
+        $booleanFields = array_diff($checklistFields, $exclude);
+
+        $booleanData = $this->mapToBoolean($request->all(), $booleanFields);
         $validated = array_merge($validated, $booleanData);
 
         $phc->update($validated);

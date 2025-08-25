@@ -1,4 +1,14 @@
-@extends('project-controller.layouts.app')
+@php
+    $roleLayouts = [
+        'project controller'     => 'project-controller.layouts.app',
+        'engineer'     => 'engineer.layouts.app',
+       'engineering_manager'         => 'project-manager.layouts.app',
+    ];
+
+    $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
+@endphp
+
+@extends($layout)
 
 @section('content')
     @php $isEdit = isset($workOrder); @endphp
@@ -31,7 +41,7 @@
                     {{ $isEdit ? 'Update the work order details below' : 'Fill in the form to create a new work order' }}
                 </p>
             </div>
-            <a href="{{ route('project_controller.work_order') }}"
+            <a href="{{ route('engineer.work_order') }}"
                 class="inline-flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -41,7 +51,7 @@
         </div>
 
         <form
-            action="{{ $isEdit ? route('project_controller.work-orders.update', $workOrder) : route('project_controller.work-orders.store') }}"
+            action="{{ $isEdit ? route('engineer.work-orders.update', $workOrder) : route('engineer.work-orders.store') }}"
             method="POST"
             class="space-y-6">
             @csrf

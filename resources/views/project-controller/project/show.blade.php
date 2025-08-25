@@ -1,4 +1,14 @@
-@extends('project-controller.layouts.app')
+@php
+    $roleLayouts = [
+        'project controller'     => 'project-controller.layouts.app',
+        'engineer'     => 'engineer.layouts.app',
+        'engineering_manager'         => 'project-manager.layouts.app',
+    ];
+
+    $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
+@endphp
+
+@extends($layout)
 
 @section('content')
     <div class="max-w-7xl mx-auto bg-white p-6 rounded-2xl shadow-lg border border-gray-100 space-y-8">
@@ -16,7 +26,7 @@
                     </span>
                 </div>
                 <div class="flex items-center mt-2">
-                    <a href="{{ route('project_controller.project.index') }}" class="text-sm text-blue-600 hover:text-blue-800 transition flex items-center">
+                    <a href="{{ route('engineer.project.index') }}" class="text-sm text-blue-600 hover:text-blue-800 transition flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
@@ -28,14 +38,14 @@
             <div class="flex flex-wrap gap-2">
 
                 @if ($phc && $phc->status == 'ready')
-                    <a href="{{ route('project_controller.phc.edit', $phc->id) }}" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                    <a href="{{ route('engineer.phc.edit', $phc->id) }}" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                         Edit PHC
                     </a>
                     
-                    <a href="{{ route('project_controller.phc.show', $phc->id) }}" class="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                    <a href="{{ route('engineer.phc.show', $phc->id) }}" class="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -338,13 +348,23 @@
         <div class="mt-8">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-medium text-gray-900">Recent Activity</h3>
-                <a href="{{ route('supervisor.projects.logs', $project->pn_number) }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">
-                    View all activity
-                </a>
+                <div class="flex space-x-3">
+                    {{-- Tombol Buka Modal --}}
+                    <button type="button"
+                        onclick="Livewire.dispatch('openLogModal')"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm w-full md:w-auto">
+                        + Tambah Log
+                    </button>
+
+                    {{-- Include Livewire Component --}}
+                    @livewire('log.log-modal', ['projectId' => $project->pn_number])
+
+                </div>
             </div>
             <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                 @livewire('log.log-table', ['projectId' => $project->pn_number, 'perPage' => 5])
             </div>
         </div>
+
     </div>
 @endsection

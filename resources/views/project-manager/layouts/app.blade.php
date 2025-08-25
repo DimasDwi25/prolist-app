@@ -32,7 +32,7 @@
                 </div>
 
                 <nav class="mt-4 space-y-1 px-4">
-                    <a href="{{ route('project_controller.dashboard') }}"
+                    <a href="{{ route('engineer.dashboard') }}"
                         class="block px-4 py-2 rounded hover:bg-[#005f87] transition">📊 Dashboard</a>
 
                     <!-- Project Dropdown -->
@@ -46,15 +46,18 @@
                             </svg>
                         </button>
                         <div x-show="open" x-transition class="pl-4 mt-1 space-y-1 text-sm">
-                            <a href="#"
+                            <a href="{{ route('engineer.work_order') }}"
                                 class="block px-4 py-2 rounded hover:bg-[#005f87]">📁 Work Order</a>
-                            <a href="#"
+                            <a href="{{ route('engineer.project.index') }}"
                                 class="block px-4 py-2 rounded hover:bg-[#005f87]">🛠 Projects</a>
                         </div>
                     </div>
 
-                    <a href="#" class="block px-4 py-2 rounded hover:bg-[#005f87] transition">📁
+                    <a href="{{ route('tasks') }}" class="block px-4 py-2 rounded hover:bg-[#005f87] transition">📁
                         Task</a>
+                    <a href="{{ route('scope_of_work') }}"
+                        class="block px-4 py-2 rounded hover:bg-[#005f87] transition">📁
+                        Scope Of Work</a>
                 </nav>
             </div>
         </div>
@@ -144,14 +147,16 @@
         </script>
     @endif
 
-    {{-- Livewire & Stack --}}
-    @livewireScripts
-    @stack('scripts')
-
     {{-- jQuery & Select2 & SweetAlert --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {{-- Livewire & Stack --}}
+    @livewireScripts
+    @stack('scripts')
+
+    
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -187,7 +192,12 @@
 
         });
     </script>
-    @livewire('phc-approval-modal')
+    {{-- Global Loading Indicator (centered) --}}
+    <div wire:loading.delay.shortest
+        class="fixed inset-0 bg-white bg-opacity-60 flex items-center justify-center z-[9999]">
+        <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
+    </div>
+
 </body>
 
 </html>

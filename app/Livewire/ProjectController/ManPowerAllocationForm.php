@@ -86,10 +86,11 @@ class ManPowerAllocationForm extends Component
             'users' => User::whereHas('role', function ($q) {
                 $q->whereIn('name', [
                     'engineer',
-                    'supervisor engineer',
+                    'engineering_supervisor',
                     'project manager',
                     'project controller',
-                    'admin engineer',
+                    'engineering_admin',
+                    'electrician'
                 ]);
             })->with('role')->get(),
 

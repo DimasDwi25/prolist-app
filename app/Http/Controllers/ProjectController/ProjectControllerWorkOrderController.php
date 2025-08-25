@@ -124,7 +124,7 @@ class ProjectControllerWorkOrderController extends Controller
             ]);
         }
 
-        return redirect()->route('project_controller.work_order')
+        return redirect()->route('engineer.work_order')
             ->with('success', 'Work Order created successfully.');
     }
 
@@ -171,7 +171,7 @@ class ProjectControllerWorkOrderController extends Controller
             'work_description'
         ]));
 
-        return redirect()->route('project_controller.work_order')->with('success', 'Work Order updated successfully.');
+        return redirect()->route('engineer.work_order')->with('success', 'Work Order updated successfully.');
     }
 
     public function show(WorkOrder $workOrder)
@@ -192,6 +192,6 @@ class ProjectControllerWorkOrderController extends Controller
             'tgl_logs' => now(),
         ]);
 
-        return redirect()->route('project_controller.work-order')->with('success', 'Work description inserted into project log.');
+        return redirect()->route('engineer.work-order')->with('success', 'Work description inserted into project log.');
     }
 }

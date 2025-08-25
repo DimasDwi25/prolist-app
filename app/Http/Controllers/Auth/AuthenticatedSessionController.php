@@ -36,11 +36,11 @@ class AuthenticatedSessionController extends Controller
             'supervisor marketing'    => 'marketing.dashboard',
             'manager_marketing'       => 'marketing.dashboard',
             'sales_supervisor'        => 'marketing.dashboard',
-            'administration marketing'=> 'administration_marketing.dashboard',
+            'marketing_admin'=> 'marketing.dashboard',
             'estimator'               => 'estimator.dashboard',
             'engineer'                => 'engineer.dashboard',
-            'project controller'      => 'project_controller.dashboard',
-            'project manager'         => 'project_manager.dashboard',
+            'project controller'      => 'engineer.dashboard',
+            'engineering_manager'         => 'engineer.dashboard',
         ];
 
         // Redirect sesuai role

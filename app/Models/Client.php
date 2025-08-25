@@ -26,9 +26,4 @@ class Client extends Model
     {
         return $this->hasMany(Quotation::class);
     }
-
-    public function subClients()
-    {
-        return $this->hasMany(SubClient::class);
-    }
 }

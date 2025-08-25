@@ -4,7 +4,9 @@ namespace App\Livewire\ProjectController;
 
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
@@ -29,12 +31,40 @@ class ProjectTable extends DataTableComponent
 
     public function builder(): Builder
     {
-        return Project::query()->with(['category', 'quotation'])->orderBy('projects.created_at', 'desc');
-    }
+        $user = Auth::user();
+        $userId = $user->id;
 
-    public function query(): Builder
-    {
-        return Project::query()->with(['category', 'quotation']);
+        $query = Project::query()
+            ->with(['category', 'quotation'])
+            ->select('*', DB::raw("
+                CAST(SUBSTRING(project_number, 4, 2) AS INT) AS year_number,
+                CAST(SUBSTRING(project_number, 7, LEN(project_number) - 6) AS INT) AS seq_number
+            "));
+
+        // 🔥 Filter berdasarkan role
+        if ($user->role->name === 'super_admin') {
+            // Super admin bisa lihat semua project
+            return $query
+                ->orderBy('year_number', 'desc')
+                ->orderBy('seq_number', 'desc');
+        }
+
+        if ($user->role->name === 'engineer') {
+            // Engineer hanya lihat project terkait
+            $query->where(function ($q) use ($userId) {
+                $q->whereHas('manPowerAllocations', function ($sub) use ($userId) {
+                    $sub->where('user_id', $userId);
+                })
+                ->orWhereHas('phc', function ($sub) use ($userId) {
+                    $sub->where('pic_engineering_id', $userId)
+                        ->orWhere('ho_engineering_id', $userId);
+                });
+            });
+        }
+
+        return $query
+            ->orderBy('year_number', 'desc')
+            ->orderBy('seq_number', 'desc');
     }
 
     public function columns(): array

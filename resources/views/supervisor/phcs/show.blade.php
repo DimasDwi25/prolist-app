@@ -5,6 +5,7 @@
         'supervisor marketing'     => 'supervisor.layouts.app',
         'manager_marketing'        => 'supervisor.layouts.app',
         'sales_supervisor'         => 'supervisor.layouts.app',
+        'marketing_admin'         => 'supervisor.layouts.app',
     ];
 
     $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
@@ -32,7 +33,7 @@
                     ← Back
                 </a>
                 @if ($phc->status === 'pending')
-                    <a href="{{ route('supervisor.dashboard') }}"
+                    <a href="{{ route('marketing.dashboard') }}"
                         class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm shadow transition">
                         ✅ Next to PHC Validation
                     </a>
@@ -83,7 +84,7 @@
                     <x-view.label label="Quotation Date" :value="$formatDate($phc->project->quotation->quotation_date ?? '')" />
                     <x-view.label label="PO Number" :value="$display($phc->project->quotation->po_number ?? '')" />
                     <x-view.label label="PO Date" :value="$formatDate($phc->project->quotation->po_date ?? '')" />
-                    <x-view.label label="Client Name" :value="$display($phc->client_name)" />
+                    <x-view.label label="Client Name" :value="$display($phc->client_pic_name)" />
                     <x-view.label label="Client Mobile" :value="$display($phc->client_mobile)" />
                     <x-view.label label="Client Office Address" :value="$display($phc->client_reps_office_address)" />
                     <x-view.label label="Site Representative" :value="$display($phc->client_site_representatives)" />
@@ -107,14 +108,14 @@
             <div x-show="tab === 'handover'" x-cloak class="space-y-4">
                 <x-phc-check label="Costing by Marketing" :value="$phc->costing_by_marketing" />
                 <x-phc-check label="BOQ" :value="$phc->boq" />
-                <x-phc-badge label="Retention" :value="$phc->retention_applicability" :detail="$phc->retention" />
-                <x-phc-badge label="Warranty" :value="$phc->warranty" :detail="$phc->warranty_detail" />
-                <x-phc-badge label="Penalty" :value="$phc->penalty" :detail="$phc->penalty_detail" />
+                <x-phc-badge label="Retention" :value="$phc->retention" :detail="$phc->retention" />
+                <x-phc-badge label="Warranty" :value="$phc->warranty" :detail="$phc->warranty" />
+                <x-phc-badge label="Penalty" :value="$phc->penalty" :detail="$phc->penalty" />
             </div>
 
             {{-- Document Preparation --}}
             <div x-show="tab === 'docs'" x-cloak class="space-y-4">
-                @if($phc->scope_of_work_approval === 1)
+                @if($phc->scope_of_work_approval == 1)
                     <div class="mt-4">
                         <livewire:project-controller.view-sow :projectId="$project->pn_number" />
                     </div>

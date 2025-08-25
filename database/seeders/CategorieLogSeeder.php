@@ -15,19 +15,24 @@ class CategorieLogSeeder extends Seeder
     {
         //
         CategorieLog::insert([
-            ['name' => 'Kick of Meeting'],
-            ['name' => 'Komplain'], 
+            ['name' => 'Kick Off Meeting'],
+            ['name' => 'Plan Changing'],
+            ['name' => 'Material Status'],
+            ['name' => 'Shipment/Delivery'],
+            ['name' => 'Project Progress'],
+            ['name' => 'Documentation'],
+            ['name' => 'FAT'],
+            ['name' => 'SAT'],
+            ['name' => 'PLC Program'],
+            ['name' => 'Application Programming'],
+            ['name' => 'System Design'],
+            ['name' => 'Drawing'],
+            ['name' => 'Customer Complaint'],
+            ['name' => 'Internal Complaint'],
             ['name' => 'Additional Work'],
-            ['name' => 'Plan Changing'], 
-            ['name' => 'Status Material'], 
-            ['name' => 'Status Shipment'],
-            ['name' => 'Progress Project'],
-            ['name' => 'Design/Drawing'],
-            ['name' => 'Programming'],
-            ['name' => 'FAT, SAT, Test.Comm'],
-            ['name' => 'Additional Work'],
-            ['name' => 'Site Installation'],   
-            ['name' => 'Doc Status'],          
+            ['name' => 'Testing & Commisioning'],
+            ['name' => 'Installation'],
+            ['name' => 'Documents for Invoice'],
         ]);
     }
 }

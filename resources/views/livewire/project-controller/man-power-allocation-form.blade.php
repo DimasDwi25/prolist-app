@@ -2,7 +2,7 @@
 
     <!-- Tombol Back -->
     <div>
-        <a href="{{ route('project_controller.project.show', $project->pn_number) }}" 
+        <a href="{{ route('engineer.project.show', $project->pn_number) }}" 
             class="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md text-sm font-medium transition">
             ← Back to Project
         </a>
@@ -28,7 +28,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">User <span class="text-red-500">*</span></label>
                 <select wire:model.defer="user_id"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500">
+                    class="select2 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500">
                     <option value="">-- Select User --</option>
                     @foreach($users as $user)
                         <option value="{{ $user->id }}">{{ $user->name }}</option>
@@ -40,7 +40,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Role <span class="text-red-500">*</span></label>
                 <select wire:model.defer="role_id"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500">
+                    class="select2 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500">
                     <option value="">-- Select Role --</option>
                     @foreach($roles as $role)
                         <option value="{{ $role->id }}">{{ $role->name }}</option>
@@ -108,3 +108,23 @@
         </div>
     </section>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function initSelect2() {
+            $('.select2').select2({
+                placeholder: 'Select an option',
+                width: '100%'
+            }).on('change', function (e) {
+                @this.set(this.getAttribute('wire:model.defer'), $(this).val());
+            });
+        }
+
+        initSelect2(); // inisialisasi pertama
+
+        Livewire.hook('message.processed', (message, component) => {
+            initSelect2(); // re-inisialisasi setelah update Livewire
+        });
+    });
+
+</script>

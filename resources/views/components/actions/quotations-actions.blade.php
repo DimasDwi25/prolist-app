@@ -18,5 +18,3 @@
         </form>
     @endif
 </div>
-
-{{ dd(Auth::user()->role->name) }}

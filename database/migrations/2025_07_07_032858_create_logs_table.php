@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('logs');
             $table->dateTime('tgl_logs');
 
-            $table->enum('status', ['open', 'close']);
+            $table->string('status');
             $table->dateTime('closing_date')->nullable();
             $table->foreignId('closing_users')->nullable()->constrained('users')->noActionOnDelete();
 

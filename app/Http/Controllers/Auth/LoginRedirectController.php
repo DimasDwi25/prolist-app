@@ -25,11 +25,11 @@ class LoginRedirectController extends Controller
                 'supervisor marketing'   => '/marketing',
                 'manager_marketing'      => '/marketing',
                 'sales_supervisor'       => '/marketing',
-                'administration marketing' => '/administration-marketing',
+                'marketing_admin'        => '/marketing',
                 'estimator'              => '/estimator',
                 'engineer'               => '/engineer',
-                'project controller'     => '/project-controller',
-                'project manager'        => '/project-manager',
+                'project controller'     => '/engineer',
+                'engineering_manager'        => '/engineer',
             ];
 
             // Cari redirect path sesuai role

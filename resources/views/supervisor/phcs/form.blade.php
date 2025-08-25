@@ -5,6 +5,7 @@
         'supervisor marketing'     => 'supervisor.layouts.app',
         'manager_marketing'        => 'supervisor.layouts.app',
         'sales_supervisor'         => 'supervisor.layouts.app',
+        'marketing_admin'         => 'supervisor.layouts.app',
     ];
 
     $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
@@ -155,8 +156,8 @@
                             <option value="">-- Select HO Engineer --</option>
                             <optgroup label="Engineer">
                                 @foreach ($users->filter(fn($u) => 
-                                    $u->role && in_array(strtolower($u->role->name), ['engineer', 'supervisor engineer', 'project manager', 'project controller', 'admin engineer'])
-                                )->take(5) as $user)
+                                    $u->role && in_array(strtolower($u->role->name), ['engineer', 'engineer_supervisor', 'project manager', 'project controller', 'engineering_admin'])
+                                ) as $user)
                                     <option value="{{ $user->id }}" {{ old('ho_engineering_id', $phc->ho_engineering_id ?? '') == $user->id ? 'selected' : '' }}>
                                         {{ $user->name }}
                                     </option>
@@ -165,7 +166,7 @@
                         </select>
                     </div>
 
-                    {{-- PIC Engineer --}}
+                        {{-- PIC Engineer --}}
                     <div>
                         <label for="pic_engineering_id" class="block text-sm font-medium text-gray-700 mb-1">
                             PIC Engineer
@@ -174,8 +175,8 @@
                             <option value="">-- Select PIC Engineer --</option>
                             <optgroup label="Engineer">
                                 @foreach ($users->filter(fn($u) => 
-                                    $u->role && in_array(strtolower($u->role->name), ['engineer', 'supervisor engineer', 'project manager', 'project controller', 'admin engineer'])
-                                )->take(5) as $user)
+                                    $u->role && in_array(strtolower($u->role->name), ['engineer', 'engineer_supervisor', 'project manager'])
+                                ) as $user)
                                     <option value="{{ $user->id }}" {{ old('pic_engineering_id', $phc->pic_engineering_id ?? '') == $user->id ? 'selected' : '' }}>
                                         {{ $user->name }}
                                     </option>
@@ -196,8 +197,8 @@
                             <option value="">-- Select HO Marketing --</option>
                             <optgroup label="Marketing">
                                 @foreach ($users->filter(fn($u) => 
-                                    $u->role && in_array(strtolower($u->role->name), ['supervisor marketing', 'admin marketing', 'estimator'])
-                                )->take(5) as $user)
+                                    $u->role && in_array(strtolower($u->role->name), ['supervisor marketing', 'marketing_admin', 'marketing_director', 'marketing_estimator', 'sales_supervisor'])
+                                ) as $user)
                                     <option value="{{ $user->id }}" {{ old('ho_marketings_id', $phc->ho_marketings_id ?? '') == $user->id ? 'selected' : '' }}>
                                         {{ $user->name }}
                                     </option>
@@ -215,8 +216,8 @@
                             <option value="">-- Select PIC Marketing --</option>
                             <optgroup label="Marketing">
                                 @foreach ($users->filter(fn($u) => 
-                                    $u->role && in_array(strtolower($u->role->name), ['supervisor marketing', 'admin marketing', 'estimator'])
-                                )->take(5) as $user)
+                                    $u->role && in_array(strtolower($u->role->name), ['supervisor marketing', 'marketing_admin', 'marketing_director', 'marketing_estimator', 'sales_supervisor'])
+                                ) as $user)
                                     <option value="{{ $user->id }}" {{ old('pic_marketing_id', $phc->pic_marketing_id ?? '') == $user->id ? 'selected' : '' }}>
                                         {{ $user->name }}
                                     </option>
@@ -243,9 +244,9 @@
                     @foreach([
                         'costing_by_marketing' => 'Costing by Marketing',
                         'boq' => 'Bill of Quantity (BOQ)',
-                        'retention_applicability' => 'Retention Applicability',
-                        'warranty' => 'Warranty',
-                        'penalty' => 'Penalty',
+                        'retention' => 'retention',
+                        'warranty' => 'warranty',
+                        'penalty' => 'penalty',
                     ] as $key => $label)
                         <div x-data="{ applicable: '{{ old($key, isset($phc) ? ($phc->$key ? 'A' : 'NA') : 'NA') }}' }"
                             class="p-4 border rounded-md bg-gray-50">
@@ -262,11 +263,11 @@
                                     <span class="ml-2 text-sm">Not Applicable</span>
                                 </label>
                             </div>
-                            @if (in_array($key, ['retention_applicability', 'warranty', 'penalty']))
+                            @if (in_array($key, ['retention', 'warranty', 'penalty']))
                                 <div x-show="applicable === 'A'" class="mt-3 space-y-2" x-transition>
                                     @php
-                                        $detailField = $key == 'retention_applicability' ? 'retention' :
-                                                    ($key == 'warranty' ? 'warranty_detail' : 'penalty_detail');
+                                        $detailField = $key == 'retention' ? 'retention' :
+                                                    ($key == 'warranty' ? 'warranty' : 'penalty');
                                     @endphp
                                     <x-input.text name="{{ $detailField }}" label="{{ $label }} Detail"
                                                 :value="old($detailField, $phc->$detailField ?? '')" />

@@ -98,7 +98,7 @@ class ProjectScheduleForm extends Component
         }
 
         session()->flash('success', 'Project Schedule berhasil dibuat.');
-        return redirect()->route('project_controller.project.show', $this->project->pn_number);
+        return redirect()->route('engineer.project.show', $this->project->pn_number);
     }
 
     public function render()

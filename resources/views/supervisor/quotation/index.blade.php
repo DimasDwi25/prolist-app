@@ -5,6 +5,7 @@
         'supervisor marketing'     => 'supervisor.layouts.app',
         'manager_marketing'        => 'supervisor.layouts.app',
         'sales_supervisor'         => 'supervisor.layouts.app',
+        'marketing_admin'         => 'supervisor.layouts.app',
     ];
 
     $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
@@ -42,28 +43,23 @@
     @endif
 
     <!-- Main Table Container with Loading State -->
-    <div class="relative bg-white p-4 shadow-md rounded-xl border border-gray-100" x-data="{ loading: false }" x-init="
+    <div class="relative bg-white p-4 shadow-md rounded-xl border border-gray-100 over" x-data="{ loading: false }" x-init="
                     Livewire.on('loadingStarted', () => { loading = true });
                     Livewire.on('loadingFinished', () => { loading = false });
                 ">
 
-        <!-- Custom Loading Overlay -->
-        <div x-show="loading" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-            class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50 rounded-xl">
-            <div class="text-center">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">🔄 Loading Filtered Data...</h3>
-                <p class="text-sm text-gray-500">Please wait while we process your request</p>
+        <!-- Table Component -->
+        <div wire:loading.class="opacity-50" 
+            wire:loading.class.remove="opacity-100"
+            wire:target="selectedYear,selectedMonth,search,filters" 
+            data-turbo="false">
+
+            <!-- Tambahkan wrapper scroll -->
+            <div class="overflow-x-auto w-full">
+                <livewire:supervisor-marketing.quotation-table />
             </div>
         </div>
 
-        <!-- Table Component -->
-        <div wire:loading.class="opacity-50" wire:loading.class.remove="opacity-100"
-            wire:target="selectedYear,selectedMonth,search,filters" data-turbo="false">
-            <livewire:supervisor-marketing.quotation-table />
-        </div>
 
         <livewire:supervisor-marketing.change-quotation-status-modal />
     </div>

@@ -48,7 +48,7 @@
                             </svg>
                         </button>
                         <div x-show="open" x-transition class="pl-4 mt-1 space-y-1 text-sm">
-                             <a href="{{ route('marketing_director.dashboard') }}"
+                             <a href="{{ route('marketing.dashboard') }}"
                                 class="block px-4 py-2 rounded hover:bg-[#005f87] transition">📊 Marketing Dashboard</a>
                             <a href="#"
                                 class="block px-4 py-2 rounded hover:bg-[#005f87]">📊 Engineer Dashboard</a>

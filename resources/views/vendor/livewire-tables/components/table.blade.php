@@ -12,7 +12,7 @@
 @if ($isTailwind)
     <div class="w-full">
         {{-- Desktop Table --}}
-        <div class="hidden md:block overflow-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div class="hidden md:block overflow-auto rounded-xl border border-gray-200 bg-white shadow-sm relative overflow-x-auto pb-2 max-w-screen-2xl">
             <table
                 wire:key="{{ $tableName }}-table"
                 {{ $attributes->merge($customAttributes['table'])

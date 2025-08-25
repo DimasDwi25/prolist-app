@@ -32,7 +32,7 @@
                 </div>
 
                 <nav class="mt-4 space-y-1 px-4">
-                    <a href="{{ route('project_controller.dashboard') }}"
+                    <a href="{{ route('engineer.dashboard') }}"
                         class="block px-4 py-2 rounded hover:bg-[#005f87] transition">📊 Dashboard</a>
 
                     <!-- Project Dropdown -->
@@ -46,9 +46,9 @@
                             </svg>
                         </button>
                         <div x-show="open" x-transition class="pl-4 mt-1 space-y-1 text-sm">
-                            <a href="{{ route('project_controller.work_order') }}"
+                            <a href="{{ route('engineer.work_order') }}"
                                 class="block px-4 py-2 rounded hover:bg-[#005f87]">📁 Work Order</a>
-                            <a href="{{ route('project_controller.project.index') }}"
+                            <a href="{{ route('engineer.project.index') }}"
                                 class="block px-4 py-2 rounded hover:bg-[#005f87]">🛠 Projects</a>
                         </div>
                     </div>

@@ -5,6 +5,7 @@
         'supervisor marketing'     => 'supervisor.layouts.app',
         'manager_marketing'        => 'supervisor.layouts.app',
         'sales_supervisor'         => 'supervisor.layouts.app',
+        'marketing_admin'         => 'supervisor.layouts.app',
     ];
 
     $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
@@ -382,6 +383,18 @@
         <div class="mt-8">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-medium text-gray-900">Recent Activity</h3>
+                <div class="flex space-x-3">
+                    {{-- Tombol Buka Modal --}}
+                    <button type="button"
+                        onclick="Livewire.dispatch('openLogModal')"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm w-full md:w-auto">
+                        + Tambah Log
+                    </button>
+
+                    {{-- Include Livewire Component --}}
+                    @livewire('log.log-modal', ['projectId' => $project->pn_number])
+
+                </div>
                 <a href="{{ route('supervisor.projects.logs', $project->pn_number) }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">
                     View all activity
                 </a>

@@ -106,7 +106,7 @@ class ProjectControllerPhcController extends Controller
 
         session()->flash('resetStep', true);
 
-        return redirect()->route('project_controller.project.show', $phc->project_id)->with('success', 'PHC updated successfully.');
+        return redirect()->route('engineer.project.show', $phc->project_id)->with('success', 'PHC updated successfully.');
 
     }
 }

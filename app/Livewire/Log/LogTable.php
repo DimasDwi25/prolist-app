@@ -36,6 +36,20 @@ class LogTable extends DataTableComponent
     public function columns(): array
     {
         return [
+            Column::make('Status', 'status')
+                ->format(function ($value) {
+                    $class = match(strtolower(trim($value))) {
+                        'open'     => 'bg-yellow-100 text-yellow-800',
+                        'close'    => 'bg-gray-100 text-gray-800',
+                        'approved' => 'bg-green-100 text-green-800',
+                        default    => 'bg-orange-100 text-orange-800'
+                    };
+                    return "<span class='px-2 py-1 rounded text-xs font-semibold {$class}'>"
+                            . ucfirst($value) . "</span>";
+                })
+                ->html()
+                ->sortable(),
+
             Column::make('Tanggal', 'tgl_logs')
                 ->format(fn($value) => $value ? $value->format('d M Y') : '-')
                 ->sortable(),
@@ -63,13 +77,49 @@ class LogTable extends DataTableComponent
 
             Column::make('Created By', 'user.name')->sortable(),
             Column::make('Response By', 'responseUser.name')->sortable(),
+            Column::make('User ID', 'users_id')->hideIf(true),
+            Column::make('ID', 'id')->hideIf(true),
+            // Column::make('Actions')
+            //     ->label(function ($row) {
+            //         if (trim(strtolower($row->status)) !== 'close' && (int)$row->users_id === (int)auth()->id()) {
+            //             return <<<HTML
+            //                 <button wire:click="closeLog({$row->id})" 
+            //                         class="px-2 py-1 bg-red-600 text-white rounded text-xs">
+            //                     Close
+            //                 </button>
+            //             HTML;
+            //         }
+            //         return '-';
+            //     })
+            //     ->html(),
+            Column::make('Actions')
+                ->label(function ($row) {
+                    $buttons = '';
 
-            Column::make('Status', 'status')
-                ->format(fn($value) => "<span class='px-2 py-1 rounded text-xs font-semibold " .
-                    ($value === 'open' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800') .
-                    "'>" . ucfirst($value) . "</span>")
-                ->html()
-                ->sortable(),
+                    if ((int)$row->users_id === (int)auth()->id()) {
+                        $buttons .= <<<HTML
+                            <button wire:click="closeLog({$row->id})" 
+                                    class="px-2 py-1 bg-red-600 text-white rounded text-xs mr-1">
+                                Close
+                            </button>
+                        HTML;
+
+                        $buttons .= <<<HTML
+                            <button type="button"
+                                onclick='Livewire.dispatch("editLog", {"id": {$row->id}})'
+                                class="px-2 py-1 bg-blue-600 text-white rounded text-xs">
+                                Edit
+                            </button>
+                        HTML;
+
+                    }
+
+                    return $buttons ?: '-';
+                })
+                ->html(),
+
+
+            
         ];
     }
 
@@ -79,6 +129,32 @@ class LogTable extends DataTableComponent
         $rowId = (int) $rowId; // paksa jadi integer
         $this->expandedRow = $this->expandedRow === $rowId ? null : $rowId;
     }
+
+    public function closeLog($id)
+    {
+        $log = Log::findOrFail($id);
+
+        $authId = (int) auth()->id();
+        $ownerId = (int) $log->users_id;
+
+        // Debug sementara (biar tahu siapa lawan siapa)
+        if ($ownerId !== $authId) {
+            Log::warning("Close log ditolak. Auth ID: {$authId}, Log Owner: {$ownerId}");
+            abort(403, "Hanya pembuat log yang bisa menutup log ini. Auth ID: {$authId}, Owner ID: {$ownerId}");
+        }
+
+        $log->update([
+            'status'        => 'close',
+            'closing_date'  => now(),
+            'closing_users' => $authId,
+        ]);
+
+        event(new \App\Events\LogClosed($log));
+
+        $this->dispatch('log-success', message: 'Log berhasil ditutup.');
+    }
+
+
 
 
 }

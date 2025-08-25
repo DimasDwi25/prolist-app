@@ -5,7 +5,7 @@
         @endphp
 
         <a href="{{ $role === 'project controller'
-    ? route('project_controller.project.show', $project->pn_number)
+    ? route('engineer.project.show', $project->pn_number)
     : route('supervisor.project.show', $project->pn_number) }}"
             class="inline-flex items-center bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 text-sm">
             ← Kembali

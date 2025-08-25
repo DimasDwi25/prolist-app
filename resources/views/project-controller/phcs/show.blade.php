@@ -1,4 +1,14 @@
-@extends('project-controller.layouts.app')
+@php
+    $roleLayouts = [
+        'project controller'     => 'project-controller.layouts.app',
+        'engineer'     => 'engineer.layouts.app',
+        'engineering_manager'         => 'project-manager.layouts.app',
+    ];
+
+    $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
+@endphp
+
+@extends($layout)
 @section('content')
     <div class="max-w-7xl mx-auto bg-white p-6 md:p-10 rounded-lg shadow space-y-8">
         {{-- Header --}}
@@ -10,12 +20,12 @@
                 </p>
             </div>
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <a href="{{ route('project_controller.project.show', $phc->project_id) }}"
+                <a href="{{ route('engineer.project.show', $phc->project_id) }}"
                     class="flex justify-center items-center bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 text-sm w-full sm:w-auto">
                     ← Back
                 </a>
                 @if ($phc->status === 'pending')
-                    <a href="{{ route('project_controller.dashboard') }}"
+                    <a href="{{ route('engineer.dashboard') }}"
                         class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm shadow transition">
                         ✅ Next to PHC Validation
                     </a>

@@ -1,4 +1,14 @@
-@extends('project-controller.layouts.app')
+@php
+    $roleLayouts = [
+        'project controller'     => 'project-controller.layouts.app',
+        'engineer'     => 'engineer.layouts.app',
+        'engineering_manager'         => 'project-manager.layouts.app',
+    ];
+
+    $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
+@endphp
+
+@extends($layout)
 
 @section('content')
 <div class="max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-md">
@@ -17,13 +27,13 @@
     @endif
 
     <div class="mb-4">
-        <a href="{{ route('project_controller.project.show', $phc->project_id) }}"
+        <a href="{{ route('engineer.project.show', $phc->project_id) }}"
            class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
             ⬅️ Back to Project
         </a>
     </div>
 
-    <form action="{{ route('project_controller.phc.update', $phc) }}" method="POST">
+    <form action="{{ route('engineer.phc.update', $phc) }}" method="POST">
         @csrf
         @method('PUT')
         <input type="hidden" name="project_id" value="{{ $phc->project_id }}">

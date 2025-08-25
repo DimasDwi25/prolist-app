@@ -1,4 +1,14 @@
-@extends('project-controller.layouts.app')
+@php
+    $roleLayouts = [
+        'project controller'     => 'project-controller.layouts.app',
+        'engineer'     => 'engineer.layouts.app',
+        'engineering_manager'         => 'project-manager.layouts.app',
+    ];
+
+    $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
+@endphp
+
+@extends($layout)
 
 @section('content')
     <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow">
@@ -12,7 +22,7 @@
             </div>
             <div class="flex items-center gap-2">
                 {{-- Back Button --}}
-                <a href="{{ route('project_controller.project.show', $project) }}"
+                <a href="{{ route('engineer.project.show', $project) }}"
                     class="inline-flex items-center bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow transition duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-5 h-5 mr-1">
