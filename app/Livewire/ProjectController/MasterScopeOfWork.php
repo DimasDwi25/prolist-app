@@ -67,7 +67,7 @@ class MasterScopeOfWork extends Component
 
         if ($user->role->name === 'engineering_director') {
             $layout = 'engineering_director.layouts.app';
-        } elseif ($user->role->name === 'project-controller') {
+        } elseif ($user->role->name === 'project controller') {
             $layout = 'project-controller.layouts.app';
         } else {
             $layout = 'layouts.app'; // fallback default
