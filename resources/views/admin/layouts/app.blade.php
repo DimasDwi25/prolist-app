@@ -18,10 +18,8 @@
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <!-- Sidebar -->
         <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed inset-y-0 left-0 w-64 flex-shrink-0 h-screen bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between overflow-y-auto">
-
+            class="fixed inset-y-0 left-0 w-64 h-screen bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between overflow-y-auto">
 
 
             <!-- Logo -->
@@ -125,7 +123,7 @@
             @click="sidebarOpen = false" x-transition.opacity></div>
 
         <!-- Main Content -->
-        <div class="lex-1 min-w-0 flex flex-col">
+        <div class="flex-1 flex flex-col">
             <!-- Header -->
             <header class="bg-white border-b shadow-sm px-6 py-4 w-full flex items-center justify-between">
                 <!-- Sidebar Toggle (Mobile) -->
