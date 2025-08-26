@@ -109,7 +109,7 @@
                                 <div class="font-medium">{{ Auth::user()->name }}</div>
                                 <div class="text-xs text-gray-500">{{ Auth::user()->email }}</div>
                             </div>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">⚙️ Pengaturan
+                            <a href="{{ route('account.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">⚙️ Pengaturan
                                 Akun</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf

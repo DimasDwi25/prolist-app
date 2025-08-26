@@ -280,31 +280,62 @@
       }
     });
 
-    // Line Chart
+    // Line Chart - pastikan format angka benar
     new Chart(document.getElementById('lineChart').getContext('2d'), {
-      type: 'line',
-      data: {
-      labels: months,
-      datasets: [
-        {
-        label: 'Quotation',
-        data: quotationPerMonth,
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        fill: true,
-        tension: 0.3
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Quotation Value',
+                    data: quotationPerMonth,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Sales Value',
+                    data: salesPerMonth,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    fill: true,
+                    tension: 0.3
+                }
+            ]
         },
-        {
-        label: 'Sales',
-        data: salesPerMonth,
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-        fill: true,
-        tension: 0.3
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            if (value >= 1000000) {
+                                return 'Rp ' + (value / 1000000).toFixed(1) + ' Jt';
+                            }
+                            if (value >= 1000) {
+                                return 'Rp ' + (value / 1000).toFixed(1) + ' Rb';
+                            }
+                            return 'Rp ' + value;
+                        }
+                    }
+                }
+            }
         }
-      ]
-      },
-      options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
     });
     });
   </script>

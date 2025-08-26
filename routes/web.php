@@ -4,6 +4,7 @@ use App\Exports\ClientsExport;
 use App\Exports\ProjectsExport;
 use App\Exports\QuotationsExport;
 use App\Exports\StatusProjectExport;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\LoginRedirectController;
 use App\Http\Controllers\Engineer\EngineerDashboardController;
 use App\Http\Controllers\Engineer\EngineerProjectController;
@@ -72,6 +73,19 @@ Route::get('/', function () {
 });
 Route::post('/login', [LoginRedirectController::class, 'store']);
 
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/account', [AccountController::class, 'index'])->name('account.index');
+
+    // Password
+    Route::get('/account/password', [AccountController::class, 'editPassword'])->name('account.password.edit');
+    Route::post('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
+
+    // PIN
+    Route::get('/account/pin', [AccountController::class, 'editPin'])->name('account.pin.edit');
+    Route::post('/account/pin', [AccountController::class, 'updatePin'])->name('account.pin.update');
+});
+
 Route::middleware(['auth', 'role:super_admin'])->group(function () {
     Route::get('/admin', [DashboardController::class, 'index'])->name('admin.dashboard');
 
@@ -131,7 +145,7 @@ Route::middleware(['auth', 'role:super_admin,marketing_director,engineering_dire
     Route::post('/categorie-project/store', [SupervisorCategorieProjectController::class, 'store'])->name('category.store');
     Route::get('/categorie-project/edit/{category}', [SupervisorCategorieProjectController::class, 'edit'])->name('category.edit');
     Route::put('/categorie-project/update/{category}', [SupervisorCategorieProjectController::class, 'update'])->name('category.update');
-    Route::get('/categorie-project/delete/{category', [SupervisorCategorieProjectController::class, 'destroy'])->name('category.destroy');
+    Route::get('/categorie-project/delete/{category}', [SupervisorCategorieProjectController::class, 'destroy'])->name('category.destroy');
 
     Route::get('/quotation', [SupervisorQuotationController::class, 'index'])->name('quotation.index');
     Route::get('/quotation/create', [SupervisorQuotationController::class, 'create'])->name('quotation.create');

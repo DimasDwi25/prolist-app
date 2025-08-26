@@ -162,4 +162,23 @@ class SupervisorProjectController extends Controller
             'formatDecimal' => fn($decimal) => is_numeric($decimal) ? number_format($decimal, 0, ',', '.') : '—'
         ]);
     }
+
+    public function generateProjectNumber(Request $request)
+    {
+        $isCO = $request->input('is_co', false);
+        $currentProject = $request->input('current_project', null);
+        
+        // Jika sedang edit dan sudah ada project number, pertahankan
+        if ($currentProject && !$isCO) {
+            return response()->json(['project_number' => $currentProject]);
+        }
+        
+        // Generate PN number baru
+        $pnNumber = Project::generatePnNumber();
+        
+        // Generate project number berdasarkan tipe (CO atau regular)
+        $projectNumber = Project::generateProjectNumber($pnNumber, $isCO);
+        
+        return response()->json(['project_number' => $projectNumber]);
+    }
 }

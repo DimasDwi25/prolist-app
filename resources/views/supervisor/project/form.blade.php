@@ -6,7 +6,6 @@
         'manager_marketing'        => 'supervisor.layouts.app',
         'sales_supervisor'         => 'supervisor.layouts.app',
         'marketing_admin'         => 'supervisor.layouts.app',
-        'engineering_director'  => 'engineering_director.layouts.app',
     ];
 
     $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';

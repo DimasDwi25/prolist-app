@@ -53,29 +53,29 @@ class SupervisorDashboardController extends Controller
         // Bulan untuk grafik
         $months = collect(range(1, 12))->map(fn($m) => date('M', mktime(0, 0, 0, $m, 1)))->toArray();
 
-        // Data quotation per bulan (tanpa ORDER BY di SQL)
+        // Data quotation per bulan
         $quotationPerMonth = Quotation::select(
             DB::raw('MONTH(quotation_date) as month_num'),
-            DB::raw('SUM(quotation_value) as total')
+            DB::raw('COALESCE(SUM(quotation_value), 0) as total')
         )
-            ->whereYear('quotation_date', now()->year)
-            ->groupBy(DB::raw('MONTH(quotation_date)'))
-            ->pluck('total', 'month_num')
-            ->toArray();
+        ->whereYear('quotation_date', now()->year)
+        ->groupBy(DB::raw('MONTH(quotation_date)'))
+        ->pluck('total', 'month_num')
+        ->toArray();
 
-        // Data sales per bulan (tanpa ORDER BY di SQL)
+        // Data sales per bulan - perbaikan dengan multiple fallback dates
         $salesPerMonth = Project::select(
-            DB::raw('MONTH(po_date) as month_num'),
-            DB::raw('SUM(po_value) as total')
+            DB::raw('MONTH(COALESCE(po_date, created_at)) as month_num'),
+            DB::raw('COALESCE(SUM(po_value), 0) as total')
         )
-            ->whereYear('po_date', now()->year)
-            ->groupBy(DB::raw('MONTH(po_date)'))
-            ->pluck('total', 'month_num')
-            ->toArray();
-
-        // Urutkan secara manual di PHP
-        ksort($quotationPerMonth);
-        ksort($salesPerMonth);
+        ->where(function($query) {
+            $query->whereNotNull('po_value')
+                ->where('po_value', '>', 0);
+        })
+        ->whereYear(DB::raw('COALESCE(po_date, created_at)'), now()->year)
+        ->groupBy(DB::raw('MONTH(COALESCE(po_date, created_at))'))
+        ->pluck('total', 'month_num')
+        ->toArray();
 
         // Normalisasi data (isi 0 untuk bulan kosong)
         $quotationPerMonthData = [];
@@ -84,6 +84,11 @@ class SupervisorDashboardController extends Controller
             $quotationPerMonthData[] = $quotationPerMonth[$m] ?? 0;
             $salesPerMonthData[] = $salesPerMonth[$m] ?? 0;
         }
+
+        // Debug info untuk development
+        $salesDebug = Project::where('po_value', '>', 0)
+            ->select('project_name', 'po_value', 'po_date', 'created_at')
+            ->get();
 
         return view('supervisor.dashboard', compact(
             'totalQuotation',
