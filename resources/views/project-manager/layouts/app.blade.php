@@ -24,8 +24,10 @@
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed inset-y-0 left-0 w-64 bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between">
+        <div 
+            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+            class="fixed inset-y-0 left-0 w-64 flex-shrink-0 bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between"
+        >
             <div>
                 <div class="p-4 border-b border-[#005f87] bg-white flex items-center space-x-3">
                     <img src="{{ asset('images/CITASys Logo.jpg') }}" alt="Logo" class="w-40 h-10">
@@ -67,7 +69,7 @@
             @click="sidebarOpen = false" x-transition.opacity></div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Header -->
             <header class="bg-white border-b shadow-sm px-6 py-4 w-full flex items-center justify-between">
                 <!-- Sidebar Toggle (Mobile Only) -->
