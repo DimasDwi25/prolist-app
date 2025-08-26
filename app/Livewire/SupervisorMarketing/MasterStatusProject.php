@@ -60,6 +60,16 @@ class MasterStatusProject extends Component
 
     public function render()
     {
+        $user = auth()->user();
+        $layout = match ($user->role->name) {
+            'super_admin'              => 'admin.layouts.app',
+            'marketing_director'       => 'marketing-director.layouts.app',
+            'supervisor marketing'     => 'supervisor.layouts.app',
+            'manager_marketing'        => 'supervisor.layouts.app',
+            'sales_supervisor'         => 'supervisor.layouts.app',
+            'marketing_admin'         => 'supervisor.layouts.app',
+            'engineering_director'  => 'engineering_director.layouts.app',
+        };
         return view('livewire.supervisor-marketing.master-status-project', [
             'statusProjects' => StatusProject::latest()->paginate(5),
         ])->layout('supervisor.layouts.app');

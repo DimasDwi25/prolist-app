@@ -111,7 +111,7 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'role:super_admin,marketing_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin'])->group(function () {
+Route::middleware(['auth', 'role:super_admin,marketing_director,engineering_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin'])->group(function () {
     Route::get('/marketing', [SupervisorDashboardController::class, 'index'])->name('marketing.dashboard');
     Route::get('/marketing-director', [MarketingDirectorDashboardController::class, 'index'])->name('marketing_director.dashboard');
 
@@ -236,7 +236,7 @@ Route::middleware(['auth', 'role:engineer'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'role:project controller,engineer,engineering_manager'])->group(function () {
+Route::middleware(['auth', 'role:engineering_director,project controller,engineer,engineering_manager'])->group(function () {
     Route::get('/engineer', [ProjectControllerDashboardController::class, 'index'])->name('engineer.dashboard');
 
     Route::get('/engineer/project', [ProjectControllerProjectController::class, 'index'])->name('engineer.project.index');

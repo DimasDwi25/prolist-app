@@ -279,7 +279,16 @@ class WeeklyProgressAll extends Component
 
     public function render()
     {
+        $user = auth()->user();
+
+        if ($user->role->name === 'engineering_director') {
+            $layout = 'engineering_director.layouts.app';
+        } elseif ($user->role->name === 'project-controller') {
+            $layout = 'project-controller.layouts.app';
+        } else {
+            $layout = 'layouts.app'; // fallback default
+        }
         return view('livewire.project-controller.weekly-progress-all')
-            ->layout('project-controller.layouts.app');
+            ->layout($layout);
     }
 }

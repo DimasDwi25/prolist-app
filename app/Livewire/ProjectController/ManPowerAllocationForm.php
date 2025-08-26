@@ -81,6 +81,16 @@ class ManPowerAllocationForm extends Component
             ->latest()
             ->paginate(5);
 
+        $user = auth()->user();
+
+        if ($user->role->name === 'engineering_director') {
+            $layout = 'engineering_director.layouts.app';
+        } elseif ($user->role->name === 'project-controller') {
+            $layout = 'project-controller.layouts.app';
+        } else {
+            $layout = 'layouts.app'; // fallback default
+        }
+
         return view('livewire.project-controller.man-power-allocation-form', [
             'allocations' => $allocations,
             'users' => User::whereHas('role', function ($q) {
@@ -96,6 +106,6 @@ class ManPowerAllocationForm extends Component
 
             'roles' => Role::where('type_role', 2)->get(),
             'projects' => [], // nggak perlu dropdown
-        ])->layout('project-controller.layouts.app');
+        ])->layout($layout);
     }
 }

@@ -4,6 +4,7 @@
     'engineer' => 'engineer.layouts.app',
     'project controller' => 'project-controller.layouts.app',
     'marketing_admin'         => 'supervisor.layouts.app',
+    'engineering_director'  => 'engineering_director.layouts.app',
     default => 'layouts.app', // fallback jika role tidak cocok
 })
 
