@@ -19,7 +19,8 @@
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
         <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed inset-y-0 left-0 w-64 bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between">
+            class="fixed inset-y-0 left-0 w-64 h-screen bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between overflow-y-auto">
+
 
             <!-- Logo -->
             <div>

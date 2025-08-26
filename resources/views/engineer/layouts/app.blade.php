@@ -24,10 +24,9 @@
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <div 
-            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed inset-y-0 left-0 w-64 flex-shrink-0 bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between"
-        >
+        <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+            class="fixed inset-y-0 left-0 w-64 h-screen bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between overflow-y-auto">
+
             <div>
                 <div class="p-4 border-b border-[#005f87] bg-white flex items-center space-x-3">
                     <img src="{{ asset('images/CITASys Logo.jpg') }}" alt="Logo" class="w-40 h-10">
