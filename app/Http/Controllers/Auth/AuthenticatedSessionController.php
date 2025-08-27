@@ -42,6 +42,7 @@ class AuthenticatedSessionController extends Controller
             'project controller'      => 'engineer.dashboard',
             'engineering_manager'         => 'engineer.dashboard',
             'engineering_director' => 'engineer.dashboard',
+            'marketing_estimator'      => 'marketing.dashboard',
         ];
 
         // Redirect sesuai role

@@ -125,7 +125,7 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'role:super_admin,marketing_director,engineering_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin'])->group(function () {
+Route::middleware(['auth', 'role:super_admin,marketing_director,engineering_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin,marketing_estimator'])->group(function () {
     Route::get('/marketing', [SupervisorDashboardController::class, 'index'])->name('marketing.dashboard');
     Route::get('/marketing-director', [MarketingDirectorDashboardController::class, 'index'])->name('marketing_director.dashboard');
 

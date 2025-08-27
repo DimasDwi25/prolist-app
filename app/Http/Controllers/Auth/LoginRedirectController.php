@@ -31,6 +31,7 @@ class LoginRedirectController extends Controller
                 'project controller'     => '/engineer',
                 'engineering_manager'        => '/engineer',
                 'engineering_director'  => '/engineer',
+                'marketing_estimator'    => '/marketing',
             ];
 
             // Cari redirect path sesuai role
