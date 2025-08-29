@@ -1,29 +1,25 @@
-@aware([ 'tableName','isTailwind','isBootstrap','isBootstrap4','isBootstrap5', 'localisationPath'])
+@aware(['tableName', 'isTailwind', 'isBootstrap', 'isBootstrap4', 'isBootstrap5', 'localisationPath'])
 
-<div {{ $attributes->merge([
+<div {{ $attributes
+    ->merge(['wire:loading.class' => $this->displayFilterPillsWhileLoading ? '' : 'invisible', 'x-cloak'])
+    ->class([
+        'mb-4 px-4 md:p-0' => $isTailwind,
+        'mb-3' => $isBootstrap,
+    ]) }}>
 
-    'wire:loading.class' => $this->displayFilterPillsWhileLoading ? '' : 'invisible',
-    'x-cloak',
-])
-->class([
-    'mb-4 px-4 md:p-0' => $isTailwind,
-    'mb-3' => $isBootstrap,
-])
-
-}}>
-    <small @class([
-        'text-gray-700' => $isTailwind,
-        '' =>  $isBootstrap,
-    ])>
+    <small class="{{ $isTailwind ? 'text-gray-700' : '' }}">
         {{ __($localisationPath.'Applied Filters') }}:
     </small>
-    @foreach($this->getPillDataForFilter() as $filterKey => $filterPillData)
 
-        @if ($filterPillData->hasCustomPillBlade)
-            @include($filterPillData->getCustomPillBlade(), ['filter' => $this->getFilterByKey($filterKey), 'filterPillData' => $filterPillData])
-        @else
+    @foreach($this->getPillDataForFilter() as $filterKey => $filterPillData)
+        @includeWhen(
+            $filterPillData->hasCustomPillBlade,
+            $filterPillData->getCustomPillBlade(),
+            ['filter' => $this->getFilterByKey($filterKey), 'filterPillData' => $filterPillData]
+        )
+        @unless($filterPillData->hasCustomPillBlade)
             <x-livewire-tables::filter-pill :$filterKey :$filterPillData />
-        @endif
+        @endunless
     @endforeach
 
     <x-livewire-tables::tools.filter-pills.buttons.reset-all />

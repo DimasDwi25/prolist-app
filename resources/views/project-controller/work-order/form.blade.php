@@ -32,50 +32,56 @@
         </div>
     @endif
 
-    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+    <div class="flex-1 max-w-6xl mx-auto bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+        <!-- Header -->
         <div class="flex justify-between items-center mb-8">
             <div>
-                <h2 class="text-2xl font-semibold text-gray-900">
-                    {{ $isEdit ? 'Edit Work Order' : 'Create New Work Order' }}
+                <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-6 4h2m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    {{ $isEdit ? 'Edit Work Order' : 'Create Work Order' }}
                 </h2>
-                <p class="text-sm text-gray-500 mt-1">
-                    {{ $isEdit ? 'Update the work order details below' : 'Fill in the form to create a new work order' }}
+                <p class="text-gray-500 text-sm mt-1">
+                    {{ $isEdit ? 'Update your work order details below.' : 'Fill in details to create a new work order.' }}
                 </p>
             </div>
-            <a href="{{ route('engineer.work_order') }}"
-                class="inline-flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ route('engineer.work_order') }}" class="text-sm text-gray-600 hover:text-blue-600 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
-                Back to Work Orders
+                Back
             </a>
         </div>
 
-        <form
-            action="{{ $isEdit ? route('engineer.work-orders.update', $workOrder) : route('engineer.work-orders.store') }}"
-            method="POST"
-            class="space-y-6">
+        <!-- Form -->
+        <form method="POST" action="{{ $isEdit ? route('engineer.work-orders.update', $workOrder) : route('engineer.work-orders.store') }}" class="space-y-8">
             @csrf
             @if($isEdit) @method('PUT') @endif
 
-            <!-- Project & Client Section -->
+            {{-- CLIENT & PROJECT --}}
             <div class="grid md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
-                    <select name="project_id" id="project_id" class="select2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Select Project</option>
-                        @foreach($projects as $project)
-                            <option value="{{ $project->pn_number }}" @selected(old('project_id', $workOrder->project_id ?? '') == $project->pn_number)>
-                                {{ $project->project_number }} - {{ $project->project_name }}
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Client</label>
+                    <select name="client_id" id="client_id" class="select2 w-full rounded-md border-gray-300 focus:ring-blue-500">
+                        <option value="">Select Client</option>
+                        @foreach($clients as $client)
+                            <option value="{{ $client->id }}" {{ old('client_id', $workOrder->client_id ?? '') == $client->id ? 'selected' : '' }}>
+                                {{ $client->name }}
                             </option>
                         @endforeach
                     </select>
                 </div>
-                
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Client</label>
-                    <input type="text" name="client_name" id="client_name" readonly
-                        class="w-full rounded-md bg-gray-50 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Project (PN)</label>
+                    <select name="project_id" id="project_id" class="select2 w-full rounded-md border-gray-300 focus:ring-blue-500">
+                        <option value="">Select Project</option>
+                        @foreach($projects as $project)
+                            <option value="{{ $project->pn_number }}" {{ old('project_id', $workOrder->project_id ?? '') == $project->pn_number ? 'selected' : '' }}>
+                                {{ $project->project_number }} - {{ $project->project_name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
@@ -90,7 +96,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">WO Number</label>
                     <div class="flex rounded-md shadow-sm">
-                        <span id="wo_kode_prefix" class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm font-mono">
+                        <span id="wo_kode_prefix"
+                            class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm font-mono">
                             WO-00/000/
                         </span>
                         <input type="number" id="wo_number_last" name="wo_number_last" min="1"
@@ -99,142 +106,113 @@
                     </div>
                 </div>
             </div>
-
             <input type="hidden" name="wo_kode_no" id="wo_kode_no_real"
                 value="{{ old('wo_kode_no', $workOrder->wo_kode_no ?? '') }}">
 
-            <!-- PIC and Roles Section -->
-            <div class="space-y-4">
-                <h3 class="text-lg font-medium text-gray-900">Person In Charge (PIC)</h3>
-                
-                <div class="space-y-4">
-                    @foreach(range(1, 5) as $i)
-                    <div class="grid md:grid-cols-2 gap-6">
+            {{-- DURATION --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Duration (Days)</label>
+                <input type="number" min="1" name="wo_duration" value="{{ old('wo_duration', 1) }}" class="w-full rounded-md border-gray-300 focus:ring-blue-500">
+                <p class="text-xs text-gray-500 mt-1">WO will be created for multiple dates if >1</p>
+            </div>
+
+            {{-- START & END TIME --}}
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Working Time</label>
+                    <input type="time" name="start_time" value="{{ old('start_time', $workOrder->start_time ?? '') }}" class="w-full rounded-md border-gray-300 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">End Working Time</label>
+                    <input type="time" name="end_time" value="{{ old('end_time', $workOrder->end_time ?? '') }}" class="w-full rounded-md border-gray-300 focus:ring-blue-500">
+                </div>
+            </div>
+
+            {{-- DESCRIPTION & RESULT (Dynamic Rows) --}}
+            <div class="space-y-4" id="work-rows-wrapper">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 work-row relative">
+                    <button type="button" 
+                        class="remove-row absolute top-2 right-2 text-gray-400 hover:text-red-600"
+                        title="Remove this row">
+                        ✕
+                    </button>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Task 1</h4>
+                    <div class="grid md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">PIC {{ $i }}</label>
-                            <select name="pic{{ $i }}" class="select2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="">Select Team Member</option>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Work Description</label>
+                            <textarea name="description[]" rows="3" 
+                                class="w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                placeholder="Describe the work to be done...">{{ old('description.0', $workOrder->description ?? '') }}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result</label>
+                            <textarea name="result[]" rows="3" 
+                                class="w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                placeholder="Describe the result after work...">{{ old('result.0', $workOrder->result ?? '') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Row Button -->
+            <div class="flex justify-end mt-3">
+                <button type="button" id="add-work-row" 
+                    class="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Task
+                </button>
+            </div>
+
+
+
+            <!-- PIC Section -->
+            <div class="space-y-4">
+                <h3 class="font-medium text-gray-900">PIC (Person In Charge)</h3>
+                <p class="text-gray-500 text-xs">Assign up to 5 members. Select both Member and their Role (type_role = 2).</p>
+
+                <div class="grid md:grid-cols-2 gap-3">
+                    @foreach(range(1,5) as $i)
+                        <div class="flex items-center gap-2">
+                            <!-- Label PIC -->
+                            <span class="w-16 text-sm font-medium whitespace-nowrap">PIC {{ $i }}</span>
+
+                            <!-- Member select -->
+                            <select name="pic{{ $i }}" class="select2 flex-1 rounded border-gray-300 text-sm" data-placeholder="Select Member">
+                                <option value=""></option>
                                 @foreach($users as $user)
-                                    <option value="{{ $user->id }}" @selected(old('pic' . $i, $workOrder->{'pic' . $i} ?? '') == $user->id)>
+                                    <option value="{{ $user->id }}" @selected(old('pic'.$i, $workOrder->{'pic'.$i} ?? '') == $user->id)>
                                         {{ $user->name }}
                                     </option>
                                 @endforeach
                             </select>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Role for PIC {{ $i }}</label>
-                            <select name="role_pic_{{ $i }}" class="select2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pic-role-select">
-                                <option value="">Select Role</option>
+
+                            <!-- Role select -->
+                            <select name="role_pic_{{ $i }}" class="select2 flex-1 rounded border-gray-300 text-sm pic-role-select" data-placeholder="Select Role">
+                                <option value=""></option>
                                 @foreach ($roles->where('type_role', 2) as $role)
-                                    <option value="{{ $role->id }}" data-role-name="{{ strtolower($role->name) }}"
-                                        @selected(old('role_pic_' . $i, $workOrder->{'role_pic_' . $i} ?? '') == $role->id)>
+                                    <option value="{{ $role->id }}" data-role-name="{{ strtolower($role->name) }}" @selected(old('role_pic_'.$i, $workOrder->{'role_pic_'.$i} ?? '') == $role->id)>
                                         {{ $role->name }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
-                    </div>
                     @endforeach
                 </div>
             </div>
 
-            <!-- Mandays Calculation -->
-            <div class="grid md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Engineer Mandays</label>
-                    <input type="text" name="total_mandays_eng" readonly
-                        class="w-full rounded-md bg-gray-50 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Electrician Mandays</label>
-                    <input type="text" name="total_mandays_elect" readonly
-                        class="w-full rounded-md bg-gray-50 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                </div>
-            </div>
 
-            <!-- Work Description -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Work Description</label>
-                <textarea name="work_description" rows="4"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('work_description', $workOrder->work_description ?? '') }}</textarea>
-            </div>
-
-            <!-- Submit Button with Log Modal -->
-            <div class="pt-4">
-                <button type="button" id="submit-button"
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
+            {{-- SUBMIT --}}
+            <div class="flex justify-end">
+                <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
                     {{ $isEdit ? 'Update Work Order' : 'Create Work Order' }}
                 </button>
             </div>
-
-            <!-- Log Modal (hidden by default) -->
-            <div id="log-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-                <div class="bg-white rounded-lg shadow-xl overflow-hidden w-full max-w-lg">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between">
-                            <h3 class="text-lg font-medium text-gray-900">Save to Project Log</h3>
-                            <button type="button" id="close-modal" class="text-gray-400 hover:text-gray-500">
-                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <div class="mt-4 space-y-4">
-                            <p class="text-sm text-gray-500">Would you like to save the work description to the project log?</p>
-                            
-                            <div id="log-fields" class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Log Category</label>
-                                    <select name="categorie_log_id" id="categorie_log_id"
-                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                        <option value="">Select Category</option>
-                                        @foreach($categorieLogs as $cat)
-                                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                    <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                        <option value="open">Open</option>
-                                        <option value="close">Close</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="flex items-center">
-                                    <input type="checkbox" name="need_response" id="need_response" value="1"
-                                        class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
-                                    <label for="need_response" class="ml-2 block text-sm text-gray-700">Requires Response</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button type="submit" name="save_log" value="yes"
-                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
-                            Save to Log
-                        </button>
-                        <button type="submit" name="save_log" value="no"
-                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                            Skip Log
-                        </button>
-                        <button type="button" id="cancel-modal"
-                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
         </form>
     </div>
+
+
 @endsection
 
 @push('scripts')
@@ -256,6 +234,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModal = document.getElementById('close-modal');
     const cancelModal = document.getElementById('cancel-modal');
 
+    const wrapper = document.getElementById('work-rows-wrapper');
+    const addBtn = document.getElementById('add-work-row');
+
     // Inisialisasi semua select2
     $('.select2').select2({
         theme: "classic", // bisa "bootstrap-5" kalau pakai bootstrap theme
@@ -263,6 +244,47 @@ document.addEventListener('DOMContentLoaded', function() {
         placeholder: 'Pilih opsi',
         allowClear: true
     });
+
+    // Tambah Row Baru
+    addBtn.addEventListener('click', () => {
+        const rowCount = wrapper.querySelectorAll('.work-row').length + 1;
+
+        const newRow = document.createElement('div');
+        newRow.classList.add('bg-gray-50','border','border-gray-200','rounded-lg','p-4','work-row','relative','mt-3');
+        newRow.innerHTML = `
+            <button type="button" class="remove-row absolute top-2 right-2 text-gray-400 hover:text-red-600" title="Remove this row">✕</button>
+            <h4 class="text-sm font-semibold text-gray-700 mb-3">Task ${rowCount}</h4>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Work Description</label>
+                    <textarea name="description[]" rows="3" class="w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Describe the work to be done..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Result</label>
+                    <textarea name="result[]" rows="3" class="w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Describe the result after work..."></textarea>
+                </div>
+            </div>
+        `;
+
+        wrapper.appendChild(newRow);
+        updateTaskTitles();
+    });
+
+    // Hapus Row
+    wrapper.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-row')) {
+            e.target.closest('.work-row').remove();
+            updateTaskTitles();
+        }
+    });
+
+    // Update Judul Task (Task 1, Task 2...)
+    function updateTaskTitles() {
+        wrapper.querySelectorAll('.work-row').forEach((row, index) => {
+            const title = row.querySelector('h4');
+            if (title) title.textContent = `Task ${index + 1}`;
+        });
+    }
 
 
     // Update project prefix and client when project changes
@@ -406,6 +428,8 @@ document.addEventListener('DOMContentLoaded', function() {
         select.addEventListener('change', updateMandays);
     });
     $(document).on('select2:select', '.pic-role-select', updateMandays);
+
+    
 
 
 });

@@ -7,6 +7,7 @@
         'sales_supervisor'         => 'supervisor.layouts.app',
         'marketing_admin'         => 'supervisor.layouts.app',
         'engineering_director'  => 'engineering_director.layouts.app',
+        'marketing_estimator' => 'supervisor.layouts.app',
     ];
 
     $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
@@ -174,30 +175,32 @@
             </div>
 
             <!-- Quotation Number -->
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Quotation Number
-                    <span class="text-xs text-gray-500 ml-1">(Auto-generated)</span>
-                </label>
-                <div class="flex items-center">
-                    <span class="inline-flex items-center px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 text-sm rounded-l-md">Q-</span>
-                    <input type="text" 
-                        name="no_quotation" 
-                        value="{{ old('no_quotation', $quotation->exists ? substr($quotation->no_quotation, 2, 3) : ($noQuotationNumber ?? '')) }}" 
-                        class="flex-1 min-w-0 block w-full px-3 py-2 border-t border-b border-gray-300 bg-white text-sm"
-                        pattern="\d{1,3}"
-                        maxlength="3">
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Quotation Number
+                        <span class="text-xs text-gray-500 ml-1">(Auto-generated)</span>
+                    </label>
+                    <div class="flex items-center">
+                        <span class="inline-flex items-center px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 text-sm rounded-l-md">Q-</span>
+                        <input type="text" 
+                            name="no_quotation" 
+                            value="{{ old('no_quotation', $quotation->exists ? substr($quotation->no_quotation, 2, 3) : ($noQuotationNumber ?? '')) }}" 
+                            class="flex-1 min-w-0 block w-full px-3 py-2 border-t border-b border-gray-300 bg-white text-sm"
+                            pattern="\d{1,3}"
+                            maxlength="3">
 
 
-                    <span class="inline-flex items-center px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 text-sm rounded-r-md">
-                        /<span id="display_month_roman" class="mx-1">{{ $monthRoman }}</span>/
-                        <span id="display_year" class="ml-1">{{ optional($quotation->quotation_date ?? now())->format('y') }}</span>
-                    </span>
+                        <span class="inline-flex items-center px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 text-sm rounded-r-md">
+                            /<span id="display_month_roman" class="mx-1">{{ $monthRoman }}</span>/
+                            <span id="display_year" class="ml-1">{{ optional($quotation->quotation_date ?? now())->format('y') }}</span>
+                        </span>
+                    </div>
+                    <input type="hidden" name="month_roman" value="{{ $monthRoman }}">
+                    @if($quotation->exists)
+                        <input type="hidden" name="quotation_number" value="{{ $quotation->quotation_number }}">
+                    @endif
                 </div>
-                <input type="hidden" name="month_roman" value="{{ $monthRoman }}">
-                @if($quotation->exists)
-                    <input type="hidden" name="quotation_number" value="{{ $quotation->quotation_number }}">
-                @endif
             </div>
         </div>
 

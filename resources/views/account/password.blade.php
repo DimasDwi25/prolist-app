@@ -10,6 +10,7 @@
         'project controller'     => 'project-controller.layouts.app',
         'engineer'     => 'engineer.layouts.app',
         'engineering_manager'         => 'project-manager.layouts.app',
+        'marketing_estimator' => 'supervisor.layouts.app',
     ];
 
     $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';

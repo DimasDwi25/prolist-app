@@ -1,4 +1,4 @@
-@aware([ 'tableName'])
+@aware(['tableName'])
 @props([
     'filter',
     'filterLayout' => 'popover',
@@ -7,15 +7,17 @@
     'isBootstrap' => false,
     'isBootstrap4' => false,
     'isBootstrap5' => false,
-    'for' => null
+    'for' => null,
 ])
 
 @php
-    $filterLabelAttributes = $filter->getFilterLabelAttributes();
-    $customLabelAttributes = $filter->getLabelAttributes();
+    $filterLabelAttrs = $filter->getFilterLabelAttributes();
+    $customLabelAttrs = $filter->getLabelAttributes();
+    $defaultStyling = $filterLabelAttrs['default-styling'] ?? ($filterLabelAttrs['default'] ?? true);
+    $labelId = $for ?? "{$tableName}-filter-{$filter->getKey()}";
 @endphp
 
-@if($filter->hasCustomFilterLabel() && !$filter->hasCustomPosition())
+@if ($filter->hasCustomFilterLabel() && !$filter->hasCustomPosition())
     @include($filter->getCustomFilterLabel(), [
         'filter' => $filter,
         'filterLayout' => $filterLayout,
@@ -24,23 +26,23 @@
         'isBootstrap' => $isBootstrap,
         'isBootstrap4' => $isBootstrap4,
         'isBootstrap5' => $isBootstrap5,
-        'customLabelAttributes' => $customLabelAttributes
+        'customLabelAttributes' => $customLabelAttrs
     ])
 @elseif(!$filter->hasCustomPosition())
-    <label for="{{ $for ?? $tableName.'-filter-'.$filter->getKey() }}" 
+    <label for="{{ $labelId }}"
         {{
-            $attributes->merge($customLabelAttributes)->merge($filterLabelAttributes)
+            $attributes->merge($customLabelAttrs)
+                ->merge($filterLabelAttrs)
                 ->class([
-                    // Tailwind Light Mode Styling
-                    'block text-sm font-medium leading-5 text-gray-700' =>
-                        $isTailwind && ($filterLabelAttributes['default-styling'] ?? ($filterLabelAttributes['default'] ?? true)),
+                    // Tailwind style (compact)
+                    'block text-xs font-medium leading-4 text-gray-600 mb-1' =>
+                        $isTailwind && $defaultStyling,
 
-                    // Bootstrap Styling
-                    'd-block' =>
-                        $isBootstrap && $filterLayout === 'slide-down' && ($filterLabelAttributes['default-styling'] ?? ($filterLabelAttributes['default'] ?? true)),
-
-                    'mb-2' =>
-                        $isBootstrap && $filterLayout === 'popover' && ($filterLabelAttributes['default-styling'] ?? ($filterLabelAttributes['default'] ?? true)),
+                    // Bootstrap style (compact)
+                    'd-block small text-muted mb-1' =>
+                        $isBootstrap && $filterLayout === 'slide-down' && $defaultStyling,
+                    'mb-1 small text-muted' =>
+                        $isBootstrap && $filterLayout === 'popover' && $defaultStyling,
                 ])
                 ->except(['default', 'default-colors', 'default-styling'])
         }}

@@ -1,106 +1,97 @@
 @php
     $roleLayouts = [
-        'super_admin'              => 'admin.layouts.app',
-        'marketing_director'       => 'marketing-director.layouts.app',
-        'supervisor marketing'     => 'supervisor.layouts.app',
-        'manager_marketing'        => 'supervisor.layouts.app',
-        'sales_supervisor'         => 'supervisor.layouts.app',
-        'marketing_admin'         => 'supervisor.layouts.app',
-        'engineering_director'  => 'engineering_director.layouts.app',
+        'super_admin'          => 'admin.layouts.app',
+        'marketing_director'   => 'marketing-director.layouts.app',
+        'supervisor marketing' => 'supervisor.layouts.app',
+        'manager_marketing'    => 'supervisor.layouts.app',
+        'sales_supervisor'     => 'supervisor.layouts.app',
+        'marketing_admin'      => 'supervisor.layouts.app',
+        'engineering_director' => 'engineering_director.layouts.app',
+        'marketing_estimator' => 'supervisor.layouts.app',
     ];
-
     $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
 @endphp
 
 @extends($layout)
 
 @section('content')
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">📋 Quotation List</h1>
+<div class="p-3 md:p-4 space-y-3">
+
+    <!-- Header Title -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-lg md:text-xl font-semibold text-gray-800 flex items-center gap-1">
+            📋 Quotation List
+        </h1>
         <a href="{{ route('quotation.create') }}"
-            class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition">
+            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs shadow">
             + Add Quotation
         </a>
     </div>
 
-    <div class="flex flex-col md:flex-row justify-between gap-2 mb-4">
+    <!-- Export & Import -->
+    <div class="flex flex-col md:flex-row justify-between gap-2">
         <a href="{{ route('quotation.export') }}"
-            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm shadow">
-            ⬇️ Export Quotation
+            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-xs shadow">
+            ⬇️ Export
         </a>
 
-        <form action="{{ route('quotation.import') }}" method="POST" enctype="multipart/form-data" class="flex gap-2">
+        <form action="{{ route('quotation.import') }}" method="POST" enctype="multipart/form-data" class="flex gap-2 items-center">
             @csrf
-            <input type="file" name="file" required class="border rounded px-2 py-1 text-sm">
-            <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">📥 Import</button>
+            <input type="file" name="file" required class="border rounded px-2 py-1 text-xs">
+            <button class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs">📥 Import</button>
         </form>
     </div>
 
-
     @if (session('success'))
-        <div class="mb-4 px-4 py-3 rounded-md bg-green-100 text-green-800 font-medium shadow">
+        <div class="mb-3 px-3 py-2 rounded bg-green-100 text-green-800 text-xs font-medium shadow">
             {{ session('success') }}
         </div>
     @endif
 
-    <!-- Main Table Container with Loading State -->
-    <div class="relative bg-white p-4 shadow-md rounded-xl border border-gray-100 over" x-data="{ loading: false }" x-init="
-                    Livewire.on('loadingStarted', () => { loading = true });
-                    Livewire.on('loadingFinished', () => { loading = false });
-                ">
+    <!-- Table Container -->
+    <div class="bg-white p-2 shadow-md rounded-md border border-gray-100 relative" 
+         x-data="{ loading: false }" 
+         x-init="
+            Livewire.on('loadingStarted', () => loading = true);
+            Livewire.on('loadingFinished', () => loading = false);
+         ">
 
-        <!-- Table Component -->
         <div wire:loading.class="opacity-50" 
-            wire:loading.class.remove="opacity-100"
-            wire:target="selectedYear,selectedMonth,search,filters" 
-            data-turbo="false">
+             wire:loading.class.remove="opacity-100"
+             wire:target="selectedYear,selectedMonth,search,filters"
+             data-turbo="false">
 
-            <!-- Tambahkan wrapper scroll -->
             <div class="overflow-x-auto w-full">
                 <livewire:supervisor-marketing.quotation-table />
             </div>
         </div>
 
-
         <livewire:supervisor-marketing.change-quotation-status-modal />
     </div>
+</div>
 
-    <!-- Additional Styling -->
-    <style>
-        .livewire-loading {
-            position: relative;
-        }
+<style>
+    /* Sidebar Ramping */
+    .sidebar {
+        width: 200px !important;
+    }
 
-        .livewire-loading::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(2px);
-            z-index: 10;
-        }
+    /* Header Compact */
+    header {
+        padding: 0.4rem 1rem !important;
+        min-height: 48px;
+    }
 
-        .table-container {
-            transition: all 0.3s ease-in-out;
-        }
+    /* Table Lebih Padat */
+    table td, table th {
+        padding: 4px 6px !important;
+        font-size: 12px !important;
+        white-space: nowrap;
+    }
 
-        @keyframes skeleton-loading {
-            0% {
-                background-position: -200px 0;
-            }
-
-            100% {
-                background-position: calc(200px + 100%) 0;
-            }
-        }
-
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200px 100%;
-            animation: skeleton-loading 1.5s infinite;
-        }
-    </style>
+    /* Konten Padat */
+    main {
+        padding: 6px !important;
+    }
+</style>
 @endsection

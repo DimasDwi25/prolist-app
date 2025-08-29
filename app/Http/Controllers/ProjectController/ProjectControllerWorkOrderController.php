@@ -48,10 +48,13 @@ class ProjectControllerWorkOrderController extends Controller
             $q->whereIn('name', ['engineer', 'electrician']);
         })->get();
 
-        $roles = Role::where('type_role', 2)->get();
+        $roles = Role::where('type_role', 2)
+                ->whereIn('name', ['Electrician', 'Engineer'])
+                ->get();
         $projectWorkOrderCounts = WorkOrder::select('project_id', FacadesDB::raw('count(*) as total'))
             ->groupBy('project_id')->pluck('total', 'project_id');
         $categorieLogs = \App\Models\CategorieLog::all();
+        $clients = Client::all();
 
         return view('project-controller.work-order.form', [
             'projects' => $projects,
@@ -62,6 +65,7 @@ class ProjectControllerWorkOrderController extends Controller
             'engineerRoleId' => $roles->firstWhere('name', 'Engineer')?->id,
             'electricianRoleId' => $roles->firstWhere('name', 'Electrician')?->id,
             'categorieLogs' => $categorieLogs,
+            'clients' => $clients,
         ]);
 
     }

@@ -1,25 +1,25 @@
-@php
-    $filterKey = $filter->getKey();
-@endphp
+<div x-cloak
+    id="{{ $tableName }}-dateRangeFilter-{{ $filter->getKey() }}"
+    x-data="flatpickrFilter($wire, '{{ $filter->getKey() }}', @js($filter->getConfigs()), $refs.dateRangeInput, '{{ App::currentLocale() }}')">
 
-<div x-cloak id="{{ $tableName }}-dateRangeFilter-{{ $filterKey }}" x-data="flatpickrFilter($wire, '{{ $filterKey }}', @js($filter->getConfigs()), $refs.dateRangeInput, '{{ App::currentLocale() }}')" >
-    <x-livewire-tables::tools.filter-label :$filter :$filterLayout :$tableName :$isTailwind :$isBootstrap4 :$isBootstrap5 :$isBootstrap />
-    <div
-        @class([
-            'w-full rounded-md shadow-sm text-left ' => $isTailwind,
-            'd-inline-block w-100 mb-3 mb-md-0 input-group' => $isBootstrap,
-        ])
-    >
-        <input
-            type="text"
+    <x-livewire-tables::tools.filter-label
+        :$filter :$filterLayout :$tableName 
+        :$isTailwind :$isBootstrap4 :$isBootstrap5 :$isBootstrap 
+    />
+
+    <div @class([
+        'w-full rounded-md shadow-sm text-left' => $isTailwind,
+        'd-inline-block w-100 mb-3 mb-md-0 input-group' => $isBootstrap,
+    ])>
+        <input type="text"
             x-ref="dateRangeInput"
             x-on:click="init"
             x-on:change="changedValue($refs.dateRangeInput.value)"
-            value="{{ $filter->getDateString(isset($this->appliedFilters[$filterKey]) ? $this->appliedFilters[$filterKey] : '') }}"
+            value="{{ $filter->getDateString($this->appliedFilters[$filter->getKey()] ?? '') }}"
             wire:key="{{ $filter->generateWireKey($tableName, 'dateRange') }}"
-            id="{{ $tableName }}-filter-dateRange-{{ $filterKey }}"
+            id="{{ $tableName }}-filter-dateRange-{{ $filter->getKey() }}"
             @class([
-                'w-full inline-block align-middle transition duration-150 ease-in-out border-gray-300 rounded-md shadow-sm transition duration-150 ease-in-out focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50' => $isTailwind,
+                'w-full inline-block align-middle transition duration-150 ease-in-out border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50' => $isTailwind,
                 'd-inline-block w-100 form-control' => $isBootstrap,
             ])
             @if($filter->hasConfig('placeholder')) placeholder="{{ $filter->getConfig('placeholder') }}" @endif

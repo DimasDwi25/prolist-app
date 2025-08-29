@@ -1,4 +1,5 @@
-<div>
+<div class="flex flex-col space-y-1">
+    {{-- Label --}}
     <x-livewire-tables::tools.filter-label
         :$filter
         :$filterLayout
@@ -11,13 +12,16 @@
 
     @php
         $classes = collect([
-            'block w-full transition duration-150 ease-in-out rounded-md shadow-sm focus:ring focus:ring-opacity-50' =>
+            // Tailwind Compact
+            'block w-full rounded-md text-xs px-2 py-1 border border-gray-300 shadow-sm focus:ring focus:ring-indigo-200 focus:ring-opacity-50' =>
                 $isTailwind && ($filterInputAttributes['default-styling'] ?? true),
-            'border-gray-300 focus:border-indigo-300 focus:ring-indigo-200' =>
+            'border-gray-300 focus:border-indigo-300' =>
                 $isTailwind && ($filterInputAttributes['default-colors'] ?? true),
-            'form-control' =>
+
+            // Bootstrap Compact
+            'form-control form-control-sm' =>
                 $isBootstrap4 && ($filterInputAttributes['default-styling'] ?? true),
-            'form-select' =>
+            'form-select form-select-sm' =>
                 $isBootstrap5 && ($filterInputAttributes['default-styling'] ?? true),
         ])
         ->filter()
@@ -25,13 +29,14 @@
         ->implode(' ');
     @endphp
 
+    {{-- Select Filter --}}
     <div @class([
-        'rounded-md shadow-sm' => $isTailwind,
+        'rounded-md shadow-sm w-full' => $isTailwind,
         'inline' => $isBootstrap,
     ])>
         <select
             {!! $filter->getWireMethod('filterComponents.' . $filter->getKey()) !!}
-            class="{{ $classes ?: ' ' }}"
+            class="{{ $classes }}"
             {{ $filterInputAttributes->except(['default-styling', 'default-colors'])->toHtml() }}
         >
             @foreach($filter->getOptions() as $key => $value)
