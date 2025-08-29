@@ -23,8 +23,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="bg-gray-100 font-sans leading-normal tracking-normal">
-<div class="flex h-screen overflow-hidden">
+<body class="h-full min-h-screen flex flex-col bg-gray-100 font-sans leading-normal tracking-normal overflow-x-hidden">
+<div class="flex flex-1 overflow-hidden">
     <!-- Sidebar -->
     <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
          class="fixed inset-y-0 left-0 w-48 md:w-52 bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between overflow-y-auto text-sm">
