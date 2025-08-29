@@ -26,7 +26,7 @@
 <div class="flex flex-1 overflow-hidden">
     <!-- Sidebar -->
     <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-     class="fixed inset-y-0 left-0 w-48 md:w-52 bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between overflow-y-auto text-sm h-screen">
+     class="fixed inset-y-0 left-0 w-48 md:w-52 bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col justify-between overflow-y-auto text-sm h-screen">
 
         <!-- Logo -->
         <div>
@@ -65,7 +65,7 @@
          @click="sidebarOpen = false" x-transition.opacity></div>
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="flex-1 flex flex-col overflow-hidden md:ml-52">
         <!-- Header -->
         <header class="bg-white border-b shadow-sm px-4 py-2 flex items-center justify-between">
             <!-- Sidebar Toggle (Mobile) -->
