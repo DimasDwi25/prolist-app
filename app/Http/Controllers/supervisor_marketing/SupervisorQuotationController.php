@@ -22,10 +22,14 @@ class SupervisorQuotationController extends Controller
     public function create()
     {
         $clients = Client::all();
-        $nextNumber = Quotation::getNextQuotationNumber();
+
+        // 🔥 Ambil nomor terakhir berdasarkan tahun berjalan
+        $year = now()->year;
+        $nextNumber = Quotation::getNextQuotationNumberForYear($year);
+
         $noQuotationNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-        $monthRoman = old('month_roman');
-        $formattedQuotation = Quotation::formatFullQuotationNo($noQuotationNumber, $monthRoman);
+        $monthRoman = Quotation::convertMonthToRoman(now()->format('m'));
+        $formattedQuotation = Quotation::formatFullQuotationNo($noQuotationNumber, now());
         $quotation = new Quotation();
 
         return view('supervisor.quotation.form', compact(

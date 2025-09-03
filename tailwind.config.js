@@ -1,27 +1,28 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
-import forms from '@tailwindcss/forms';
+import defaultTheme from "tailwindcss/defaultTheme";
+import forms from "@tailwindcss/forms";
 
-/** @type {import('tailwindcss').Config} */
 export default {
     content: [
-        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-        './storage/framework/views/*.php',
-        './resources/views/**/*.blade.php',
+        "./resources/**/*.blade.php",
+        "./resources/**/*.js",
+        "./resources/**/*.vue",
+        "./vendor/power-components/livewire-powergrid/resources/views/**/*.blade.php",
     ],
     theme: {
         extend: {
-            fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
-            },
+            fontFamily: { sans: ["Figtree", ...defaultTheme.fontFamily.sans] },
             colors: {
-            citasys: {
-                DEFAULT: '#0074A8',
-                dark: '#005f87',
-                text: '#4A4A4A',
-            }
-      }
+                citasys: {
+                    DEFAULT: "#0074A8",
+                    dark: "#005f87",
+                    text: "#4A4A4A",
+                },
+            },
         },
     },
 
-    plugins: [forms],
+    plugins: [require("daisyui")],
+    daisyui: {
+        themes: ["light", "dark", "cupcake"], // Bisa pilih tema DaisyUI
+    },
 };

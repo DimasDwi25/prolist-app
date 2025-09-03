@@ -36,7 +36,7 @@ return new class extends Migration
 
             $table->text('work_description')->nullable();
 
-            $table->timestamps();
+            $table->timestamps(); 
         });
     }
 

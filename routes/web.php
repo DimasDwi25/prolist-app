@@ -138,6 +138,12 @@ Route::middleware(['auth', 'role:super_admin,marketing_director,engineering_dire
     Route::post('/client/import', [SupervisorClientController::class, 'import'])->name('client.import');
     Route::get('/clients/{client}', [SupervisorClientController::class, 'show'])->name('client.show');
     Route::get('/client/delete/{client}', [SupervisorClientController::class, 'destroy'])->name('client.destroy');
+    // Rute API untuk Tabulator
+    Route::get('/api/clients/data', [SupervisorClientController::class, 'getData'])->name('supervisor.client.getData');
+    Route::get('/api/clients/json', [SupervisorClientController::class, 'getClientsJson'])->name('supervisor.client.getJson');
+    Route::post('/api/clients', [SupervisorClientController::class, 'apiStore'])->name('supervisor.client.apiStore');
+    Route::put('/api/clients/{id}', [SupervisorClientController::class, 'apiUpdate'])->name('supervisor.client.apiUpdate');
+    Route::delete('/api/clients/{id}', [SupervisorClientController::class, 'apiDestroy'])->name('supervisor.client.apiDestroy');
 
 
     Route::get('/categorie-project', [SupervisorCategorieProjectController::class, 'index'])->name('supervisor.category');

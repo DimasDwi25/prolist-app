@@ -185,10 +185,11 @@
                         <span class="inline-flex items-center px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 text-sm rounded-l-md">Q-</span>
                         <input type="text" 
                             name="no_quotation" 
-                            value="{{ old('no_quotation', $quotation->exists ? substr($quotation->no_quotation, 2, 3) : ($noQuotationNumber ?? '')) }}" 
+                            value="{{ old('no_quotation', $quotation->exists ? substr($quotation->no_quotation, 2, 3) : $noQuotationNumber) }}" 
                             class="flex-1 min-w-0 block w-full px-3 py-2 border-t border-b border-gray-300 bg-white text-sm"
                             pattern="\d{1,3}"
                             maxlength="3">
+
 
 
                         <span class="inline-flex items-center px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 text-sm rounded-r-md">

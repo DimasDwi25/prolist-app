@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Auth;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckRole
@@ -16,7 +17,7 @@ class CheckRole
      */
     public function handle($request, Closure $next, ...$roles)
     {
-        if (!in_array(Auth::user()->role->name, $roles)) {
+        if (!in_array(FacadesAuth::user()->role->name, $roles)) {
             abort(403);
         }
 

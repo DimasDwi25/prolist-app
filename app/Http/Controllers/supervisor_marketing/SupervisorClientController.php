@@ -6,11 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Imports\ClientImport;
 use App\Models\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB; // Tambahkan ini
 
 class SupervisorClientController extends Controller
 {
-    //
     public function index()
     {
         $clients = Client::all();
@@ -26,7 +27,6 @@ class SupervisorClientController extends Controller
     {
         return view('supervisor.client.show', compact('client'));
     }
-
 
     public function store(Request $request)
     {

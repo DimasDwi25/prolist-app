@@ -49,40 +49,38 @@ class Quotation extends Model
     {
         static::creating(function ($quotation) {
             $date = $quotation->quotation_date ?? now();
+            $year = $date->format('Y');
 
-            if (!empty($quotation->no_quotation)) {
-                // Kalau user isi manual, sinkronkan ke quotation_number
-                if (preg_match('/Q-(\d{3})/', $quotation->no_quotation, $matches)) {
-                    $number = (int) $matches[1];
-                } else {
-                    // Kalau format salah, fallback ke generator
-                    $number = self::getNextQuotationNumberForYear($date->format('Y'));
-                    $quotation->no_quotation = self::formatFullQuotationNo($number, $date);
-                }
-            } else {
-                // Kalau kosong, generate otomatis
-                $number = self::getNextQuotationNumberForYear($date->format('Y'));
-                $quotation->no_quotation = self::formatFullQuotationNo($number, $date);
-            }
+            // Ambil nomor baru per tahun
+            $number = self::getNextQuotationNumberForYear($year);
 
-            // Sinkron quotation_number (YYYY + 3 digit)
-            $quotation->quotation_number = $date->format('Y') . str_pad($number, 3, '0', STR_PAD_LEFT);
+            // Format no_quotation (Q-001/IX/25)
+            $quotation->no_quotation = self::formatFullQuotationNo($number, $date);
+
+            // Format quotation_number (2025001)
+            $quotation->quotation_number = $year . str_pad($number, 3, '0', STR_PAD_LEFT);
         });
     }
 
 
-
-    public static function getNextQuotationNumberForYear($year): int
+    public static function getNextQuotationNumberForYear($year = null): int
     {
+        $year = $year ?? now()->year;
+
+        // Ambil quotation terakhir di tahun ini
         $lastQuotation = self::whereYear('quotation_date', $year)
-            ->orderByRaw('CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(no_quotation, "/", 1), "-", -1) AS UNSIGNED) DESC')
+            ->orderByDesc('quotation_date') // urut berdasarkan tanggal
+            ->orderByDesc('quotation_number')             // jika ada multiple quotation per hari
             ->first();
 
-        if ($lastQuotation && preg_match('/Q-(\d{3})/', $lastQuotation->no_quotation, $matches)) {
-            return (int) $matches[1] + 1;
+        if ($lastQuotation) {
+            // Ambil nomor urut dari no_quotation
+            if (preg_match('/Q-(\d{1,3})\//', $lastQuotation->no_quotation, $matches)) {
+                return (int)$matches[1] + 1;
+            }
         }
 
-        return 1;
+        return 1; // jika belum ada, mulai dari 1
     }
 
 
