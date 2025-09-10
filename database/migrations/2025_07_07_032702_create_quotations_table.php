@@ -11,7 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('quotations', function (Blueprint $table) {
-            $table->unsignedBigInteger('quotation_number')->primary();
+            $table->string('quotation_number')->primary();
             $table->dateTime('inquiry_date')->nullable();
             //
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');

@@ -64,26 +64,31 @@ class SupervisorQuotationController extends Controller
     {
         $this->validateRequest($request);
 
-        $number = str_pad($request->no_quotation, 3, '0', STR_PAD_LEFT);
         $quotationDate = \Carbon\Carbon::parse($request->quotation_date);
-        $romanMonth = Quotation::convertMonthToRoman($quotationDate->format('m'));
-        $yearShort = $quotationDate->format('y');
+        $year = $quotationDate->format('Y');
 
-        $formattedNoQuotation = "Q-{$number}/{$romanMonth}/{$yearShort}";
-        $quotationNumber = $quotationDate->format('Y') . $number;
+        // Jika user mengisi no_quotation manual, gunakan itu
+        $manualNumber = $request->no_quotation;
+        if ($manualNumber) {
+            $number = (int)$manualNumber;
+        } else {
+            $number = Quotation::getNextQuotationNumberForYear($year);
+        }
+
+        $formattedNoQuotation = Quotation::formatFullQuotationNo($number, $quotationDate);
+        $quotationNumber = $year . str_pad($number, 3, '0', STR_PAD_LEFT);
 
         $quotation = new Quotation($request->except(['month_roman']));
         $quotation->status = $request->status ?? 'O';
         $quotation->quotation_date = $quotationDate;
         $quotation->no_quotation = $formattedNoQuotation;
-        $quotation->quotation_number = $quotationNumber; // primary key
+        $quotation->quotation_number = $quotationNumber;
 
         $quotation->save();
 
         return redirect()->route('quotation.index')->with('success', 'Quotation created successfully!');
     }
-
-
+    
     public function edit(Quotation $quotation)
     {
         $clients = Client::all();

@@ -33,80 +33,45 @@ class ProjectControllerPhcController extends Controller
             $q->whereIn('name', ['supervisor marketing', 'engineer', 'project manager', 'super_admin']);
         })->get();
 
-        return view('project-controller.phcs.form', compact('phc', 'project', 'users'));
+        $documents = \App\Models\DocumentPhc::with(['preparations' => fn($q) => $q->where('phc_id', $phc->id)])->get();
+
+        return view('project-controller.phcs.form', compact('phc', 'project', 'users', 'documents'));
     }
+
 
     public function update(Request $request, PHC $phc)
     {
         $validated = $request->validate([
             'pic_engineering_id' => 'nullable|exists:users,id',
-            'costing_by_marketing' => 'nullable|in:A,NA',
-            'boq' => 'nullable|in:A,NA',
-            'retention' => 'nullable|string',
-            'warranty' => 'nullable|in:A,NA',
-            'penalty' => 'nullable|in:A,NA',
-            'scope_of_work_approval' => 'nullable|in:A,NA',
-            'organization_chart' => 'nullable|in:A,NA',
-            'project_schedule' => 'nullable|in:A,NA',
-            'component_list' => 'nullable|in:A,NA',
-            'progress_claim_report' => 'nullable|in:A,NA',
-            'component_approval_list' => 'nullable|in:A,NA',
-            'design_approval_draw' => 'nullable|in:A,NA',
-            'shop_draw' => 'nullable|in:A,NA',
-            'fat_sat_forms' => 'nullable|in:A,NA',
-            'daily_weekly_progress_report' => 'nullable|in:A,NA',
-            'do_packing_list' => 'nullable|in:A,NA',
-            'site_testing' => 'nullable|in:A,NA',
-            'site_testing_commissioning_report' => 'nullable|in:A,NA',
-            'as_build_draw' => 'nullable|in:A,NA',
-            'manual_documentation' => 'nullable|in:A,NA',
-            'accomplishment_report' => 'nullable|in:A,NA',
-            'client_document_requirements' => 'nullable|in:A,NA',
-            'job_safety_analysis' => 'nullable|in:A,NA',
-            'risk_assessment' => 'nullable|in:A,NA',
-            'tool_list' => 'nullable|in:A,NA',
-            // Add checklist fields
+            'documents' => 'array',
+            'documents.*.status' => 'required|in:A,NA',
+            'documents.*.date_prepared' => 'nullable|date',
         ]);
 
-        $checklistFields = [
-            'costing_by_marketing',
-            'boq',
-            'retention_applicability',
-            'retention',
-            'warranty',
-            'warranty_detail',
-            'penalty',
-            'penalty_detail',
-            'scope_of_work_approval',
-            'organization_chart',
-            'project_schedule',
-            'component_list',
-            'progress_claim_report',
-            'component_approval_list',
-            'design_approval_draw',
-            'shop_draw',
-            'fat_sat_forms',
-            'daily_weekly_progress_report',
-            'do_packing_list',
-            'site_testing',
-            'site_testing_commissioning_report',
-            'as_build_draw',
-            'manual_documentation',
-            'accomplishment_report',
-            'client_document_requirements',
-            'job_safety_analysis',
-            'risk_assessment',
-            'tool_list',
-        ];
+        if ($request->has('documents')) {
+            foreach ($request->documents as $docId => $docData) {
+                $status = $docData['status'] ?? 'NA';
+                $datePrepared = $docData['date_prepared'] ?? null;
 
-        $booleanData = $this->mapToBoolean($request->all(), $checklistFields);
-        $validated = array_merge($validated, $booleanData);
+                \App\Models\DocumentPreparation::updateOrCreate(
+                    ['phc_id' => $phc->id, 'document_id' => $docId],
+                    [
+                        'is_applicable' => $status === 'A',
+                        // jika status A → ambil date dari input (boleh null)
+                        // jika status NA → selalu null
+                        'date_prepared' => $status === 'A' ? $datePrepared : null,
+                    ]
+                );
+            }
+        }
 
-        $phc->update($validated);
+        $phc->update([
+            'pic_engineering_id' => $validated['pic_engineering_id'] ?? null,
+        ]);
 
-        session()->flash('resetStep', true);
-
-        return redirect()->route('engineer.project.show', $phc->project_id)->with('success', 'PHC updated successfully.');
-
+        return redirect()->route('engineer.project.show', $phc->project_id)
+            ->with('success', 'PHC updated successfully.');
     }
+
+
 }

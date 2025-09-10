@@ -5,65 +5,65 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'email'    => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        if (!Auth::attempt($credentials)) {
-            throw ValidationException::withMessages([
-                'email' => ['Invalid credentials.'],
-            ]);
+        if (! $token = Auth::attempt($credentials)) {
+            return response()->json(['error' => 'Invalid credentials.'], 401);
         }
 
-        $user = $request->user();
-        $role = $user->role->name;
+        $user = Auth::user();
+        $role = $user->role->name ?? null;
 
-        // Mapping role ke route
         $roleRedirects = [
-            'super_admin'            => '/admin',
-            'marketing_director'     => '/marketing-director',
-            'supervisor marketing'   => '/marketing',
-            'manager_marketing'      => '/marketing',
-            'sales_supervisor'       => '/marketing',
-            'marketing_admin'        => '/marketing',
-            'estimator'              => '/estimator',
-            'engineer'               => '/engineer',
-            'project controller'     => '/engineer',
-            'engineering_manager'    => '/engineer',
-            'engineering_director'   => '/engineer',
-            'marketing_estimator'    => '/marketing',
+            'super_admin'          => '/admin',
+            'marketing_director'   => '/marketing-director',
+            'supervisor marketing' => '/marketing',
+            'manager_marketing'    => '/marketing',
+            'sales_supervisor'     => '/marketing',
+            'marketing_admin'      => '/marketing',
+            'estimator'            => '/estimator',
+            'engineer'             => '/engineer',
+            'project controller'   => '/engineer',
+            'engineering_manager'  => '/engineer',
+            'engineering_director' => '/engineer',
+            'marketing_estimator'  => '/marketing',
         ];
 
-        // Default redirect kalau role tidak dikenali
-        $redirectUrl = $roleRedirects[$role] ?? '/unauthorized';
-
-        // Buat token Sanctum
-        $token = $user->createToken('auth_token')->plainTextToken;
-
         return response()->json([
-            'access_token' => $token,
-            'token_type'   => 'Bearer',
             'user'         => $user,
             'role'         => $role,
-            'redirect_url' => $redirectUrl,
+            'redirect_url' => $roleRedirects[$role] ?? '/unauthorized',
+            'token'        => $token,
+            'token_type'   => 'bearer',
+            'expires_in'   => auth('api')->factory()->getTTL() * 60, // ✅ fix
         ]);
     }
 
-    public function me(Request $request)
+    public function me()
     {
-        return response()->json($request->user());
+        return response()->json(Auth::user());
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::logout();
         return response()->json(['message' => 'Logged out']);
+    }
+
+    public function refresh()
+    {
+        return response()->json([
+            'token'      => auth()->refresh(),
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
+        ]);
     }
 }

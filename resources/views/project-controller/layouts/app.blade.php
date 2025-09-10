@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ sidebarOpen: false }" x-cloak>
+<html lang="en" 
+      x-data="{ sidebarOpen: window.innerWidth >= 768 }" 
+      x-init="window.addEventListener('resize', () => sidebarOpen = window.innerWidth >= 768)" 
+      x-cloak>
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -25,15 +28,11 @@
 <body class="h-full min-h-screen flex flex-col bg-gray-100 font-sans leading-normal tracking-normal overflow-x-hidden">
 <div class="flex flex-1 overflow-hidden">
     <!-- Sidebar -->
-    <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-     class="fixed inset-y-0 left-0 w-48 md:w-52 bg-[#0074A8] text-white shadow-md z-30 transform transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col justify-between overflow-y-auto text-sm h-screen">
+   <div :class="sidebarOpen ? 'translate-x-0 md:w-52' : '-translate-x-full md:w-0'"
+     class="fixed inset-y-0 left-0 bg-[#0074A8] text-white shadow-md z-30 transform transition-all duration-300 ease-in-out flex flex-col justify-between overflow-y-auto text-sm h-screen">
 
         <!-- Logo -->
         <div>
-            <div class="p-3 border-b border-[#005f87] bg-white flex items-center justify-center">
-                <img src="{{ asset('images/CITASys Logo.jpg') }}" alt="Logo" class="w-32 h-8 object-contain">
-            </div>
-
             <!-- Navigation -->
             <nav class="mt-3 space-y-1 px-2">
                 <a href="{{ route('engineer.dashboard') }}" class="block px-3 py-2 rounded hover:bg-[#005f87] transition">📊 Dashboard</a>
@@ -65,19 +64,26 @@
          @click="sidebarOpen = false" x-transition.opacity></div>
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden md:ml-52">
+    <div :class="sidebarOpen ? 'md:ml-52' : 'md:ml-0'" 
+     class="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
+
         <!-- Header -->
         <header class="bg-white border-b shadow-sm px-4 py-2 flex items-center justify-between">
-            <!-- Sidebar Toggle (Mobile) -->
+            <!-- Left: Sidebar Toggle + Logo -->
+        <div class="flex items-center gap-3">
+            <!-- Sidebar Toggle -->
             <button @click="sidebarOpen = !sidebarOpen"
-                    class="md:hidden text-primary-600 hover:text-primary-700 transition focus:outline-none">
+                    class="text-primary-600 hover:text-primary-700 transition focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
 
-            <div class="text-base md:text-lg font-semibold text-primary-700 hidden md:block"></div>
-
+            <!-- Logo -->
+            <img src="{{ asset('images/CITASys Logo.jpg') }}" 
+                alt="Logo" 
+                class="w-32 h-8 object-contain">
+        </div>
             <!-- Profile Dropdown -->
             <div class="relative" x-data="{ open: false }">
                 <button @click="open = !open" class="flex items-center gap-2 focus:outline-none">

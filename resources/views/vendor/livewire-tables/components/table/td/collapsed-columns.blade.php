@@ -16,7 +16,7 @@
                     'd-lg-none' => $isBootstrap && !$this->shouldCollapseAlways() && ($this->shouldCollapseOnTablet() || $this->shouldCollapseOnMobile()),
                 ])
         }}
-        :class="{ 'laravel-livewire-tables-reorderingMinimised': currentlyReorderingStatus }"
+        :class="currentlyReorderingStatus ? 'laravel-livewire-tables-reorderingMinimised' : ''"
     >
         @if (! $hidden)
             <button

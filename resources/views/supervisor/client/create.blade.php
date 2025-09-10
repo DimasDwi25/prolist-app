@@ -38,7 +38,7 @@
                         <span class="text-xs text-gray-500 ml-1">(Legal business name)</span>
                     </label>
                     <input type="text" name="name" id="name" value="{{ old('name') }}"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        class="w-full rounded-md border border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                         placeholder="e.g. PT Maju Jaya Abadi" required>
                     @error('name')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -51,7 +51,7 @@
                         <span class="text-xs text-gray-500 ml-1">(Primary business phone)</span>
                     </label>
                     <input type="text" name="phone" id="phone" value="{{ old('phone') }}"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        class="w-full rounded-md border border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                         placeholder="e.g. +62 812 3456 7890" required>
                     @error('phone')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -65,7 +65,7 @@
                     </label>
                     <input type="text" name="client_representative" id="client_representative"
                         value="{{ old('client_representative') }}"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        class="w-full rounded-md border border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                         placeholder="e.g. John Doe (Marketing Director)" required>
                     @error('client_representative')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -82,7 +82,7 @@
                             https://
                         </span>
                         <input type="text" name="web" id="web" value="{{ old('web') }}"
-                            class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                            class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md w-full rounded-md border border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                             placeholder="www.example.com">
                     </div>
                     @error('web')
@@ -97,7 +97,7 @@
                         <span class="text-xs text-gray-500 ml-1">(Complete street address)</span>
                     </label>
                     <input type="text" name="address" id="address" value="{{ old('address') }}"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        class="w-full rounded-md border border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                         placeholder="e.g. Jl. Sudirman No. 123, Tower A, 15th Floor" required>
                     @error('address')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -109,7 +109,7 @@
                         City <span class="text-red-500">*</span>
                     </label>
                     <input type="text" name="city" id="city" value="{{ old('city') }}"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                        class="w-full rounded-md border border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required>
                     @error('city')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -120,7 +120,7 @@
                         State/Province <span class="text-red-500">*</span>
                     </label>
                     <input type="text" name="province" id="province" value="{{ old('province') }}"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                        class="w-full rounded-md border border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required>
                     @error('province')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -131,7 +131,7 @@
                         Country <span class="text-red-500">*</span>
                     </label>
                     <input type="text" name="country" id="country" value="{{ old('country') }}"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                        class="w-full rounded-md border border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required>
                     @error('country')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -142,7 +142,7 @@
                         Postal Code
                     </label>
                     <input type="text" name="zip_code" id="zip_code" value="{{ old('zip_code') }}"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        class="w-full rounded-md border border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
                     @error('zip_code')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -155,7 +155,7 @@
                         <span class="text-xs text-gray-500 ml-1">(Special instructions or comments)</span>
                     </label>
                     <textarea name="notes" id="notes" rows="3"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        class="w-full rounded-md border border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                         placeholder="e.g. Preferred contact method, billing information, etc.">{{ old('notes') }}</textarea>
                     @error('notes')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

@@ -5,6 +5,7 @@ use App\Exports\ProjectsExport;
 use App\Exports\QuotationsExport;
 use App\Exports\StatusProjectExport;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\Auth\LoginRedirectController;
 use App\Http\Controllers\Engineer\EngineerDashboardController;
 use App\Http\Controllers\Engineer\EngineerProjectController;
@@ -73,8 +74,17 @@ Route::get('/', function () {
 });
 Route::post('/login', [LoginRedirectController::class, 'store']);
 
+// CSRF Cookie
+Route::get('/sanctum/csrf-cookie', function () {
+    return response()->json(['csrf' => csrf_token()]);
+});
 
-Route::middleware(['auth'])->group(function () {
+// Auth routes pakai session
+Route::post('/api/login', [AuthController::class, 'login']);
+Route::post('/api/logout', [AuthController::class, 'logout']);
+Route::get('/api/user', [AuthController::class, 'me']);
+
+Route::middleware(['auth:web'])->group(function () {
     Route::get('/account', [AccountController::class, 'index'])->name('account.index');
 
     // Password
@@ -86,7 +96,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/account/pin', [AccountController::class, 'updatePin'])->name('account.pin.update');
 });
 
-Route::middleware(['auth', 'role:super_admin'])->group(function () {
+Route::middleware(['auth:web', 'role:super_admin'])->group(function () {
     Route::get('/admin', [DashboardController::class, 'index'])->name('admin.dashboard');
 
     //department
@@ -125,7 +135,7 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'role:super_admin,marketing_director,engineering_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin,marketing_estimator'])->group(function () {
+Route::middleware(['auth:web', 'role:super_admin,marketing_director,engineering_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin,marketing_estimator'])->group(function () {
     Route::get('/marketing', [SupervisorDashboardController::class, 'index'])->name('marketing.dashboard');
     Route::get('/marketing-director', [MarketingDirectorDashboardController::class, 'index'])->name('marketing_director.dashboard');
 
@@ -141,9 +151,6 @@ Route::middleware(['auth', 'role:super_admin,marketing_director,engineering_dire
     // Rute API untuk Tabulator
     Route::get('/api/clients/data', [SupervisorClientController::class, 'getData'])->name('supervisor.client.getData');
     Route::get('/api/clients/json', [SupervisorClientController::class, 'getClientsJson'])->name('supervisor.client.getJson');
-    Route::post('/api/clients', [SupervisorClientController::class, 'apiStore'])->name('supervisor.client.apiStore');
-    Route::put('/api/clients/{id}', [SupervisorClientController::class, 'apiUpdate'])->name('supervisor.client.apiUpdate');
-    Route::delete('/api/clients/{id}', [SupervisorClientController::class, 'apiDestroy'])->name('supervisor.client.apiDestroy');
 
 
     Route::get('/categorie-project', [SupervisorCategorieProjectController::class, 'index'])->name('supervisor.category');
@@ -236,7 +243,7 @@ Route::middleware(['auth', 'role:super_admin,marketing_director,engineering_dire
 });
 
 
-Route::middleware(['auth', 'role:engineer'])->group(function () {
+Route::middleware(['auth:web', 'role:engineer'])->group(function () {
     Route::get('/engineer', [EngineerDashboardController::class, 'index'])->name('engineer.dashboard');
 
     Route::get('/engineer/project', [EngineerProjectController::class, 'index'])->name('engineer.project');
@@ -256,7 +263,7 @@ Route::middleware(['auth', 'role:engineer'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'role:engineering_director,project controller,engineer,engineering_manager'])->group(function () {
+Route::middleware(['auth:web', 'role:engineering_director,project controller,engineer,engineering_manager,project manager'])->group(function () {
     Route::get('/engineer', [ProjectControllerDashboardController::class, 'index'])->name('engineer.dashboard');
 
     Route::get('/engineer/project', [ProjectControllerProjectController::class, 'index'])->name('engineer.project.index');
@@ -315,7 +322,7 @@ Route::middleware(['auth', 'role:engineering_director,project controller,enginee
         ->name('projects.schedule-tasks.weekly-progress');
 });
 
-Route::middleware(['auth', 'role:project manager'])->group(function () {
+Route::middleware(['auth:web', 'role:project manager'])->group(function () {
     Route::get('/project-manager', [ProjectManagerDashboardController::class, 'index'])->name('project_manager.dashboard');
     Route::get('/project-manager/phc/show/{phc}', [ProjectManagerPhcController::class, 'show'])->name('project_manager.phc.show');
 });

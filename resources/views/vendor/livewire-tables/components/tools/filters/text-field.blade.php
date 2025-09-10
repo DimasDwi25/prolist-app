@@ -1,30 +1,18 @@
-<div class="space-y-1">
-    <x-livewire-tables::tools.filter-label 
-        :$filter 
-        :$filterLayout 
-        :$tableName 
-        :$isTailwind 
-        :$isBootstrap4 
-        :$isBootstrap5 
-        :$isBootstrap 
-        class="text-xs font-medium text-gray-600"
-    />
+<div>
+    <x-livewire-tables::tools.filter-label :$filter :$filterLayout :$tableName :$isTailwind :$isBootstrap4 :$isBootstrap5 :$isBootstrap />
 
     <div @class([
-        'rounded shadow-sm' => $isTailwind,
-        'mb-2 mb-md-0 input-group input-group-sm' => $isBootstrap,
+        'rounded-md shadow-sm' => $isTailwind,
+        'mb-3 mb-md-0 input-group' => $isBootstrap,
     ])>
-        <input {!! $filter->getWireMethod('filterComponents.'.$filter->getKey()) !!} {{
-            $filterInputAttributes->merge()
-            ->class([
-                // Tailwind Style
-                'block w-full text-xs rounded-md shadow-sm px-2 py-1 transition duration-150 ease-in-out focus:ring focus:ring-opacity-50' => $isTailwind && ($filterInputAttributes['default-styling'] ?? true),
-                'border-gray-300 focus:border-indigo-300 focus:ring-indigo-200' => $isTailwind && ($filterInputAttributes['default-colors'] ?? true),
-
-                // Bootstrap Style
-                'form-control form-control-sm' => $isBootstrap,
-            ])
-            ->except(['default-styling','default-colors'])
-        }} />
+        <input {!! $filter->getWireMethod('filterComponents.'.$filter->getKey()) !!} {{ 
+                $filterInputAttributes->merge()
+                ->class([
+                    'block w-full rounded-md shadow-sm transition duration-150 ease-in-out focus:ring focus:ring-opacity-50' => $isTailwind && ($filterInputAttributes['default-styling'] ?? true),
+                    'border-gray-300 focus:border-indigo-300 focus:ring-indigo-200 dark:bg-gray-800 dark:text-white dark:border-gray-600' => $isTailwind && ($filterInputAttributes['default-colors'] ?? true),
+                    'form-control' => $isBootstrap,
+                ])
+                ->except(['default-styling','default-colors']) 
+            }} />
     </div>
 </div>

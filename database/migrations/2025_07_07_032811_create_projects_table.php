@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('project_number');
             $table->foreignId('categories_project_id')
                 ->constrained('project_categories');
-            $table->unsignedBigInteger('quotation_number');
+            $table->string('quotation_number');
             $table->foreign('quotation_number')
                 ->references('quotation_number')
                 ->on('quotations')

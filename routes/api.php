@@ -3,38 +3,42 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\Marketing\MarketingClientController;
 use App\Http\Controllers\API\Marketing\MarketingDashboardController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\API\Marketing\MarketingQuotationController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API Routes (SPA Sanctum)
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
+| Semua request dari React harus include withCredentials:true
+| supaya cookie session dan CSRF token ikut terkirim.
+|--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
+// Login & CSRF cookie
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout']);
+Route::get('/user', [AuthController::class, 'me']);
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-});
-Route::middleware(['auth:sanctum', 'role:super_admin,marketing_director,engineering_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin,marketing_estimator'])
-    ->group(function () {
+// Semua route berikut butuh auth:sanctum
+Route::middleware('auth:api')->group(function () {
+    Route::middleware('role:super_admin,marketing_director,engineering_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin,marketing_estimator')
+        ->group(function () {
+            Route::get('/marketing', [MarketingDashboardController::class, 'index']);
 
-        Route::get('/marketing', [MarketingDashboardController::class, 'index']);
+            // Client CRUD
+            Route::get('/clients', [MarketingClientController::class, 'index']);
+            Route::post('/clients', [MarketingClientController::class, 'store']);
+            Route::put('/clients/{client}', [MarketingClientController::class, 'update']);
+            Route::delete('/clients/{client}', [MarketingClientController::class, 'destroy']);
 
-        //client
-        Route::get('/clients', [MarketingClientController::class, 'index']);
-        Route::post('/clients', [MarketingClientController::class, 'store']);
-        Route::put('/clients/{client}', [MarketingClientController::class, 'update']);
-        Route::delete('/clients/{client}', [MarketingClientController::class, 'destroy']);
+            //quotation CRUD
+            Route::get('/quotations', [MarketingQuotationController::class, 'index']);
+            Route::get('/quotations/{quotation}', [MarketingQuotationController::class, 'show']);
+            Route::post('/quotations', [MarketingQuotationController::class, 'store']);
+            Route::put('/quotations/{quotation}', [MarketingQuotationController::class, 'update']);
+            Route::delete('/quotations/{quotation}', [MarketingQuotationController::class, 'destroy']);
+
+            Route::get('/ajax-clients', [MarketingQuotationController::class, 'ajaxClients']);
+        });
 });

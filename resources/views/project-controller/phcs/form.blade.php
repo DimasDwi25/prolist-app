@@ -255,114 +255,56 @@
                     </div>
                 </div>
 
-                @foreach([
-                    '📐 Design & Drawings' => [
-                        'scope_of_work_approval' => 'Scope of Work Approval',
-                        'design_approval_draw' => 'Design Approval Drawings',
-                        'shop_draw' => 'Shop Drawing',
-                        'as_build_draw' => 'As-Built Drawings',
-                    ],
-                    '📋 Reports & Forms' => [
-                        'project_schedule' => 'Project Schedule',
-                        'progress_claim_report' => 'Progress Claim Report',
-                        'fat_sat_forms' => 'FAT/SAT Forms',
-                        'daily_weekly_progress_report' => 'Daily/Weekly Progress Report',
-                        'site_testing_commissioning_report' => 'Testing & Commissioning Report',
-                        'accomplishment_report' => 'Accomplishment Report',
-                    ],
-                    '🧰 Supporting Documents' => [
-                        'organization_chart' => 'Organization Chart',
-                        'component_approval_list' => 'Component Approval List',
-                        'do_packing_list' => 'DO / Packing List',
-                        'manual_documentation' => 'Manual & Documentation',
-                        'client_document_requirements' => 'Client Document Requirements',
-                        'job_safety_analysis' => 'Job Safety Analysis',
-                        'risk_assessment' => 'Risk Assessment',
-                        'tool_list' => 'Tool List',
-                    ],
-                ] as $groupTitle => $fields)
-                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                        <h4 class="font-medium text-gray-700 text-lg mb-4 pb-2 border-b flex items-center">
-                            <span class="mr-2">{{ $groupTitle }}</span>
-                        </h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @foreach($fields as $key => $label)
-                                @php $default = old($key, $phc->$key ? 'A' : 'NA'); @endphp
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    @foreach($documents as $doc)
+                        @php
+                            $prep = $doc->preparations->first();
+                            $default = $prep ? ($prep->is_applicable ? 'A' : 'NA') : 'NA';
+                        @endphp
+                        <div class="space-y-2 bg-white p-4 border rounded-md shadow-sm" 
+                            x-data="{ applicable: '{{ $default }}' }">
+                            <label class="block text-sm font-medium text-gray-700">{{ $doc->name }}</label>
+                            <div class="flex gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="documents[{{ $doc->id }}][status]" value="A"
+                                        x-model="applicable"
+                                        class="h-4 w-4 text-blue-600 border-gray-300">
+                                    <span class="ml-2 text-sm">Applicable</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="documents[{{ $doc->id }}][status]" value="NA"
+                                        x-model="applicable"
+                                        class="h-4 w-4 text-blue-600 border-gray-300">
+                                    <span class="ml-2 text-sm">Not Applicable</span>
+                                </label>
+                            </div>
 
-                                @if ($key === 'scope_of_work_approval')
-                                    <div x-data="{ sow: '{{ $default }}' }" class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">{{ $label }}</label>
-                                        <div class="flex flex-wrap gap-4">
-                                            <label class="inline-flex items-center">
-                                                <input type="radio" name="{{ $key }}" value="A" x-model="sow"
-                                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-                                                <span class="ml-2 text-sm">Applicable</span>
-                                            </label>
-                                            <label class="inline-flex items-center">
-                                                <input type="radio" name="{{ $key }}" value="NA" x-model="sow"
-                                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-                                                <span class="ml-2 text-sm">N/A</span>
-                                            </label>
-                                        </div>
+                            {{-- Input date hanya muncul jika Applicable --}}
+                            <div x-show="applicable === 'A'" x-transition>
+                                <label class="block text-sm text-gray-600 mt-2">Date Prepared</label>
+                                <input type="date" 
+                                    name="documents[{{ $doc->id }}][date_prepared]" 
+                                    value="{{ $prep && $prep->date_prepared ? $prep->date_prepared->format('Y-m-d') : '' }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
 
-                                        {{-- Tombol Modal SOW --}}
-                                        <template x-if="sow === 'A'">
-                                            <div class="mt-2">       
-                                                <button type="button"
-                                                        onclick="Livewire.dispatch('openModal')"
-                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm w-full md:w-auto">
-                                                    + Tambah SOW
-                                                </button>
-                                               
-                                            </div>
-                                        </template>
-
-                                        {{-- Modal SOW --}}
-                                        <div class="w-full">
-                                            
-                                                @livewire('supervisor-marketing.scope-of-work-form-modal', ['projectId' => $project->pn_number])
-                                           
-                                        </div>
-                                    </div>
-                                @else
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">{{ $label }}</label>
-                                        <div class="flex flex-wrap gap-4">
-                                            <label class="inline-flex items-center">
-                                                <input type="radio" name="{{ $key }}" value="A" @checked($default === 'A')
-                                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-                                                <span class="ml-2 text-sm">Applicable</span>
-                                            </label>
-                                            <label class="inline-flex items-center">
-                                                <input type="radio" name="{{ $key }}" value="NA" @checked($default === 'NA')
-                                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-                                                <span class="ml-2 text-sm">Not Applicable</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
+                            {{-- Jika ada data lama --}}
+                            @if ($prep && $prep->date_prepared)
+                                <p class="text-xs text-gray-500">Last prepared: {{ $prep->date_prepared->format('d M Y') }}</p>
+                            @endif
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
 
-                <div class="flex flex-col md:flex-row justify-between pt-4 gap-3">
-                    <button type="button" @click="setStep(2)"
-                            class="px-5 py-2 border rounded text-sm md:text-base w-full md:w-auto flex items-center justify-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                        Back to Checklist
-                    </button>
-                    <button type="submit"
-                            class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded text-sm md:text-base w-full md:w-auto flex items-center justify-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Save Document Status
+
+                <div class="flex justify-between pt-4">
+                    <button type="button" @click="setStep(2)" class="px-5 py-2 border rounded">⬅️ Back</button>
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded">
+                        ✅ Save Document Status
                     </button>
                 </div>
             </div>
+
         </div>
     </form>
 </div>

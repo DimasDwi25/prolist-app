@@ -40,7 +40,7 @@ class AuthenticatedSessionController extends Controller
             'estimator'               => 'estimator.dashboard',
             'engineer'                => 'engineer.dashboard',
             'project controller'      => 'engineer.dashboard',
-            'engineering_manager'         => 'engineer.dashboard',
+            'project manager'         => 'engineer.dashboard',
             'engineering_director' => 'engineer.dashboard',
             'marketing_estimator'      => 'marketing.dashboard',
         ];

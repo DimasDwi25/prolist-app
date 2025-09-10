@@ -28,7 +28,10 @@
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Quotation Details</h1>
                 <p class="text-sm text-gray-500">Reference: {{ $quotation->no_quotation }}</p>
-                <p class="text-xs text-gray-400 mt-1">Last updated: {{ $quotation->updated_at->format('M j, Y H:i') }}</p>
+                <p class="text-xs text-gray-400 mt-1">
+                    Last updated: {{ optional($quotation->updated_at)->format('M j, Y H:i') ?? '-' }}
+                </p>
+
             </div>
         </div>
 
@@ -158,20 +161,23 @@
                                 <div class="mt-2 space-y-1">
                                     <div class="flex justify-between">
                                         <span class="text-gray-600">Quotation Date:</span>
-                                        <span class="font-medium">{{ $quotation->quotation_date->format('F j, Y') }}</span>
+                                        <span class="font-medium">
+                                            {{ optional($quotation->quotation_date)->format('F j, Y') ?? '-' }}
+                                        </span>
                                     </div>
-                                    @if($quotation->inquiry_date)
                                     <div class="flex justify-between">
                                         <span class="text-gray-600">Inquiry Date:</span>
-                                        <span class="font-medium">{{ $quotation->inquiry_date->format('F j, Y') }}</span>
+                                        <span class="font-medium">
+                                            {{ optional($quotation->inquiry_date)->format('F j, Y') ?? '-' }}
+                                        </span>
                                     </div>
-                                    @endif
-                                    @if($quotation->revision_quotation_date)
+
                                     <div class="flex justify-between">
                                         <span class="text-gray-600">Revision Date:</span>
-                                        <span class="font-medium">{{ $quotation->revision_quotation_date->format('F j, Y') }}</span>
+                                        <span class="font-medium">
+                                            {{ optional($quotation->revision_quotation_date)->format('F j, Y') ?? '-' }}
+                                        </span>
                                     </div>
-                                    @endif
                                 </div>
                             </div>
                             
@@ -306,7 +312,9 @@
                                                 <p class="text-sm text-gray-500">Created by <span class="font-medium text-gray-900">{{ $quotation->user->name }}</span></p>
                                             </div>
                                             <div class="text-right text-sm whitespace-nowrap text-gray-500">
-                                                <time datetime="{{ $quotation->created_at->format('Y-m-d') }}">{{ $quotation->created_at->format('M j, Y') }}</time>
+                                                <time datetime="{{ optional($quotation->revision_quotation_date)->format('Y-m-d') ?? '' }}">
+                                                    {{ optional($quotation->revision_quotation_date)->format('M j, Y') ?? '-' }}
+                                                </time>
                                             </div>
                                         </div>
                                     </div>
@@ -435,8 +443,8 @@
                                                     </p>
                                                 </div>
                                                 <div class="text-right text-sm whitespace-nowrap text-gray-500">
-                                                    <time datetime="{{ $quotation->updated_at->format('Y-m-d') }}">
-                                                        {{ $quotation->updated_at->format('M j, Y') }}
+                                                   <time datetime="{{ optional($quotation->updated_at)->format('Y-m-d') ?? '' }}">
+                                                        {{ optional($quotation->updated_at)->format('M j, Y H:i') ?? '-' }}
                                                     </time>
                                                 </div>
                                             </div>

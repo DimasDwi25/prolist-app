@@ -11,9 +11,10 @@ class MarketingClientController extends Controller
     //
     public function index()
     {
-        $clients = Client::all();
+        $clients = Client::orderBy('created_at', 'desc')->get();
         return response()->json($clients);
     }
+
 
     public function store(Request $request)
     {

@@ -9,11 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 class Quotation extends Model
 {
     use HasFactory;
-
     protected $primaryKey = 'quotation_number';
     public $incrementing = false; // karena kita generate manual
-    protected $keyType = 'int'; // karena quotation_number integer
-
+    protected $keyType = 'string'; 
     protected $fillable = [
         'inquiry_date',
         'client_id',
@@ -29,17 +27,13 @@ class Quotation extends Model
         'revisi'
         
     ];
-
     protected $attributes = [
         'status' => 'O',
     ];
-
-
     public function getRouteKeyName(): string
     {
         return 'quotation_number';
     }
-
     public function client()
     {
         return $this->belongsTo(Client::class);
@@ -51,41 +45,35 @@ class Quotation extends Model
             $date = $quotation->quotation_date ?? now();
             $year = $date->format('Y');
 
-            // Ambil nomor baru per tahun
-            $number = self::getNextQuotationNumberForYear($year);
-
-            // Format no_quotation (Q-001/IX/25)
-            $quotation->no_quotation = self::formatFullQuotationNo($number, $date);
-
-            // Format quotation_number (2025001)
-            $quotation->quotation_number = $year . str_pad($number, 3, '0', STR_PAD_LEFT);
+            if (empty($quotation->quotation_number)) {
+                // Nomor belum diisi, auto-generate
+                $number = self::getNextQuotationNumberForYear($year);
+                $quotation->no_quotation = self::formatFullQuotationNo($number, $date);
+                $quotation->quotation_number = $year . str_pad($number, 3, '0', STR_PAD_LEFT);
+            } else {
+                // Nomor manual diisi, pastikan format no_quotation sesuai
+                $manualNumber = substr($quotation->quotation_number, 4); // misal: 203 => ambil 203
+                $quotation->no_quotation = self::formatFullQuotationNo((int)$manualNumber, $date);
+            }
         });
     }
-
 
     public static function getNextQuotationNumberForYear($year = null): int
     {
         $year = $year ?? now()->year;
 
-        // Ambil quotation terakhir di tahun ini
-        $lastQuotation = self::whereYear('quotation_date', $year)
-            ->orderByDesc('quotation_date') // urut berdasarkan tanggal
-            ->orderByDesc('quotation_number')             // jika ada multiple quotation per hari
+        $lastQuotation = self::where('quotation_number', 'like', "$year%")
+            ->orderByDesc('quotation_number')
             ->first();
 
         if ($lastQuotation) {
-            // Ambil nomor urut dari no_quotation
-            if (preg_match('/Q-(\d{1,3})\//', $lastQuotation->no_quotation, $matches)) {
-                return (int)$matches[1] + 1;
-            }
+            // Ambil 3 digit terakhir dari quotation_number
+            $lastNumber = (int)substr($lastQuotation->quotation_number, -3);
+            return $lastNumber + 1;
         }
 
-        return 1; // jika belum ada, mulai dari 1
+        return 1; // jika belum ada
     }
-
-
-
-
 
     public static function convertMonthToRoman($month): string
     {
@@ -112,8 +100,6 @@ class Quotation extends Model
         return 'Q-' . str_pad($number, 3, '0', STR_PAD_LEFT) . '/' . $romanMonth . '/' . $yearShort;
     }
 
-
-
     public static function getNextQuotationNumber()
     {
         // Ambil quotation_number terbesar
@@ -128,8 +114,6 @@ class Quotation extends Model
         // Default kalau belum ada data
         return 1;
     }
-
-
     function romanToMonthNumber($roman)
     {
         $map = [
@@ -149,10 +133,6 @@ class Quotation extends Model
 
         return $map[$roman] ?? null;
     }
-
-    
-
-
     public static function generateQuotationNumber(): string
     {
         $year = now()->format('Y');
@@ -170,9 +150,6 @@ class Quotation extends Model
 
         return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
-    
-
-
     public function user()
     {
         return $this->belongsTo(\App\Models\User::class);

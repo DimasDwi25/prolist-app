@@ -23,6 +23,8 @@
         "bower": "^1.8.14",
         "chart.js": "^4.5.0",
         "chartjs-adapter-moment": "^1.0.1",
+        "column-resizer": "^1.4.0",
+        "datatables.net-colresize-unofficial": "^1.7.2",
         "flatpickr": "^4.6.13",
         "install": "^0.13.0",
         "jquery": "^3.7.1",

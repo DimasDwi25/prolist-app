@@ -4,6 +4,8 @@ namespace App\Http\Controllers\supervisor_marketing;
 
 use App\Events\PhcCreatedEvent;
 use App\Http\Controllers\Controller;
+use App\Models\DocumentPhc;
+use App\Models\DocumentPreparation;
 use App\Models\PHC;
 use App\Models\PhcApproval;
 use App\Models\Project;
@@ -21,7 +23,6 @@ class SupervisorPhcController extends Controller
     {
         $project = Project::with('quotation', 'phc')->findOrFail($project_id);
 
-        // Jika PHC sudah ada, redirect ke edit
         if ($project->phc) {
             return redirect()->route('phc.edit', $project->phc->id)
                 ->with('info', 'PHC sudah dibuat, silakan edit.');
@@ -42,10 +43,10 @@ class SupervisorPhcController extends Controller
             ]);
         })->with('role')->get();
 
-
         $phc = null;
+        $documents = DocumentPhc::all(); // 🔹 Ambil semua dokumen
 
-        return view('supervisor.phcs.form', compact('project', 'users', 'phc'));
+        return view('supervisor.phcs.form', compact('project', 'users', 'phc', 'documents'));
     }
 
     private function mapToBoolean(array $data, array $fields): array
@@ -58,8 +59,6 @@ class SupervisorPhcController extends Controller
         return $data;
     }
 
-
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -67,7 +66,7 @@ class SupervisorPhcController extends Controller
             'handover_date' => 'nullable|date',
             'start_date' => 'nullable|date',
             'target_finish_date' => 'nullable|date',
-            'client_pic_name' => 'nullable|string',
+            'client_pic_name' => 'required|string',
             'client_mobile' => 'nullable|string',
             'client_reps_office_address' => 'nullable|string',
             'client_site_representatives' => 'nullable|string',
@@ -78,78 +77,31 @@ class SupervisorPhcController extends Controller
             'ho_marketings_id' => 'nullable|exists:users,id',
             'ho_engineering_id' => 'nullable|exists:users,id',
             'notes' => 'nullable|string',
-            'status' => 'string',
-            'costing_by_marketing' => 'nullable|in:A,NA',
-            'boq' => 'nullable|in:A,NA',
             'retention' => 'nullable|string',
             'warranty' => 'nullable|string',
             'penalty' => 'nullable|string',
-            'scope_of_work_approval' => 'nullable|in:A,NA',
-            'organization_chart' => 'nullable|in:A,NA',
-            'project_schedule' => 'nullable|in:A,NA',
-            'component_list' => 'nullable|in:A,NA',
-            'progress_claim_report' => 'nullable|in:A,NA',
-            'component_approval_list' => 'nullable|in:A,NA',
-            'design_approval_draw' => 'nullable|in:A,NA',
-            'shop_draw' => 'nullable|in:A,NA',
-            'fat_sat_forms' => 'nullable|in:A,NA',
-            'daily_weekly_progress_report' => 'nullable|in:A,NA',
-            'do_packing_list' => 'nullable|in:A,NA',
-            'site_testing' => 'nullable|in:A,NA',
-            'site_testing_commissioning_report' => 'nullable|in:A,NA',
-            'as_build_draw' => 'nullable|in:A,NA',
-            'manual_documentation' => 'nullable|in:A,NA',
-            'accomplishment_report' => 'nullable|in:A,NA',
-            'client_document_requirements' => 'nullable|in:A,NA',
-            'job_safety_analysis' => 'nullable|in:A,NA',
-            'risk_assessment' => 'nullable|in:A,NA',
-            'tool_list' => 'nullable|in:A,NA',
 
-            // Add validation rules for checklist fields as needed
+            // checklist dokumen per PHC
+            'documents.*' => 'nullable|in:A,NA',
         ]);
-
-        $checklistFields = [
-            'costing_by_marketing',
-            'boq',
-            'retention',
-            'warranty',
-            'penalty',
-            'scope_of_work_approval',
-            'organization_chart',
-            'project_schedule',
-            'component_list',
-            'progress_claim_report',
-            'component_approval_list',
-            'design_approval_draw',
-            'shop_draw',
-            'fat_sat_forms',
-            'daily_weekly_progress_report',
-            'do_packing_list',
-            'site_testing',
-            'site_testing_commissioning_report',
-            'as_build_draw',
-            'manual_documentation',
-            'accomplishment_report',
-            'client_document_requirements',
-            'job_safety_analysis',
-            'risk_assessment',
-            'tool_list',
-        ];
-
-
-        $exclude = ['retention', 'warranty', 'penalty'];
-
-        // ambil semua field kecuali 3 itu
-        $booleanFields = array_diff($checklistFields, $exclude);
-
-        $booleanData = $this->mapToBoolean($request->all(), $booleanFields);
-        $validated = array_merge($validated, $booleanData);
 
         $validated['created_by'] = FacadesAuth::id();
         $validated['status'] = 'pending';
 
-        // Buat PHC
+        // 🔹 Buat PHC dulu
         $phc = Phc::create($validated);
+
+        // 🔹 Simpan Document Preparation
+        if ($request->has('documents')) {
+            foreach ($request->documents as $docId => $status) {
+                DocumentPreparation::create([
+                    'phc_id' => $phc->id,
+                    'document_id' => $docId,
+                    'is_applicable' => $status === 'A',
+                    'date_prepared' => now(),
+                ]);
+            }
+        }
 
         $allApproverIds = [];
 
@@ -174,7 +126,6 @@ class SupervisorPhcController extends Controller
          * 2. HO Engineering Approval
          */
         if (!empty($request->ho_engineering_id)) {
-            // Jika diisi manual, approval hanya ke user itu
             PhcApproval::create([
                 'phc_id' => $phc->id,
                 'user_id' => $request->ho_engineering_id,
@@ -182,11 +133,8 @@ class SupervisorPhcController extends Controller
             ]);
             $allApproverIds[] = $request->ho_engineering_id;
 
-            // Notifikasi hanya ke user tersebut
             User::find($request->ho_engineering_id)?->notify(new PhcValidationRequested($phc));
-
         } else {
-            // Jika kosong, kirim ke semua PM/PC/SuperAdmin
             $validatorUsers = User::whereHas('role', function ($q) {
                 $q->whereIn('name', ['project manager', 'project controller', 'super_admin']);
             })->get();
@@ -202,11 +150,9 @@ class SupervisorPhcController extends Controller
             }
         }
 
-        /**
-         * 3. PIC Engineering tidak dibuat approval
-         */
+        // 🔹 Tidak ada approval untuk PIC Engineering
 
-        // Kirim event dengan semua approver
+        // 🔹 Event approver
         $allApproverIds = array_unique($allApproverIds);
         event(new PhcCreatedEvent($phc, $allApproverIds));
 
@@ -224,7 +170,12 @@ class SupervisorPhcController extends Controller
             $q->whereIn('name', ['supervisor marketing', 'administration marketing', 'engineer']);
         })->get();
 
-        return view('supervisor.phcs.form', compact('phc', 'project', 'users'));
+        // ambil checklist document yang sudah disiapkan untuk PHC ini
+        $documentPreparations = $phc->documentPreparations()
+            ->with('documentPhc') // supaya tau nama master dokumennya
+            ->get();
+
+        return view('supervisor.phcs.form', compact('phc', 'project', 'users', 'documentPreparations'));
     }
 
     public function update(Request $request, PHC $phc)
@@ -245,77 +196,31 @@ class SupervisorPhcController extends Controller
             'ho_marketings_id' => 'nullable|exists:users,id',
             'ho_engineering_id' => 'nullable|exists:users,id',
             'notes' => 'nullable|string',
-            'costing_by_marketing' => 'nullable|in:A,NA',
-            'boq' => 'nullable|in:A,NA',
             'retention' => 'nullable|string',
             'warranty' => 'nullable|string',
             'penalty' => 'nullable|string',
-            'scope_of_work_approval' => 'nullable|in:A,NA',
-            'organization_chart' => 'nullable|in:A,NA',
-            'project_schedule' => 'nullable|in:A,NA',
-            'component_list' => 'nullable|in:A,NA',
-            'progress_claim_report' => 'nullable|in:A,NA',
-            'component_approval_list' => 'nullable|in:A,NA',
-            'design_approval_draw' => 'nullable|in:A,NA',
-            'shop_draw' => 'nullable|in:A,NA',
-            'fat_sat_forms' => 'nullable|in:A,NA',
-            'daily_weekly_progress_report' => 'nullable|in:A,NA',
-            'do_packing_list' => 'nullable|in:A,NA',
-            'site_testing' => 'nullable|in:A,NA',
-            'site_testing_commissioning_report' => 'nullable|in:A,NA',
-            'as_build_draw' => 'nullable|in:A,NA',
-            'manual_documentation' => 'nullable|in:A,NA',
-            'accomplishment_report' => 'nullable|in:A,NA',
-            'client_document_requirements' => 'nullable|in:A,NA',
-            'job_safety_analysis' => 'nullable|in:A,NA',
-            'risk_assessment' => 'nullable|in:A,NA',
-            'tool_list' => 'nullable|in:A,NA',
-            // Add checklist fields
         ]);
 
-        $checklistFields = [
-            'costing_by_marketing',
-            'boq',
-            'retention',
-            'warranty',
-            'penalty',
-            'scope_of_work_approval',
-            'organization_chart',
-            'project_schedule',
-            'component_list',
-            'progress_claim_report',
-            'component_approval_list',
-            'design_approval_draw',
-            'shop_draw',
-            'fat_sat_forms',
-            'daily_weekly_progress_report',
-            'do_packing_list',
-            'site_testing',
-            'site_testing_commissioning_report',
-            'as_build_draw',
-            'manual_documentation',
-            'accomplishment_report',
-            'client_document_requirements',
-            'job_safety_analysis',
-            'risk_assessment',
-            'tool_list',
-        ];
-
-        $exclude = ['retention', 'warranty', 'penalty'];
-
-        // ambil semua field kecuali 3 itu
-        $booleanFields = array_diff($checklistFields, $exclude);
-
-        $booleanData = $this->mapToBoolean($request->all(), $booleanFields);
-        $validated = array_merge($validated, $booleanData);
-
+        // update data utama PHC
         $phc->update($validated);
+
+        // update checklist dari master document_phc
+        $documents = DocumentPhc::all();
+        foreach ($documents as $document) {
+            $value = $request->input("document_{$document->id}"); // misal name input="document_1"
+
+            $phc->documentPreparations()->updateOrCreate(
+                ['document_phc_id' => $document->id],
+                ['value' => $value]
+            );
+        }
 
         session()->flash('resetStep', true);
 
-        return redirect()->route('supervisor.project.show', $phc->project_id)->with('success', 'PHC updated successfully.');
-
+        return redirect()->route('supervisor.project.show', $phc->project_id)
+            ->with('success', 'PHC updated successfully.');
     }
+
 
     public function show(PHC $phc)
     {

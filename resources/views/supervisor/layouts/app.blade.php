@@ -28,11 +28,28 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
+    <script src="https://unpkg.com/column-resizer/dist/column-resizer.min.js"></script>
+
+    @stack('styles')
 </head>
 
 <body class="h-full min-h-screen flex flex-col bg-gray-100 font-sans leading-normal tracking-normal overflow-x-hidden">
+<div x-data="{ show: false, message: '' }"
+     x-show="show"
+     x-transition
+     x-text="message"
+     class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg"
+     x-cloak></div>
+
+<script>
+    window.addEventListener('notify', event => {
+        const toast = document.querySelector('[x-data]');
+        toast.__x.$data.message = event.detail.message;
+        toast.__x.$data.show = true;
+        setTimeout(() => toast.__x.$data.show = false, 3000);
+    });
+</script>
+
 <div class="flex flex-1 overflow-hidden">
     <!-- Sidebar -->
    <div :class="sidebarOpen ? 'translate-x-0 md:w-52' : '-translate-x-full md:w-0'"

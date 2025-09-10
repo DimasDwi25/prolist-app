@@ -14,7 +14,7 @@
     @if($this->hasDisplayLoadingPlaceholder()) 
         wire:loading.class.add="hidden d-none"
     @else
-        wire:loading.class.delay="opacity-50 bg-gray-100"
+        wire:loading.class.delay="opacity-50 dark:bg-gray-900 dark:opacity-60"
     @endif
     id="{{ $tableName }}-row-{{ $row->{$primaryKey} }}"
     :draggable="currentlyReorderingStatus"
@@ -22,20 +22,16 @@
     loopType="{{ ($rowIndex % 2 === 0) ? 'even' : 'odd' }}"
     {{
         $attributes->merge($customAttributes)
-            ->class([
-                // Ubah warna latar baris agar terang dan konsisten
-                'bg-white' => $isTailwind && $rowIndex % 2 === 0 && ($customAttributes['default'] ?? true),
-                'bg-gray-50' => $isTailwind && $rowIndex % 2 !== 0 && ($customAttributes['default'] ?? true),
-
-                // Tambahan efek hover & pointer
-                'hover:bg-blue-50 transition-colors duration-200' => $isTailwind && ($customAttributes['default'] ?? true),
-                'cursor-pointer' => $isTailwind && $this->hasTableRowUrl() && ($customAttributes['default'] ?? true),
-
-                // Bootstrap (tidak dipakai tapi tetap aman)
-                'bg-light' => $isBootstrap && $rowIndex % 2 === 0 && ($customAttributes['default'] ?? true),
-            ])
-            ->except(['default','default-styling','default-colors'])
+                ->class([
+                    'bg-white dark:bg-gray-700 dark:text-white rappasoft-striped-row' => ($isTailwind && ($customAttributes['default'] ?? true) && $rowIndex % 2 === 0),
+                    'bg-gray-50 dark:bg-gray-800 dark:text-white rappasoft-striped-row' => ($isTailwind && ($customAttributes['default'] ?? true) && $rowIndex % 2 !== 0),
+                    'cursor-pointer' => ($isTailwind && $this->hasTableRowUrl() && ($customAttributes['default'] ?? true)),
+                    'bg-light rappasoft-striped-row' => ($isBootstrap && $rowIndex % 2 === 0 && ($customAttributes['default'] ?? true)),
+                    'bg-white rappasoft-striped-row' => ($isBootstrap && $rowIndex % 2 !== 0 && ($customAttributes['default'] ?? true)),
+                ])
+                ->except(['default','default-styling','default-colors'])
     }}
+
 >
     {{ $slot }}
 </tr>

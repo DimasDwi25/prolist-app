@@ -96,7 +96,7 @@ class MarketingDashboardController extends Controller
             'labels' => $labels,
             'colors' => $colors,
             'data' => $data,
-            'role' => auth()->user()->role->name
+            'role' => auth('api')->user()->role->name
         ]);
     }
 }

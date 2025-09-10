@@ -11,6 +11,15 @@
     ];
 
     $layout = $roleLayouts[Auth::user()->role->name] ?? 'default.layouts.app';
+
+     // Default monthRoman
+    $monthRoman = $quotation->exists && $quotation->quotation_date
+        ? \Illuminate\Support\Carbon::parse($quotation->quotation_date)->format('n')
+        : now()->format('n');
+
+    // Convert number to Roman
+    $romanNumerals = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+    $monthRoman = $romanNumerals[$monthRoman - 1];
 @endphp
 
 @extends($layout)
@@ -189,8 +198,6 @@
                             class="flex-1 min-w-0 block w-full px-3 py-2 border-t border-b border-gray-300 bg-white text-sm"
                             pattern="\d{1,3}"
                             maxlength="3">
-
-
 
                         <span class="inline-flex items-center px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 text-sm rounded-r-md">
                             /<span id="display_month_roman" class="mx-1">{{ $monthRoman }}</span>/
