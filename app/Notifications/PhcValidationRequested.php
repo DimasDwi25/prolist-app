@@ -11,33 +11,37 @@ use Illuminate\Notifications\Notification;
 
 class PhcValidationRequested extends Notification implements ShouldQueue
 {
-    use Queueable;
+   use Queueable;
 
-    public $phc;
+    protected $phc;
 
-    public function __construct(PHC $phc)
+    public function __construct($phc)
     {
         $this->phc = $phc;
     }
 
     public function via($notifiable)
     {
-        return ['database'];
+        return ['database', 'broadcast']; // ✅ simpan ke DB + broadcast realtime
     }
 
-    // public function toBroadcast($notifiable)
-    // {
-    //     return new BroadcastMessage([
-    //         'message' => "PHC requires your validation for project: {$this->phc->project->project_number}",
-    //         'phc_id' => $this->phc->id,
-    //     ]);
-    // }
-
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
         return [
-            'message' => "PHC requires your validation for project: {$this->phc->project->project_number}",
-            'phc_id' => $this->phc->id,
+            'message' => "PHC baru dibuat untuk Project {$this->phc->project->project_name}",
+            'phc_id'  => $this->phc->id,
+            'project' => $this->phc->project->project_number,
+        ];
+    }
+
+    public function toBroadcast($notifiable)
+    {
+        return [
+            'data' => [
+                'message' => "PHC baru dibuat untuk Project {$this->phc->project->project_name}",
+                'phc_id'  => $this->phc->id,
+                'project' => $this->phc->project->project_number,
+            ],
         ];
     }
 }

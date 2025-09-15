@@ -66,14 +66,16 @@ class MarketingQuotationController extends Controller
     {
         $this->validateRequest($request, $quotation->quotation_number);
 
-        // Update hanya field yang diubah, kecuali no_quotation
+        // Update kecuali no_quotation & month_roman
         $quotation->update($request->except(['no_quotation', 'month_roman']));
 
+        // Return lengkap dengan relasi supaya frontend tidak kosong
         return response()->json([
             'message' => 'Quotation updated successfully',
-            'quotation' => $quotation
+            'quotation' => $quotation->load('client')
         ]);
     }
+
 
 
     // Delete quotation
@@ -123,5 +125,16 @@ class MarketingQuotationController extends Controller
             'revisi' => 'nullable|string|max:255',
             'status' => 'nullable|in:A,D,E,F,O',
         ])->validate();
+    }
+
+    public function nextNumber()
+    {
+        $year = now()->year;
+        $next = Quotation::getNextQuotationNumberForYear($year);
+
+        return response()->json([
+            'next_number' => str_pad($next, 3, '0', STR_PAD_LEFT),
+            'year' => $year
+        ]);
     }
 }

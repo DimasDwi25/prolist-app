@@ -47,6 +47,10 @@ class Log extends Model
         return $this->belongsTo(User::class, 'response_by');
     }
 
+    public function approvals()
+    {
+        return $this->morphMany(Approval::class, 'approvable');
+    }
 
     protected $casts = [
         'tgl_logs' => 'datetime',

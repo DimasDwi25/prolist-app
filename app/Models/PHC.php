@@ -34,25 +34,6 @@ class PHC extends Model
         'retention',
         'warranty',
         'penalty',
-        'scope_of_work_approval',
-        'organization_chart',
-        'project_schedule',
-        'component_list',
-        'progress_claim_report',
-        'component_approval_list',
-        'design_approval_draw',
-        'shop_draw',
-        'fat_sat_forms',
-        'daily_weekly_progress_report',
-        'do_packing_list',
-        'site_testing_commissioning_report',
-        'as_build_draw',
-        'manual_documentation',
-        'accomplishment_report',
-        'client_document_requirements',
-        'job_safety_analysis',
-        'risk_assessment',
-        'tool_list',
         'handover_date'
     ];
 
@@ -87,9 +68,14 @@ class PHC extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    // public function approvals()
+    // {
+    //     return $this->hasMany(PhcApproval::class, 'phc_id'); // foreign key yang benar
+    // }
+
     public function approvals()
     {
-        return $this->hasMany(PhcApproval::class, 'phc_id'); // foreign key yang benar
+        return $this->morphMany(Approval::class, 'approvable');
     }
 
     // Tambahkan ini untuk memastikan ho_engineering_id bisa diisi
