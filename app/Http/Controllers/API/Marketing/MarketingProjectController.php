@@ -12,7 +12,7 @@ class MarketingProjectController extends Controller
     //
     public function index()
     {
-        $projects = Project::with(['category', 'quotation', 'client', 'statusProject'])
+        $projects = Project::with(['category', 'quotation.client', 'client', 'statusProject'])
             ->orderBy('created_at', 'desc')
             ->get();
 
