@@ -32,7 +32,7 @@ class AuthController extends Controller
             'estimator'            => '/estimator',
             'engineer'             => '/engineer',
             'project controller'   => '/engineer',
-            'engineering_manager'  => '/engineer',
+            'project manager'  => '/engineer',
             'engineering_director' => '/engineer',
             'marketing_estimator'  => '/marketing',
         ];

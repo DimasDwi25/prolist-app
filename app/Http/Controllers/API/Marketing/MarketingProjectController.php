@@ -13,8 +13,9 @@ class MarketingProjectController extends Controller
     public function index()
     {
         $projects = Project::with(['category', 'quotation.client', 'client', 'statusProject'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        ->orderByRaw('CAST(LEFT(CAST(pn_number AS VARCHAR), 2) AS INT) DESC') // ambil 2 digit pertama sebagai tahun
+        ->orderByRaw('CAST(SUBSTRING(CAST(pn_number AS VARCHAR), 3, LEN(CAST(pn_number AS VARCHAR)) - 2) AS INT) DESC') // ambil nomor urut
+        ->get();
 
         return response()->json([
             'status'  => 'success',

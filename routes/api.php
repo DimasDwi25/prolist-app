@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\API\ApprovallController;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\Engineer\EngineerPhcDocumentiApi;
+use App\Http\Controllers\API\Marketing\BillOfQuantityController;
 use App\Http\Controllers\API\Marketing\MarketingCategorieProject;
 use App\Http\Controllers\API\Marketing\MarketingClientController;
 use App\Http\Controllers\API\Marketing\MarketingDashboardController;
@@ -13,6 +15,7 @@ use App\Http\Controllers\API\Marketing\MarketingStatusProjectController;
 use App\Http\Controllers\API\Marketing\SalesReportApiController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\users\UsersController;
+use App\Http\Controllers\Engineer\EngineerPhcController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,6 +38,15 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/users', [UsersController::class, 'index']);
     Route::get('/phc/users/engineering', [UsersController::class, 'engineeringUsers']);
     Route::get('/phc/users/marketing', [UsersController::class, 'marketingUsers']);
+    // List semua approval user
+    Route::get('approvals', [ApprovallController::class, 'index']);
+    // Detail approval
+    Route::get('approvals/{id}', [ApprovallController::class, 'show']);
+    // Update status dengan pin
+    Route::post('approvals/{id}/status', [ApprovallController::class, 'updateStatus']);
+
+    Route::get('/phc/{projectId}', [MarketingPhcApiController::class, 'show']);
+    
     Route::middleware('role:super_admin,marketing_director,engineering_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin,marketing_estimator')
         ->group(function () {
             Route::get('/marketing', [MarketingDashboardController::class, 'index']);
@@ -69,9 +81,9 @@ Route::middleware('auth:api')->group(function () {
             Route::get('/marketing-report', [MarketingReportApiController::class, 'index']);
 
             Route::get('/projects/generate-number', [MarketingProjectController::class, 'generateNumber']);
-            Route::get('/projects', [MarketingProjectController::class, 'index']);
+            
             Route::post('/projects', [MarketingProjectController::class, 'store']);
-            Route::get('/projects/{project}', [MarketingProjectController::class, 'show']);
+            
             Route::put('/projects/{project}', [MarketingProjectController::class, 'update']);
             Route::delete('/projects/{project}', [MarketingProjectController::class, 'destroy']);
 
@@ -80,16 +92,38 @@ Route::middleware('auth:api')->group(function () {
             Route::get('/notifications', [NotificationController::class, 'index']);
             Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
-            // List semua approval user
-            Route::get('approvals', [ApprovallController::class, 'index']);
-            // Detail approval
-            Route::get('approvals/{id}', [ApprovallController::class, 'show']);
-            // Update status dengan pin
-            Route::post('approvals/{id}/status', [ApprovallController::class, 'updateStatus']);
+            
+
+            Route::get('/projects/{projectId}/boq', [BillOfQuantityController::class, 'index']);
+            Route::post('/projects/{projectId}/boq', [BillOfQuantityController::class, 'store']);
+            Route::put('/boq/{id}', [BillOfQuantityController::class, 'update']);
 
             
            
 
             Route::get('/ajax-clients', [MarketingQuotationController::class, 'ajaxClients']);
+        });
+
+        Route::middleware('role:super_admin,marketing_director,engineering_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin,marketing_estimator,project controller,project manager')
+        ->group(function () {
+
+            // Client CRUD
+            Route::get('/clients', [MarketingClientController::class, 'index']);
+            Route::get('/quotations', [MarketingQuotationController::class, 'index']);
+
+            Route::get('/categories-project', [MarketingCategorieProject::class, 'index']);   // GET all
+
+            Route::get('/status-projects', [MarketingStatusProjectController::class, 'index']);
+
+            Route::get('/projects', [MarketingProjectController::class, 'index']);
+            Route::get('/projects/{project}', [MarketingProjectController::class, 'show']);
+
+            Route::get('/phcs/{phc}', [EngineerPhcDocumentiApi::class, 'show']);
+            Route::put('/phcs/{phc}', [EngineerPhcDocumentiApi::class, 'update']);
+        });
+
+        Route::middleware('role:super_admin,marketing_director,engineering_director,project controller,project manager')
+        ->group(function () {
+            Route::put('/phcs/{phc}', [EngineerPhcDocumentiApi::class, 'update']);
         });
 });

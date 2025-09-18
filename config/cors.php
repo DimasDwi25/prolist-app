@@ -26,6 +26,8 @@ return [
         'http://localhost:3000', // Tambahkan port React
         'http://127.0.0.1:3000', // Tambahkan juga
         'http://127.0.0.1',
+        'http://prolist.citasys',
+        'http://192.168.0.102:5173'
     ],
 
     'allowed_origins_patterns' => [],

@@ -48,24 +48,19 @@ class MarketingPhcApiController extends Controller
         ]);
 
         $approverIds = [];
-
-        /**
-         * 1. Tambah approval HO Marketing & PIC Marketing
-         */
+        // 🔹 HO Marketing & PIC Marketing
         foreach (array_filter([$request->ho_marketings_id, $request->pic_marketing_id]) as $userId) {
             Approval::create([
                 'approvable_type' => PHC::class,
                 'type' => 'PHC',
-                'approvable_id'   => $phc->id,
-                'user_id'         => $userId,
-                'status'          => 'pending',
+                'approvable_id' => $phc->id,
+                'user_id' => $userId,
+                'status' => 'pending',
             ]);
             $approverIds[] = $userId;
         }
 
-        /**
-         * 2. HO Engineering kosong → assign semua role validator
-         */
+        // 🔹 HO Engineering
         if (empty($request->ho_engineering_id)) {
             $validatorUsers = User::whereHas('role', function ($q) {
                 $q->whereIn('name', ['project manager', 'project controller', 'super_admin']);
@@ -75,23 +70,21 @@ class MarketingPhcApiController extends Controller
                 Approval::create([
                     'approvable_type' => PHC::class,
                     'type' => 'PHC',
-                    'approvable_id'   => $phc->id,
-                    'user_id'         => $user->id,
-                    'status'          => 'pending',
+                    'approvable_id' => $phc->id,
+                    'user_id' => $user->id,
+                    'status' => 'pending',
                 ]);
                 $user->notify(new PhcValidationRequested($phc));
                 $approverIds[] = $user->id;
             }
         } else {
-            // Kalau ada HO Engineering
             Approval::create([
                 'approvable_type' => PHC::class,
                 'type' => 'PHC',
-                'approvable_id'   => $phc->id,
-                'user_id'         => $request->ho_engineering_id,
-                'status'          => 'pending',
+                'approvable_id' => $phc->id,
+                'user_id' => $request->ho_engineering_id,
+                'status' => 'pending',
             ]);
-
             User::find($request->ho_engineering_id)?->notify(new PhcValidationRequested($phc));
             $approverIds[] = $request->ho_engineering_id;
         }
@@ -103,6 +96,30 @@ class MarketingPhcApiController extends Controller
                 'phc'        => $phc,
                 'approvers'  => $approverIds,
             ]
+        ]);
+    }
+
+    public function show($projectId)
+    {
+        $phc = PHC::with([
+            'project',
+            'hoMarketing',
+            'hoEngineering',
+            'picMarketing',
+            'picEngineering',
+            'approvals'
+        ])->where('project_id', $projectId)->first();
+
+        if (!$phc) {
+            return response()->json([
+                'success' => false,
+                'message' => 'PHC tidak ditemukan'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $phc
         ]);
     }
 }

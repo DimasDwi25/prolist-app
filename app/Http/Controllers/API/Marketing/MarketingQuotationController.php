@@ -22,11 +22,14 @@ class MarketingQuotationController extends Controller
     public function index()
     {
         $quotations = Quotation::with('client', 'user')
-            ->orderBy('created_at', 'desc')
+            ->orderByRaw('CAST(LEFT(quotation_number, 4) AS INT) DESC') // tahun DESC
+            ->orderByRaw('CAST(SUBSTRING(quotation_number, 5, LEN(quotation_number) - 4) AS INT) DESC') // nomor per tahun DESC
             ->get();
 
         return response()->json($quotations);
     }
+
+
 
     // Show detail quotation
     public function show(Quotation $quotation)
