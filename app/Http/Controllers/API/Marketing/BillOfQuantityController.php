@@ -120,37 +120,55 @@ class BillOfQuantityController extends Controller
             'marketing_director',
             'supervisor marketing',
             'marketing_estimator',
-            'engineer',
+            'project controller',
             'engineering_director',
+            'project manager'
         ];
 
-        $user = auth()->user();
-
-        // cek apakah user memiliki salah satu role yang diizinkan
         if (!$user->hasAnyRole($allowedRoles)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // update progress untuk engineer
-        if ($user->hasAnyRole(['engineer', 'engineering_director', 'super_admin'])) {
+        // Update progress hanya untuk engineer
+        if ($user->hasAnyRole(['project controller','project manager', 'engineering_director', 'super_admin'])) {
             $request->validate([
-                'progress_material' => 'numeric|min:0|max:100',
-                'progress_engineer' => 'numeric|min:0|max:100',
+                'progress_material' => 'sometimes|numeric|min:0|max:100',
+                'progress_engineer' => 'sometimes|numeric|min:0|max:100',
             ]);
 
-            $boq->progress_material = $request->progress_material;
-            $boq->progress_engineer = $request->progress_engineer;
-            $boq->total_progress = ($boq->progress_material + $boq->progress_engineer) / 2;
+            $boq->progress_material = $request->progress_material ?? $boq->progress_material;
+            $boq->progress_engineer = $request->progress_engineer ?? $boq->progress_engineer;
+
+            // Hitung total_progress per item sesuai formula
+            $weightSum = ($boq->material_portion ?? 0) + ($boq->engineer_portion ?? 0);
+            if ($weightSum > 0) {
+                $boq->total_progress = (
+                    (($boq->progress_material ?? 0) * ($boq->material_portion ?? 0) +
+                    ($boq->progress_engineer ?? 0) * ($boq->engineer_portion ?? 0)) 
+                    / $weightSum
+                );
+            } else {
+                $boq->total_progress = 0;
+            }
+
             $boq->save();
+
+            // Recalculate project progress: rata-rata semua total_progress
+            $totalProgress = BillOfQuantity::where('project_id', $project->pn_number)
+                ->avg('total_progress'); // gunakan avg agar tidak over 100%
+
+            $project->project_progress = min(round($totalProgress, 2), 100);
+            $project->save();
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Progress updated',
                 'data' => $boq,
+                'project_progress' => $project->project_progress,
             ]);
         }
 
-        // update BOQ untuk marketing
+        // Update BOQ untuk marketing
         if ($user->hasAnyRole([
             'marketing',
             'marketing_admin',
@@ -167,26 +185,43 @@ class BillOfQuantityController extends Controller
                 'engineer_value' => 'sometimes|numeric|min:0',
             ]);
 
-            $boq->description = $request->description;
-            $boq->material_value = $request->material_value;
-            $boq->engineer_value = $request->engineer_value;
+            $boq->description = $request->description ?? $boq->description;
+            $boq->material_value = $request->material_value ?? $boq->material_value;
+            $boq->engineer_value = $request->engineer_value ?? $boq->engineer_value;
 
-            $boq->material_portion = $project->po_value > 0
-                ? min(($request->material_value / $project->po_value) * 100, 100)
-                : 0;
-            $boq->engineer_portion = $project->po_value > 0
-                ? min(($request->engineer_value / $project->po_value) * 100, 100)
-                : 0;
+            // Hitung ulang portion
+            $totalPo = $project->po_value > 0 ? $project->po_value : 1; // hindari div0
+            $boq->material_portion = min(($boq->material_value / $totalPo) * 100, 100);
+            $boq->engineer_portion = min(($boq->engineer_value / $totalPo) * 100, 100);
+
+            // Recalculate total_progress jika ada progress sebelumnya
+            $weightSum = $boq->material_portion + $boq->engineer_portion;
+            if ($weightSum > 0) {
+                $boq->total_progress = (
+                    ($boq->progress_material ?? 0) * $boq->material_portion +
+                    ($boq->progress_engineer ?? 0) * $boq->engineer_portion
+                ) / $weightSum;
+            } else {
+                $boq->total_progress = 0;
+            }
 
             $boq->save();
+
+            // Recalculate project progress
+            $totalProgress = BillOfQuantity::where('project_id', $project->pn_number)
+                ->avg('total_progress');
+
+            $project->project_progress = min(round($totalProgress, 2), 100);
+            $project->save();
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'BOQ updated',
                 'data' => $boq,
+                'project_progress' => $project->project_progress,
             ]);
         }
-
     }
+
 
 }

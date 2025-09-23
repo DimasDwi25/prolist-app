@@ -14,83 +14,52 @@ class WorkOrder extends Model
         'wo_date',
         'wo_number_in_project',
         'wo_kode_no',
-        'pic1',
-        'pic2',
-        'pic3',
-        'pic4',
-        'pic5',
-        'role_pic_1',
-        'role_pic_2',
-        'role_pic_3',
-        'role_pic_4',
-        'role_pic_5',
         'total_mandays_eng',
         'total_mandays_elect',
         'add_work',
-        'work_description',
+        'status',
+        'approved_by',
+        'start_working_date',
+        'end_working_date',
+        'wo_count',
+        'client_approved',
+        'created_by',
+        'accepted_by',
+        'approved_by'
     ];
 
-    // Relasi ke Project
+    /**
+     * Relasi ke Project
+     */
     public function project()
     {
         return $this->belongsTo(Project::class, 'project_id', 'pn_number');
     }
 
-    // Relasi PIC - ubah nama method biar nggak bentrok dengan kolom
-    public function pic1User()
+    /**
+     * Relasi ke PIC (banyak)
+     */
+    public function pics()
     {
-        return $this->belongsTo(User::class, 'pic1');
+        return $this->hasMany(WorkOrderPic::class);
     }
 
-    public function pic2User()
+    /**
+     * Relasi ke Descriptions (banyak)
+     */
+    public function descriptions()
     {
-        return $this->belongsTo(User::class, 'pic2');
-    }
-
-    public function pic3User()
-    {
-        return $this->belongsTo(User::class, 'pic3');
-    }
-
-    public function pic4User()
-    {
-        return $this->belongsTo(User::class, 'pic4');
-    }
-
-    public function pic5User()
-    {
-        return $this->belongsTo(User::class, 'pic5');
-    }
-
-    // Relasi Role PIC
-    public function rolePic1()
-    {
-        return $this->belongsTo(Role::class, 'role_pic_1');
-    }
-
-    public function rolePic2()
-    {
-        return $this->belongsTo(Role::class, 'role_pic_2');
-    }
-
-    public function rolePic3()
-    {
-        return $this->belongsTo(Role::class, 'role_pic_3');
-    }
-
-    public function rolePic4()
-    {
-        return $this->belongsTo(Role::class, 'role_pic_4');
-    }
-
-    public function rolePic5()
-    {
-        return $this->belongsTo(Role::class, 'role_pic_5');
+        return $this->hasMany(WorkOrderDescription::class);
     }
 
     // Relasi Log (berdasarkan project_id)
     public function logs()
     {
         return $this->hasMany(Log::class, 'project_id', 'pn_number');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }

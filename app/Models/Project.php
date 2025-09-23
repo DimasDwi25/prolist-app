@@ -159,6 +159,19 @@ class Project extends Model
         return $this->belongsTo(Client::class, 'client_id');
     }
 
+    public function materialRequests()
+    {
+        return $this->hasMany(MaterialRequest::class, 'pn_id', 'pn_number');
+    }
+
+     /**
+     * Relasi ke Work Orders
+     */
+    public function workOrders()
+    {
+        return $this->hasMany(WorkOrder::class, 'project_id');
+    }
+
     protected $casts = [
         'target_dates' => \App\Casts\IndonesianDateCast::class,
         'po_date' => \App\Casts\IndonesianDateCast::class,

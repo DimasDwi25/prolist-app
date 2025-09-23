@@ -55,6 +55,8 @@ class Log extends Model
     protected $casts = [
         'tgl_logs' => 'datetime',
         'closing_date' => 'datetime',
+        'project_id' => 'integer',
     ];
+
 
 }

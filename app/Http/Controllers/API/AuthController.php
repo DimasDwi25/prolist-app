@@ -35,6 +35,7 @@ class AuthController extends Controller
             'project manager'  => '/engineer',
             'engineering_director' => '/engineer',
             'marketing_estimator'  => '/marketing',
+            'warehouse' => '/suc'
         ];
 
         return response()->json([

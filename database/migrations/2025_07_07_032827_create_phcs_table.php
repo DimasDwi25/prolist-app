@@ -49,7 +49,7 @@ return new class extends Migration {
                 ->constrained('users')
                 ->noActionOnDelete();
 
-            $table->dateTime('handover_date');
+            $table->dateTime('handover_date')->nullable();
 
             $table->boolean('costing_by_marketing')->default(false);
             $table->boolean('boq')->default(false);

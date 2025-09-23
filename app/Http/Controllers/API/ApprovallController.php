@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Approval;
 use App\Models\PHC;
+use App\Models\WorkOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -13,7 +14,7 @@ class ApprovallController extends Controller
     public function index(Request $request)
     {
         $query = Approval::where('user_id', $request->user()->id)
-            ->with('approvable.project');
+            ->with('approvable.project.phc', 'approvable.project');
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -90,7 +91,7 @@ class ApprovallController extends Controller
             ->count();
 
         if ($approvedCount >= 3) {
-            $phc->update(['status' => 'approved']);
+            $phc->update(['status' => 'ready']);
         }
 
         return response()->json([
@@ -99,4 +100,73 @@ class ApprovallController extends Controller
             'phc_status' => $phc->status,
         ]);
     }
+
+    // Update status approval WO
+    public function updateStatusWo(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|string|in:approved,rejected',
+            'pin' => 'required|string',
+        ]);
+
+        $approval = Approval::where('user_id', $request->user()->id)
+            ->where('approvable_type', WorkOrder::class)
+            ->with('user', 'approvable.project')
+            ->findOrFail($id);
+
+        $user = $approval->user;
+        $pinDb = $user->pin;
+
+        // cek PIN
+        if (str_starts_with($pinDb, '$2y$') && strlen($pinDb) === 60) {
+            $isValid = Hash::check($request->pin, $pinDb);
+        } else {
+            $isValid = $request->pin === $pinDb;
+        }
+
+        if (!$isValid) {
+            return response()->json(['message' => 'PIN tidak valid'], 403);
+        }
+
+        // hash PIN jika belum di-hash
+        if (!str_starts_with($pinDb, '$2y$') || strlen($pinDb) !== 60) {
+            $user->pin = Hash::make($request->pin);
+            $user->save();
+        }
+
+        // update status approval
+        $approval->update([
+            'status' => $request->status,
+            'validated_at' => now(),
+        ]);
+
+        $wo = $approval->approvable;
+
+        if ($request->status === 'approved') {
+            // Hapus semua approval pending user lain untuk WO ini
+            Approval::where('approvable_type', WorkOrder::class)
+                ->where('approvable_id', $wo->id)
+                ->where('status', 'pending')
+                ->where('user_id', '!=', $user->id)
+                ->delete();
+
+            // Catat user yang approve di field approved_by
+            $wo->update([
+                'approved_by' => $user->id,
+                'status' => 'approved',
+            ]);
+        } elseif ($request->status === 'rejected') {
+            // Jika rejected, tetap tunggu approval lain
+            $wo->update(['status' => 'waiting approval']);
+        }
+
+        return response()->json([
+            'message' => "Approval berhasil {$request->status}",
+            'approval' => $approval,
+            'wo_status' => $wo->status,
+            'approved_by' => $wo->approved_by,
+        ]);
+    }
+
+
 }
