@@ -17,6 +17,10 @@ return new class extends Migration
             $table->dateTime('wo_date');
             $table->integer('wo_number_in_project');
             $table->string('wo_kode_no');
+            $table->foreignId('purpose_id')->nullable()->constrained('purpose_work_orders', 'id');
+            $table->text('location')->nullable();
+            $table->string('vehicle_no')->nullable();
+            $table->string('driver')->nullable();
 
             // total mandays
             $table->integer('total_mandays_eng')->default(0);
@@ -26,10 +30,24 @@ return new class extends Migration
             $table->boolean('add_work')->default(false);
 
             $table->foreignId('approved_by')->nullable()->constrained('users', 'id');
-            $table->enum('status', ['waiting approval', 'approved', 'finished']);
+            $table->enum('status', ['waiting approval', 'approved', 'waiting client approval', 'finished']);
 
-            $table->dateTime('start_working_date')->nullable();
-            $table->dateTime('end_working_date')->nullable();
+            $table->dateTime('start_work_time')->nullable();
+            $table->dateTime('stop_work_time')->nullable();
+
+            $table->date('continue_date')->nullable();
+            $table->time('continue_time')->nullable();
+
+            $table->text('client_note')->nullable();
+
+            $table->date('scheduled_start_working_date')->nullable();
+            $table->date('scheduled_end_working_date')->nullable();
+
+            $table->date('actual_start_working_date')->nullable();
+            $table->date('actual_end_working_date')->nullable();
+
+            $table->text('accomodation')->nullable();
+            $table->text('material_required')->nullable();
 
             $table->integer('wo_count')->nullable();
 

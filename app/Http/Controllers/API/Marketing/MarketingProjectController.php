@@ -78,7 +78,7 @@ class MarketingProjectController extends Controller
             'category',
             'phc.approvals.user',
             'client',
-            'quotation'
+            'quotation.client'
         ]);
 
         $pendingApprovals = $project->phc

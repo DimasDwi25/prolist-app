@@ -6,13 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
 {
     //
     public function index()
     {
-        $users = User::with('role')->get();
+        $users = User::with('role', 'department')->orderBy('created_at','desc')->get();
 
         return response()->json([
             'success' => true,
@@ -20,6 +22,8 @@ class UsersController extends Controller
         ]);
 
     }
+
+    
 
     public function engineeringUsers()
     {
@@ -119,6 +123,73 @@ class UsersController extends Controller
         return response()->json([
             'success' => true,
             'data' => $roles,
+        ]);
+    }
+
+    // POST /api/users
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email',
+            'password'      => 'required|string|min:6',
+            'role_id'       => 'required|exists:roles,id',
+            'department_id' => 'required|exists:departments,id',
+            'pin'           => 'nullable|string|size:6',
+        ]);
+
+        $validated['password'] = Hash::make($validated['password']);
+        $validated['pin'] = Hash::make($validated['pin']);
+
+        $user = User::create($validated);
+
+        return response()->json([
+            'message' => 'User created successfully',
+            'data'    => $user->load(['role', 'department']),
+        ], 201);
+    }
+
+    // GET /api/users/{id}
+    public function show(User $user)
+    {
+        return response()->json(
+            $user->load(['role', 'department'])
+        );
+    }
+
+    // PUT /api/users/{id}
+    public function update(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'name'          => 'sometimes|required|string|max:255',
+            'email'         => ['sometimes','required','email', Rule::unique('users')->ignore($user->id)],
+            'password'      => 'nullable|string|min:6',
+            'role_id'       => 'sometimes|required|exists:roles,id',
+            'department_id' => 'sometimes|required|exists:departments,id',
+            'pin'           => 'nullable|string|size:6',
+        ]);
+
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'User updated successfully',
+            'data'    => $user->load(['role', 'department']),
+        ]);
+    }
+
+    // DELETE /api/users/{id}
+    public function destroy(User $user)
+    {
+        $user->delete();
+
+        return response()->json([
+            'message' => 'User deleted successfully'
         ]);
     }
 

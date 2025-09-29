@@ -9,21 +9,40 @@ class ScopeOfWorkProject extends Model
 {
     use HasFactory;
 
+    protected $table = 'scope_of_work_projects';
+
     protected $fillable = [
-        'scope_of_work_id',
         'project_id',
-        'description',
+        'work_details',
+        'pic',
+        'target_finish_date',
+        'start_date',
+        'finish_date',
     ];
 
-    // Relasi ke master scope of work
-    public function scopeOfWork()
-    {
-        return $this->belongsTo(ScopeOfWork::class);
-    }
-
-    // Relasi ke project
+    /**
+     * Relasi ke Project.
+     * Karena foreign key mengacu ke `projects.pn_number`,
+     * maka local key = pn_number.
+     */
     public function project()
     {
         return $this->belongsTo(Project::class, 'project_id', 'pn_number');
+    }
+
+    /**
+     * Relasi ke User sebagai PIC.
+     */
+    public function picUser()
+    {
+        return $this->belongsTo(User::class, 'pic', 'id');
+    }
+
+    // tambahkan accessor
+    protected $appends = ['pic_name'];
+
+    public function getPicNameAttribute()
+    {
+        return $this->picUser?->name;
     }
 }

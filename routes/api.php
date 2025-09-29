@@ -5,8 +5,10 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\Engineer\CategorieLogApiController;
 use App\Http\Controllers\API\Engineer\DocumentApiController;
 use App\Http\Controllers\API\Engineer\DocumentPreparationApiController;
+use App\Http\Controllers\API\Engineer\EngineerDashboardApiController;
 use App\Http\Controllers\API\Engineer\EngineerPhcDocumentiApi;
 use App\Http\Controllers\API\Engineer\ManPowerAllocationApiController;
+use App\Http\Controllers\API\Engineer\ScopeOfWorkProjectApiController;
 use App\Http\Controllers\API\Engineer\WorkOrderApiController;
 use App\Http\Controllers\API\LogController;
 use App\Http\Controllers\API\Marketing\BillOfQuantityController;
@@ -22,8 +24,9 @@ use App\Http\Controllers\API\Marketing\SalesReportApiController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\SUC\MaterialRequestApiController;
 use App\Http\Controllers\API\SUC\PackingListApiController;
+use App\Http\Controllers\API\users\DepartmentController;
+use App\Http\Controllers\API\users\RoleController;
 use App\Http\Controllers\API\users\UsersController;
-use App\Http\Controllers\Engineer\EngineerPhcController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -43,7 +46,30 @@ Route::get('/user', [AuthController::class, 'me']);
 // Semua route berikut butuh auth:sanctum
 Route::middleware('auth:api')->group(function () {
 
+    Route::get('/engineer/dashboard', [EngineerDashboardApiController::class, 'index']);
+
+
     Route::get('/users', [UsersController::class, 'index']);
+    Route::post('/users', [UsersController::class, 'store']);
+    Route::get('/users/{user}', [UsersController::class, 'show']);
+    Route::put('/users/{user}', [UsersController::class, 'update']);
+    Route::delete('/users/{user}', [UsersController::class, 'destroy']);
+
+    // Roles
+    Route::get('/roles', [RoleController::class, 'index']);
+    Route::get('/roles/onlyType1',[RoleController::class, 'roleOnlyType1']);
+    Route::post('/roles', [RoleController::class, 'store']);
+    Route::get('/roles/{id}', [RoleController::class, 'show']);
+    Route::put('/roles/{id}', [RoleController::class, 'update']);
+    Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
+
+    // Departments
+    Route::get('/departments', [DepartmentController::class, 'index']);
+    Route::post('/departments', [DepartmentController::class, 'store']);
+    Route::get('/departments/{id}', [DepartmentController::class, 'show']);
+    Route::put('/departments/{id}', [DepartmentController::class, 'update']);
+    Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
+
     Route::get('/phc/users/engineering', [UsersController::class, 'engineeringUsers']);
     Route::get('/phc/users/marketing', [UsersController::class, 'marketingUsers']);
     Route::get('/users/engineer-only', [UsersController::class, 'engineerOnly']);
@@ -56,12 +82,18 @@ Route::middleware('auth:api')->group(function () {
     Route::get('approvals', [ApprovallController::class, 'index']);
     // Detail approval
     Route::get('approvals/{id}', [ApprovallController::class, 'show']);
-    // Update status dengan pin
-    Route::post('approvals/{id}/status', [ApprovallController::class, 'updateStatus']);
 
+    Route::post('approvals/log/{id}/status', [ApprovallController::class, 'updateStatusLog']);
     Route::post('approvals/wo/{id}/status', [ApprovallController::class, 'updateStatusWo']);
+    Route::post('approvals/{id}/status', [ApprovallController::class, 'updateStatus']); 
+
+
+    
 
     Route::get('/phc/{id}', [MarketingPhcApiController::class, 'show']);
+
+    
+
     
     // Route::middleware('role:super_admin,marketing_director,engineering_director,supervisor marketing,manager_marketing,sales_supervisor,marketing_admin,marketing_estimator')
     //     ->group(function () {
@@ -178,11 +210,14 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/mr-summary', [MaterialRequestApiController::class, 'getMrSummary']);
 
     Route::get('/work-order/{pn_number}', [WorkOrderApiController::class, 'index']); // GET by PN
+    Route::get('/work-orders/next-code', [WorkOrderApiController::class, 'nextCode']);
     Route::get('/work-order/detail/{id}', [WorkOrderApiController::class, 'show']);
+    Route::get('/work-orders/{id}/pdf', [WorkOrderApiController::class, 'downloadPdf']);
     Route::post('/work-order', [WorkOrderApiController::class, 'store']);           // CREATE
     Route::put('/work-order/{id}', [WorkOrderApiController::class, 'update']);       // UPDATE
     Route::get('/wo-summary', [WorkOrderApiController::class, 'getWoSummary']);
-    Route::get('/work-orders/next-code', [WorkOrderApiController::class, 'nextCode']);
+    
+    
 
     // List all allocations by project PN number
     Route::get('man-power/{pn_number}', [ManPowerAllocationApiController::class, 'index']);
@@ -225,6 +260,14 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/categories-log/{id}', [CategorieLogApiController::class, 'destroy']);
 
     Route::patch('/logs/{id}/close', [App\Http\Controllers\API\LogController::class, 'close']);
+
+    Route::get('/scope-of-work', [ScopeOfWorkProjectApiController::class, 'index']);
+    Route::post('/scope-of-work', [ScopeOfWorkProjectApiController::class, 'store']);
+    Route::get('/scope-of-work/{id}', [ScopeOfWorkProjectApiController::class, 'show']);
+    Route::put('/scope-of-work/{id}', [ScopeOfWorkProjectApiController::class, 'update']);
+    Route::delete('/scope-of-work/{id}', [ScopeOfWorkProjectApiController::class, 'destroy']);
+
+    
 
     
 });     

@@ -13,9 +13,14 @@ return new class extends Migration
     {
         Schema::create('scope_of_work_projects', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('scope_of_work_id')->constrained('scope_of_works')->noActionOnDelete();
-            $table->foreignId('project_id')->constrained('projects', 'pn_number')->noActionOnDelete();
-            $table->text('description');
+            $table->foreignId('project_id')
+                ->constrained('projects', 'pn_number')
+                ->noActionOnDelete();
+            $table->text('work_details');
+            $table->foreignId('pic')->nullable()->constrained('users', 'id');
+            $table->dateTime('target_finish_date')->nullable();
+            $table->dateTime('start_date')->nullable();
+            $table->dateTime('finish_date')->nullable();
             $table->timestamps();
         });
     }

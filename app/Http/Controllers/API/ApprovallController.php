@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Approval;
+use App\Models\Log;
 use App\Models\PHC;
 use App\Models\WorkOrder;
 use Illuminate\Http\Request;
@@ -167,6 +168,58 @@ class ApprovallController extends Controller
             'approved_by' => $wo->approved_by,
         ]);
     }
+
+    // Update status approval Log
+    public function updateStatusLog(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|string|in:approved,rejected',
+            'pin' => 'required|string',
+        ]);
+
+        $approval = Approval::where('user_id', $request->user()->id)
+            ->where('approvable_type', Log::class)
+            ->with('user', 'approvable.project')
+            ->findOrFail($id);
+
+        $user = $approval->user;
+        $pinDb = $user->pin;
+
+        // cek PIN
+        if (str_starts_with($pinDb, '$2y$') && strlen($pinDb) === 60) {
+            $isValid = Hash::check($request->pin, $pinDb);
+        } else {
+            $isValid = $request->pin === $pinDb;
+        }
+
+        if (!$isValid) {
+            return response()->json(['message' => 'PIN tidak valid'], 403);
+        }
+
+        // hash PIN jika belum di-hash
+        if (!str_starts_with($pinDb, '$2y$') || strlen($pinDb) !== 60) {
+            $user->pin = Hash::make($request->pin);
+            $user->save();
+        }
+
+        // update status approval
+        $approval->update([
+            'status' => $request->status,
+            'validated_at' => now(),
+        ]);
+
+        $logs = $approval->approvable;
+
+        return response()->json([
+            'message' => "Approval berhasil {$request->status}",
+            'approval' => $approval,
+            'wo_status' => $logs->status,
+            'approved_by' => $logs->approved_by,
+        ]);
+    }
+
+
+
 
 
 }

@@ -152,9 +152,9 @@ class MarketingPhcApiController extends Controller
         }
 
         $validated = $request->validate([
-            'handover_date' => 'nullable|date',
-            'start_date' => 'nullable|date',
-            'target_finish_date' => 'nullable|date',
+            'handover_date' => 'required|date',
+            'start_date' => 'required|date',
+            'target_finish_date' => 'required|date',
             'client_pic_name' => 'nullable|string',
             'client_mobile' => 'nullable|string',
             'client_reps_office_address' => 'nullable|string',
@@ -180,6 +180,9 @@ class MarketingPhcApiController extends Controller
                 $validated[$field] = $mapRadio($validated[$field]);
             }
         }
+
+         $phc->update($validated);
+
 
         $newApprovers = [];
 
@@ -233,6 +236,7 @@ class MarketingPhcApiController extends Controller
                 }
             }
         }
+       
         return response()->json([
             'success' => true,
             'message' => 'PHC berhasil diperbarui',

@@ -13,7 +13,6 @@ return new class extends Migration {
         Schema::create('phcs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')
-                ->nullable()
                 ->constrained('projects', 'pn_number')
                 ->noActionOnDelete();
             $table->foreignId('ho_marketings_id')
