@@ -283,5 +283,6 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('/outstanding-projects', [OutstandingProjectApiController::class, 'index']);
 
+    Route::post('engineer/projects/{pn_number}/status', [EngineerProjectApiController::class, 'updateStatus']);
     
 });     

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Engineer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -50,6 +51,34 @@ class EngineerProjectApiController extends Controller
 
         return response()->json([
             'data' => $projects,
+        ]);
+    }
+
+    public function updateStatus(Request $request, $pn_number)
+    {
+        // Validasi request
+        $validated = $request->validate([
+            'status_project_id' => [
+                'required',
+                'integer',
+            ],
+        ]);
+
+        // Ambil project berdasarkan pn_number
+        $project = Project::where('pn_number', $pn_number)->first();
+
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        // Update status
+        $project->status_project_id = $validated['status_project_id'];
+        $project->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Project status updated successfully',
+            'data' => $project,
         ]);
     }
 }
