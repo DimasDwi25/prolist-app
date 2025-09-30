@@ -23,8 +23,6 @@ class UsersController extends Controller
 
     }
 
-    
-
     public function engineeringUsers()
     {
         $users = User::whereHas('role', function ($q) {
@@ -69,14 +67,15 @@ class UsersController extends Controller
 
     public function engineerOnly()
     {
+        // pastikan role_id dan id sama tipe bigint
         $users = User::whereHas('role', function ($q) {
-                $q->whereIn('name', [
-                    'engineer',
-                    'electrician'
-                ]);
-            })
-            ->with('role')
-            ->get();
+            $q->whereIn('name', ['engineer', 'electrician']);
+        })
+        ->with(['role' => function ($q) {
+            $q->select(['id', 'name', 'type_role']); // pilih field spesifik
+        }])
+        ->select(['id', 'name', 'email', 'role_id']) // pilih field spesifik
+        ->get();
 
         return response()->json([
             'success' => true,
@@ -88,6 +87,7 @@ class UsersController extends Controller
     {
         $roles = Role::where('type_role', 2)
             ->whereIn('name', ['engineer', 'electrician'])
+            ->select(['id', 'name', 'type_role']) // pilih field spesifik
             ->get();
 
         return response()->json([
@@ -95,6 +95,7 @@ class UsersController extends Controller
             'data' => $roles,
         ]);
     }
+
 
     public function manPowerUsers()
     {

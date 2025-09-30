@@ -30,7 +30,7 @@ class AuthController extends Controller
             'sales_supervisor'     => '/marketing',
             'marketing_admin'      => '/marketing',
             'estimator'            => '/estimator',
-            'engineer'             => '/engineer',
+            'engineer'             => '/man-power',
             'project controller'   => '/engineer',
             'project manager'  => '/engineer',
             'engineering_director' => '/engineer',

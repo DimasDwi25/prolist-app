@@ -84,5 +84,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->role()->whereIn('name', (array)$roles)->exists();
     }
 
+    public function manPowerAllocations()
+    {
+        return $this->hasMany(ManPowerAllocation::class);
+    }
+
+
     
 }

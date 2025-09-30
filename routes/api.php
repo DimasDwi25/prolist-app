@@ -7,7 +7,10 @@ use App\Http\Controllers\API\Engineer\DocumentApiController;
 use App\Http\Controllers\API\Engineer\DocumentPreparationApiController;
 use App\Http\Controllers\API\Engineer\EngineerDashboardApiController;
 use App\Http\Controllers\API\Engineer\EngineerPhcDocumentiApi;
+use App\Http\Controllers\API\Engineer\EngineerProjectApiController;
 use App\Http\Controllers\API\Engineer\ManPowerAllocationApiController;
+use App\Http\Controllers\API\Engineer\OutstandingProjectApiController;
+use App\Http\Controllers\API\Engineer\PurposeWorkOrderApiController;
 use App\Http\Controllers\API\Engineer\ScopeOfWorkProjectApiController;
 use App\Http\Controllers\API\Engineer\WorkOrderApiController;
 use App\Http\Controllers\API\LogController;
@@ -51,6 +54,10 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('/users', [UsersController::class, 'index']);
     Route::post('/users', [UsersController::class, 'store']);
+    Route::get('/users/engineer-only', [UsersController::class, 'engineerOnly']);
+    Route::get('/users/roleTypeTwoOnly', [UsersController::class, 'roleTypeTwoOnly']);
+    Route::get('/users/manPowerUsers', [UsersController::class, 'manPowerUsers']);
+    Route::get('/users/manPowerRoles', [UsersController::class, 'manPowerRoles']);
     Route::get('/users/{user}', [UsersController::class, 'show']);
     Route::put('/users/{user}', [UsersController::class, 'update']);
     Route::delete('/users/{user}', [UsersController::class, 'destroy']);
@@ -72,11 +79,9 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('/phc/users/engineering', [UsersController::class, 'engineeringUsers']);
     Route::get('/phc/users/marketing', [UsersController::class, 'marketingUsers']);
-    Route::get('/users/engineer-only', [UsersController::class, 'engineerOnly']);
-    Route::get('/users/roleTypeTwoOnly', [UsersController::class, 'roleTypeTwoOnly']);
+    
 
-    Route::get('/users/manPowerUsers', [UsersController::class, 'manPowerUsers']);
-    Route::get('/users/manPowerRoles', [UsersController::class, 'manPowerRoles']);
+    
     
     // List semua approval user
     Route::get('approvals', [ApprovallController::class, 'index']);
@@ -247,6 +252,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logs', [LogController::class, 'store']);
     Route::put('/logs/{id}', [LogController::class, 'update']);
     Route::delete('/logs/{id}', [LogController::class, 'destroy']);
+    Route::patch('/logs/{id}/close', [LogController::class, 'close']);
 
     // Tampilkan semua kategori
     Route::get('/categories-log', [CategorieLogApiController::class, 'index']);
@@ -259,7 +265,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::delete('/categories-log/{id}', [CategorieLogApiController::class, 'destroy']);
 
-    Route::patch('/logs/{id}/close', [App\Http\Controllers\API\LogController::class, 'close']);
+    
 
     Route::get('/scope-of-work', [ScopeOfWorkProjectApiController::class, 'index']);
     Route::post('/scope-of-work', [ScopeOfWorkProjectApiController::class, 'store']);
@@ -267,7 +273,15 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/scope-of-work/{id}', [ScopeOfWorkProjectApiController::class, 'update']);
     Route::delete('/scope-of-work/{id}', [ScopeOfWorkProjectApiController::class, 'destroy']);
 
-    
+    Route::get('/purpose-work-orders', [PurposeWorkOrderApiController::class, 'index']);
+    Route::get('/purpose-work-orders/{id}', [PurposeWorkOrderApiController::class, 'show']);
+    Route::post('/purpose-work-orders', [PurposeWorkOrderApiController::class, 'store']);
+    Route::put('/purpose-work-orders/{id}', [PurposeWorkOrderApiController::class, 'update']);
+    Route::delete('/purpose-work-orders/{id}', [PurposeWorkOrderApiController::class, 'destroy']);
+
+    Route::get('/project/man-power', [EngineerProjectApiController::class, 'engineerProjects']);
+
+    Route::get('/outstanding-projects', [OutstandingProjectApiController::class, 'index']);
 
     
 });     

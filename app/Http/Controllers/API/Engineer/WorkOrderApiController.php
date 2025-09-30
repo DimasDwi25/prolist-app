@@ -25,7 +25,7 @@ class WorkOrderApiController extends Controller
     {
         $project = Project::where('pn_number', $pn_number)->firstOrFail();
 
-        $workOrders = WorkOrder::with(['pics.user', 'pics.role', 'descriptions'])
+        $workOrders = WorkOrder::with(['pics.user', 'pics.role', 'descriptions', 'purpose'])
             ->where('project_id', $project->pn_number)
             ->get();
 
@@ -197,7 +197,7 @@ class WorkOrderApiController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $workOrder = WorkOrder::with(['pics', 'descriptions'])->findOrFail($id);
+        $workOrder = WorkOrder::with(['pics', 'descriptions', 'purpose'])->findOrFail($id);
 
         $data = $request->validate([
             'total_mandays_eng' => 'sometimes|integer|min:0',

@@ -45,7 +45,7 @@ class LogController extends Controller
 
     // cek 1 log per hari
     $exists = Log::where('users_id', $userId) // sesuai kolom di DB
-        ->where('project_id', $project->id)
+        ->where('project_id', $project->pn_number)
         ->whereDate('tgl_logs', $today)
         ->exists();
 
@@ -68,7 +68,7 @@ class LogController extends Controller
     ]);
 
     $validated['users_id'] = $userId; // pakai users_id
-    $validated['project_id'] = $project->id; // pastikan ID numeric
+    $validated['project_id'] = $project->pn_number; // pastikan ID numeric
 
     // Tentukan status otomatis
     if (!empty($validated['need_response']) && !empty($validated['response_by'])) {

@@ -128,7 +128,7 @@ class Project extends Model
 
     public function logs()
     {
-        return $this->hasMany(\App\Models\Log::class);
+        return $this->hasMany(Log::class, 'project_id', 'pn_number');
     }
 
     public function schedules()

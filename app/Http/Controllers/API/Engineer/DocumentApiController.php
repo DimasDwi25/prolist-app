@@ -60,13 +60,14 @@ class DocumentApiController extends Controller
     // DELETE /api/document-phc/{id}
     public function destroy($id)
     {
-        $document = DocumentPhc::find($id);
+        $doc = DocumentPhc::findOrFail($id);
 
-        if (!$document) {
-            return response()->json(['message' => 'Not Found'], 404);
-        }
+        // hapus anak
+        $doc->preparations()->delete();
 
-        $document->delete();
+        // hapus parent
+        $doc->delete();
+
 
         return response()->json(['message' => 'Deleted successfully']);
     }
