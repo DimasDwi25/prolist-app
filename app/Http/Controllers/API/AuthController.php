@@ -32,12 +32,15 @@ class AuthController extends Controller
             'estimator'            => '/estimator',
             'engineer'             => '/man-power',
             'project controller'   => '/engineer',
-            'project manager'  => '/engineer',
+            'project manager'      => '/engineer',
             'engineering_director' => '/engineer',
             'marketing_estimator'  => '/marketing',
-            'warehouse' => '/suc',
-            'engineering_admin' => '/engineer'
+            'warehouse'            => '/suc',
+            'engineering_admin'    => '/engineer',
         ];
+
+        // Buat refresh token
+        $refreshToken = auth('api')->setTTL(config('jwt.refresh_ttl'))->attempt($credentials);
 
         return response()->json([
             'user'         => $user,
@@ -45,9 +48,41 @@ class AuthController extends Controller
             'redirect_url' => $roleRedirects[$role] ?? '/unauthorized',
             'token'        => $token,
             'token_type'   => 'bearer',
-            'expires_in'   => auth('api')->factory()->getTTL() * 60, // ✅ fix
-        ]);
+            'expires_in'   => auth('api')->factory()->getTTL() * 60,
+        ])->cookie(
+            'refresh_token', // nama cookie
+            $refreshToken,   // nilai refresh token
+            config('jwt.refresh_ttl'), // waktu (menit)
+            '/', null, true, true, false, 'Strict'
+        );
     }
+
+    public function refresh(Request $request)
+    {
+        try {
+            $refreshToken = $request->cookie('refresh_token');
+            if (!$refreshToken) {
+                return response()->json(['error' => 'No refresh token'], 401);
+            }
+
+            $newToken = auth('api')->setToken($refreshToken)->refresh();
+
+            return response()->json([
+                'token'      => $newToken,
+                'token_type' => 'bearer',
+                'expires_in' => auth('api')->factory()->getTTL() * 60,
+            ])->cookie(
+                'refresh_token',
+                auth('api')->claims([])->setTTL(config('jwt.refresh_ttl'))->refresh(),
+                config('jwt.refresh_ttl'),
+                '/', null, true, true, false, 'Strict'
+            );
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Refresh failed'], 401);
+        }
+    }
+
+
 
     public function me()
     {
