@@ -9,6 +9,7 @@ use App\Http\Controllers\API\Engineer\EngineerDashboardApiController;
 use App\Http\Controllers\API\Engineer\EngineerPhcDocumentiApi;
 use App\Http\Controllers\API\Engineer\EngineerProjectApiController;
 use App\Http\Controllers\API\Engineer\ManPowerAllocationApiController;
+use App\Http\Controllers\API\Engineer\ManPowerProjectApiController;
 use App\Http\Controllers\API\Engineer\OutstandingProjectApiController;
 use App\Http\Controllers\API\Engineer\PurposeWorkOrderApiController;
 use App\Http\Controllers\API\Engineer\ScopeOfWorkProjectApiController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\API\Marketing\MarketingReportApiController;
 use App\Http\Controllers\API\Marketing\MarketingStatusProjectController;
 use App\Http\Controllers\API\Marketing\SalesReportApiController;
 use App\Http\Controllers\API\NotificationController;
+use App\Http\Controllers\API\ProfileApiController;
 use App\Http\Controllers\API\SUC\MaterialRequestApiController;
 use App\Http\Controllers\API\SUC\PackingListApiController;
 use App\Http\Controllers\API\users\DepartmentController;
@@ -51,6 +53,14 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('/engineer/dashboard', [EngineerDashboardApiController::class, 'index']);
 
+    // Cek profil user
+    Route::get('/account/profile', [ProfileApiController::class, 'profile']);
+
+    // Update password
+    Route::post('/account/password', [ProfileApiController::class, 'updatePassword']);
+
+    // Update PIN
+    Route::post('/account/pin', [ProfileApiController::class, 'updatePin']);
 
     Route::get('/users', [UsersController::class, 'index']);
     Route::post('/users', [UsersController::class, 'store']);
@@ -223,6 +233,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/wo-summary', [WorkOrderApiController::class, 'getWoSummary']);
     
     
+    Route::get('/man-power/projects', [ManPowerProjectApiController::class, 'index']);
 
     // List all allocations by project PN number
     Route::get('man-power/{pn_number}', [ManPowerAllocationApiController::class, 'index']);
@@ -284,5 +295,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/outstanding-projects', [OutstandingProjectApiController::class, 'index']);
 
     Route::post('engineer/projects/{pn_number}/status', [EngineerProjectApiController::class, 'updateStatus']);
+
+    Route::post('/users/{user}/upload-photo', [UsersController::class, 'uploadPhoto']);
+
+    
     
 });     

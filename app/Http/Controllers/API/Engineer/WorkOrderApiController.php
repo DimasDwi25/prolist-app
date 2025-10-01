@@ -157,9 +157,28 @@ class WorkOrderApiController extends Controller
                     $wo->descriptions()->createMany($data['descriptions']);
                 }
 
+                $mandaysEngineerRoles = [
+                    'engineer',
+                    'project_manager',
+                    'site_manager',
+                    'site_supervisor',
+                    'site_admin',
+                    'foreman',
+                    'project_controller',
+                    'document_controller',
+                    'hse',
+                    'quality_control',
+                    'site_warehouse',
+                ];
+
                 // Hitung mandays
-                $totalEng = $wo->pics()->whereHas('role', fn($q) => $q->where('name', 'engineer'))->count();
-                $totalElect = $wo->pics()->whereHas('role', fn($q) => $q->where('name', 'electrician'))->count();
+               $totalEng = $wo->pics()
+                    ->whereHas('role', fn($q) => $q->whereIn('name', $mandaysEngineerRoles))
+                    ->count();
+
+                $totalElect = $wo->pics()
+                    ->whereHas('role', fn($q) => $q->where('name', 'electrician'))
+                    ->count();
 
                 $wo->update([
                     'total_mandays_eng'   => $totalEng,
@@ -260,14 +279,33 @@ class WorkOrderApiController extends Controller
                 $workOrder->descriptions()->createMany($descriptions);
             }
 
-            // Recalculate mandays berdasarkan PIC
-            $totalEng = $workOrder->pics()
-                ->whereHas('role', fn($q) => $q->where('name', 'engineer'))
-                ->count();
+            $mandaysEngineerRoles = [
+                    'engineer',
+                    'project_manager',
+                    'site_manager',
+                    'site_supervisor',
+                    'site_admin',
+                    'foreman',
+                    'project_controller',
+                    'document_controller',
+                    'hse',
+                    'quality_control',
+                    'site_warehouse',
+                ];
 
-            $totalElect = $workOrder->pics()
-                ->whereHas('role', fn($q) => $q->where('name', 'electrician'))
-                ->count();
+                // Hitung mandays
+               $totalEng = $workOrder->pics()
+                    ->whereHas('role', fn($q) => $q->whereIn('name', $mandaysEngineerRoles))
+                    ->count();
+
+                $totalElect = $workOrder->pics()
+                    ->whereHas('role', fn($q) => $q->where('name', 'electrician'))
+                    ->count();
+
+                $workOrder->update([
+                    'total_mandays_eng'   => $totalEng,
+                    'total_mandays_elect' => $totalElect,
+                ]);
 
             $workOrder->update([
                 'total_mandays_eng'   => $totalEng,
@@ -317,7 +355,8 @@ class WorkOrderApiController extends Controller
 
     public function show($id)
     {
-        $workOrder = WorkOrder::with(['pics.user', 'pics.role', 'descriptions', 'project.quotation.client', 'project.client', 'creator'])->find($id);
+        $workOrder = WorkOrder::with(['pics.user', 'pics.role', 'descriptions', 'project.quotation.client', 'project.client', 'creator', 'purpose','acceptor',
+            'approver'])->find($id);
 
         if (!$workOrder) {
             return response()->json([
@@ -334,24 +373,45 @@ class WorkOrderApiController extends Controller
 
     public function downloadPdf($id)
     {
-        $workOrder = WorkOrder::findOrFail($id);
+        $workOrder = WorkOrder::with([
+            'descriptions',
+            'project.client',
+            'pics.user',
+            'pics.role',
+            'purpose',
+            'creator',
+            'acceptor',
+            'approver'
+        ])->findOrFail($id);
 
-        $data = [
-            ["desc" => "Membersihkan filter udara mesin utama dengan kompresor.", "result" => "Done"],
-            ["desc" => "Melakukan penggantian oli hidrolik pada mesin press.", "result" => "In Progress"],
-            ["desc" => "Mengecek sistem pendingin.", "result" => "Pending"],
-            ["desc" => "Periksa sistem kelistrikan panel distribusi utama.", "result" => "Done"],
-        ];
+        // Ambil PIC dari relasi WorkOrderPic
+        $pics = $workOrder->pics->map(function ($pic, $i) {
+            return [
+                'no'   => $i + 1,
+                'name' => $pic->user->name ?? '-',
+                'role' => $pic->role->name ?? '-',
+            ];
+        })->toArray();
 
-        $pdf = new WorkOrderPdf($workOrder, $data);
+        // Ambil data detail pekerjaan
+        $data = $workOrder->descriptions->map(function ($d) {
+            return [
+                'desc' => $d->description,
+                'result' => $d->result,
+            ];
+        })->toArray();
+
+        $pdf = new WorkOrderPdf($workOrder, $data, $pics);
         $pdf->build();
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->Output('S');
-        }, 'Work-Order-' . $workOrder->id . '.pdf', [
+        }, 'Work-Order-' . $workOrder->wo_number . '.pdf', [
             'Content-Type' => 'application/pdf',
         ]);
     }
+
+
 
 
 

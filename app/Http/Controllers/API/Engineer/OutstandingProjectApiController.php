@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ManPowerAllocation;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class OutstandingProjectApiController extends Controller
 {
@@ -48,6 +49,8 @@ class OutstandingProjectApiController extends Controller
         // Mapping hasil
         $result = $users->map(function ($user) {
             return [
+                'user_id' => $user->id,
+                'photo' => $user->photo ? Storage::url($user->photo) : null,
                 'pic' => $user->name,
                 'projects' => $user->manPowerAllocations->map(function ($allocation) {
                     return [

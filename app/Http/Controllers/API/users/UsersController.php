@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
@@ -86,7 +87,6 @@ class UsersController extends Controller
     public function roleTypeTwoOnly()
     {
         $roles = Role::where('type_role', 2)
-            ->whereIn('name', ['engineer', 'electrician'])
             ->select(['id', 'name', 'type_role']) // pilih field spesifik
             ->get();
 
@@ -192,6 +192,42 @@ class UsersController extends Controller
         return response()->json([
             'message' => 'User deleted successfully'
         ]);
+    }
+
+    public function uploadPhoto(Request $request, User $user)
+    {
+        $allowedRoles = [
+            'project manager',
+            'engineer_supervisor',
+            'engineer',
+            'electrician_supervisor',
+            'electrician',
+            'drafter',
+        ];
+
+        $request->validate([
+            'photo' => 'required|image|max:2048',
+        ]);
+
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($user->photo && Storage::exists($user->photo)) {
+                Storage::delete($user->photo);
+            }
+
+            $path = $request->file('photo')->store('user_photos', 'public');
+
+
+            $user->photo = $path;
+            $user->save();
+
+            return response()->json([
+                'message' => 'Photo uploaded successfully',
+                'data' => $user
+            ]);
+        }
+
+        return response()->json(['message' => 'No file uploaded'], 400);
     }
 
 
