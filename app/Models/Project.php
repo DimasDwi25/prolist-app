@@ -208,6 +208,14 @@ class Project extends Model
         return $this->po_date ? $this->po_date->translatedFormat('d F Y') : null;
     }
 
+    public function scopeWhereYearFromPn($query, $year)
+    {
+        $yearShort = substr($year, -2);
+        // convert bigint ke varchar agar LEFT() bisa dipakai
+        return $query->whereRaw("LEFT(CONVERT(VARCHAR(20), pn_number), 2) = ?", [$yearShort]);
+    }
+
+
 
 
     // Fungsi parser untuk input

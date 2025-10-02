@@ -160,6 +160,13 @@ class Quotation extends Model
         return $this->hasOne(Project::class, 'quotations_id');
     }
 
+    public function scopeWhereYearFromQuotation($query, $year)
+    {
+        // quotation_number = 4 digit tahun + 3 digit urut
+        return $query->whereRaw("LEFT(CONVERT(VARCHAR(20), quotation_number), 4) = ?", [$year]);
+    }
+
+
     protected $casts = [
         'inquiry_date' => 'date',
         'quotation_date' => 'date',

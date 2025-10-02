@@ -15,11 +15,11 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (! $token = Auth::attempt($credentials)) {
-            return response()->json(['error' => 'Invalid credentials.'], 401);
+        if (! $token = auth('api')->attempt($credentials)) {
+            return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
-        $user = Auth::user();
+        $user = auth('api')->user();
         $role = $user->role->name ?? null;
 
         $roleRedirects = [
@@ -39,48 +39,30 @@ class AuthController extends Controller
             'engineering_admin'    => '/engineer',
         ];
 
-        // Buat refresh token
-        $refreshToken = auth('api')->setTTL(config('jwt.refresh_ttl'))->attempt($credentials);
-
         return response()->json([
-            'user'         => $user,
-            'role'         => $role,
-            'redirect_url' => $roleRedirects[$role] ?? '/unauthorized',
-            'token'        => $token,
-            'token_type'   => 'bearer',
-            'expires_in'   => auth('api')->factory()->getTTL() * 60,
-        ])->cookie(
-            'refresh_token', // nama cookie
-            $refreshToken,   // nilai refresh token
-            config('jwt.refresh_ttl'), // waktu (menit)
-            '/', null, true, true, false, 'Strict'
-        );
+            'user'        => $user,
+            'role'        => $role,
+            'redirect_url'=> $roleRedirects[$role] ?? '/unauthorized',
+            'token'       => $token,
+            'token_type'  => 'bearer',
+            'expires_in'  => auth('api')->factory()->getTTL() * 60,
+        ]);
     }
 
-    public function refresh(Request $request)
+
+    public function refresh()
     {
         try {
-            $refreshToken = $request->cookie('refresh_token');
-            if (!$refreshToken) {
-                return response()->json(['error' => 'No refresh token'], 401);
-            }
-
-            $newToken = auth('api')->setToken($refreshToken)->refresh();
-
             return response()->json([
-                'token'      => $newToken,
+                'token' => auth('api')->refresh(),
                 'token_type' => 'bearer',
                 'expires_in' => auth('api')->factory()->getTTL() * 60,
-            ])->cookie(
-                'refresh_token',
-                auth('api')->claims([])->setTTL(config('jwt.refresh_ttl'))->refresh(),
-                config('jwt.refresh_ttl'),
-                '/', null, true, true, false, 'Strict'
-            );
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Refresh failed'], 401);
         }
     }
+
 
 
 
@@ -95,12 +77,4 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out']);
     }
 
-    public function refresh()
-    {
-        return response()->json([
-            'token'      => auth()->refresh(),
-            'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
-        ]);
-    }
 }

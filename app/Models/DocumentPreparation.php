@@ -22,7 +22,7 @@ class DocumentPreparation extends Model
     }
 
     protected $casts = [
-        'date_prepared' => 'datetime',
+        'date_prepared' => 'date:Y-m-d',
         'is_applicable' => 'boolean',
     ];
 }

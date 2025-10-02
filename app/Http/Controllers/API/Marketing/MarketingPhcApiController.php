@@ -42,12 +42,13 @@ class MarketingPhcApiController extends Controller
 
         $validated['costing_by_marketing'] = $mapRadio($request->costing_by_marketing);
         $validated['boq'] = $mapRadio($request->boq);
-        $validated['retention'] = $mapRadio($request->retention);
-        $validated['warranty'] = $mapRadio($request->warranty);
-        $validated['penalty'] = $mapRadio($request->penalty);
+        $validated['retention'] = $request->retention;
+        $validated['warranty'] = $request->warranty;
+        $validated['penalty'] = $request->penalty;
 
         $validated['created_by'] = Auth::id();
-        $validated['status'] = 'pending';
+        // $validated['status'] = 'pending';
+        $validated['status'] = 'ready';
 
         // 🔹 Buat PHC
         $phc = PHC::create($validated);
@@ -57,61 +58,61 @@ class MarketingPhcApiController extends Controller
             'phc_dates' => now(),
         ]);
 
-        $approverIds = [];
+        // $approverIds = [];
 
-        $hasMarketing = !empty($request->ho_marketings_id) || !empty($request->pic_marketing_id);
-        $hasEngineering = !empty($request->ho_engineering_id);
+        // $hasMarketing = !empty($request->ho_marketings_id) || !empty($request->pic_marketing_id);
+        // $hasEngineering = !empty($request->ho_engineering_id);
 
-        if ($hasMarketing || $hasEngineering) {
-            // 🔹 HO & PIC Marketing
-            foreach (array_filter([$request->ho_marketings_id, $request->pic_marketing_id]) as $userId) {
-                Approval::create([
-                    'approvable_type' => PHC::class,
-                    'type' => 'PHC',
-                    'approvable_id' => $phc->id,
-                    'user_id' => $userId,
-                    'status' => 'pending',
-                ]);
-                $approverIds[] = $userId;
-            }
+        // if ($hasMarketing || $hasEngineering) {
+        //     // 🔹 HO & PIC Marketing
+        //     foreach (array_filter([$request->ho_marketings_id, $request->pic_marketing_id]) as $userId) {
+        //         Approval::create([
+        //             'approvable_type' => PHC::class,
+        //             'type' => 'PHC',
+        //             'approvable_id' => $phc->id,
+        //             'user_id' => $userId,
+        //             'status' => 'pending',
+        //         ]);
+        //         $approverIds[] = $userId;
+        //     }
 
-            // 🔹 HO Engineering
-            if ($hasEngineering) {
-                Approval::create([
-                    'approvable_type' => PHC::class,
-                    'type' => 'PHC',
-                    'approvable_id' => $phc->id,
-                    'user_id' => $request->ho_engineering_id,
-                    'status' => 'pending',
-                ]);
-                User::find($request->ho_engineering_id)?->notify(new PhcValidationRequested($phc));
-                $approverIds[] = $request->ho_engineering_id;
-            } elseif ($hasMarketing && !$hasEngineering) {
-                // 🔹 Jika marketing ada tapi engineering kosong → kirim ke semua role engineering
-                $engineeringUsers = User::whereHas('role', function($q){
-                    $q->whereIn('name', ['project manager', 'project controller', 'engineering_director']);
-                })->get();
+        //     // 🔹 HO Engineering
+        //     if ($hasEngineering) {
+        //         Approval::create([
+        //             'approvable_type' => PHC::class,
+        //             'type' => 'PHC',
+        //             'approvable_id' => $phc->id,
+        //             'user_id' => $request->ho_engineering_id,
+        //             'status' => 'pending',
+        //         ]);
+        //         User::find($request->ho_engineering_id)?->notify(new PhcValidationRequested($phc));
+        //         $approverIds[] = $request->ho_engineering_id;
+        //     } elseif ($hasMarketing && !$hasEngineering) {
+        //         // 🔹 Jika marketing ada tapi engineering kosong → kirim ke semua role engineering
+        //         $engineeringUsers = User::whereHas('role', function($q){
+        //             $q->whereIn('name', ['project manager', 'project controller', 'engineering_director']);
+        //         })->get();
 
-                foreach ($engineeringUsers as $user) {
-                    Approval::create([
-                        'approvable_type' => PHC::class,
-                        'type' => 'PHC',
-                        'approvable_id' => $phc->id,
-                        'user_id' => $user->id,
-                        'status' => 'pending',
-                    ]);
-                    $user->notify(new PhcValidationRequested($phc));
-                    $approverIds[] = $user->id;
-                }
-            }
-        }
+        //         foreach ($engineeringUsers as $user) {
+        //             Approval::create([
+        //                 'approvable_type' => PHC::class,
+        //                 'type' => 'PHC',
+        //                 'approvable_id' => $phc->id,
+        //                 'user_id' => $user->id,
+        //                 'status' => 'pending',
+        //             ]);
+        //             $user->notify(new PhcValidationRequested($phc));
+        //             $approverIds[] = $user->id;
+        //         }
+        //     }
+        // }
 
         return response()->json([
             'status'  => 'success',
             'message' => 'PHC created successfully, approvals assigned.',
             'data'    => [
                 'phc'        => $phc,
-                'approvers'  => $approverIds,
+                // 'approvers'  => $approverIds,
             ]
         ]);
     }
@@ -175,7 +176,7 @@ class MarketingPhcApiController extends Controller
 
         // Mapping radio
         $mapRadio = fn($v) => $v === 'A' ? 1 : 0;
-        foreach (['boq','costing_by_marketing','retention','warranty','penalty'] as $field) {
+        foreach (['boq','costing_by_marketing'] as $field) {
             if (isset($validated[$field])) {
                 $validated[$field] = $mapRadio($validated[$field]);
             }
@@ -184,58 +185,58 @@ class MarketingPhcApiController extends Controller
          $phc->update($validated);
 
 
-        $newApprovers = [];
+        // $newApprovers = [];
 
-        $hasMarketing = !empty($validated['ho_marketings_id']) || !empty($validated['pic_marketing_id']);
-        $hasEngineering = !empty($validated['ho_engineering_id']);
+        // $hasMarketing = !empty($validated['ho_marketings_id']) || !empty($validated['pic_marketing_id']);
+        // $hasEngineering = !empty($validated['ho_engineering_id']);
 
-        if ($hasMarketing || $hasEngineering) {
-            // HO & PIC Marketing
-            foreach (['ho_marketings_id','pic_marketing_id'] as $field) {
-                if (!empty($validated[$field]) && !$phc->approvals()->where('user_id', $validated[$field])->exists()) {
-                    Approval::create([
-                        'approvable_type' => PHC::class,
-                        'type' => 'PHC',
-                        'approvable_id' => $phc->id,
-                        'user_id' => $validated[$field],
-                        'status' => 'pending',
-                    ]);
-                    $newApprovers[] = $validated[$field];
-                }
-            }
+        // if ($hasMarketing || $hasEngineering) {
+        //     // HO & PIC Marketing
+        //     foreach (['ho_marketings_id','pic_marketing_id'] as $field) {
+        //         if (!empty($validated[$field]) && !$phc->approvals()->where('user_id', $validated[$field])->exists()) {
+        //             Approval::create([
+        //                 'approvable_type' => PHC::class,
+        //                 'type' => 'PHC',
+        //                 'approvable_id' => $phc->id,
+        //                 'user_id' => $validated[$field],
+        //                 'status' => 'pending',
+        //             ]);
+        //             $newApprovers[] = $validated[$field];
+        //         }
+        //     }
 
-            // HO Engineering
-            if ($hasEngineering && !$phc->approvals()->where('user_id', $validated['ho_engineering_id'])->exists()) {
-                Approval::create([
-                    'approvable_type' => PHC::class,
-                    'type' => 'PHC',
-                    'approvable_id' => $phc->id,
-                    'user_id' => $validated['ho_engineering_id'],
-                    'status' => 'pending',
-                ]);
-                User::find($validated['ho_engineering_id'])?->notify(new PhcValidationRequested($phc));
-                $newApprovers[] = $validated['ho_engineering_id'];
-            } elseif ($hasMarketing && !$hasEngineering) {
-                // Jika marketing ada tapi engineering kosong → kirim ke semua role engineering
-                $engineeringUsers = User::whereHas('role', function($q){
-                    $q->whereIn('name', ['project manager', 'project controller', 'engineering_director']);
-                })->get();
+        //     // HO Engineering
+        //     if ($hasEngineering && !$phc->approvals()->where('user_id', $validated['ho_engineering_id'])->exists()) {
+        //         Approval::create([
+        //             'approvable_type' => PHC::class,
+        //             'type' => 'PHC',
+        //             'approvable_id' => $phc->id,
+        //             'user_id' => $validated['ho_engineering_id'],
+        //             'status' => 'pending',
+        //         ]);
+        //         User::find($validated['ho_engineering_id'])?->notify(new PhcValidationRequested($phc));
+        //         $newApprovers[] = $validated['ho_engineering_id'];
+        //     } elseif ($hasMarketing && !$hasEngineering) {
+        //         // Jika marketing ada tapi engineering kosong → kirim ke semua role engineering
+        //         $engineeringUsers = User::whereHas('role', function($q){
+        //             $q->whereIn('name', ['project manager', 'project controller', 'engineering_director']);
+        //         })->get();
 
-                foreach ($engineeringUsers as $user) {
-                    if (!$phc->approvals()->where('user_id', $user->id)->exists()) {
-                        Approval::create([
-                            'approvable_type' => PHC::class,
-                            'type' => 'PHC',
-                            'approvable_id' => $phc->id,
-                            'user_id' => $user->id,
-                            'status' => 'pending',
-                        ]);
-                        $user->notify(new PhcValidationRequested($phc));
-                        $newApprovers[] = $user->id;
-                    }
-                }
-            }
-        }
+        //         foreach ($engineeringUsers as $user) {
+        //             if (!$phc->approvals()->where('user_id', $user->id)->exists()) {
+        //                 Approval::create([
+        //                     'approvable_type' => PHC::class,
+        //                     'type' => 'PHC',
+        //                     'approvable_id' => $phc->id,
+        //                     'user_id' => $user->id,
+        //                     'status' => 'pending',
+        //                 ]);
+        //                 $user->notify(new PhcValidationRequested($phc));
+        //                 $newApprovers[] = $user->id;
+        //             }
+        //         }
+        //     }
+        // }
        
         return response()->json([
             'success' => true,
