@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
 
         // $this->call(DocumentPhcSeeder::class);
 
-        $this->call(PurposeSeeder::class);
-        
+        // $this->call(PurposeSeeder::class);
+        $this->call(WorkOrderSeeder::class);
     }
 }

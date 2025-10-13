@@ -50,23 +50,35 @@ class OutstandingProjectApiController extends Controller
         $result = $users->map(function ($user) {
             return [
                 'user_id' => $user->id,
-                'photo' => $user->photo ? Storage::url($user->photo) : null,
+               'photo' => $user->photo
+                ? (Storage::exists($user->photo)
+                    ? Storage::url($user->photo)
+                    : asset('storage/' . ltrim($user->photo, '/')))
+                : null,
+
                 'pic' => $user->name,
                 'projects' => $user->manPowerAllocations->map(function ($allocation) {
+                    $project = $allocation->project;
+
+                    if (!$project) {
+                        return null; // lewati jika project tidak ditemukan
+                    }
+
                     return [
-                        'project_number' => $allocation->project->project_number,
-                        'project_name'   => $allocation->project->project_name,
-                        'target_date'    => optional($allocation->project->phc)->target_finish_date,
-                        'status'         => $allocation->project->statusProject->name ?? '-',
-                        'logs'           => $allocation->project->logs->map(function ($log) {
+                        'project_number' => $project->project_number ?? '-',
+                        'project_name'   => $project->project_name ?? '-',
+                        'target_date'    => optional($project->phc)->target_finish_date,
+                        'status'         => $project->statusProject->name ?? '-',
+                        'logs'           => $project->logs->map(function ($log) {
                             return [
                                 'user' => $log->user->name ?? 'Unknown',
-                                'tgl'  => $log->tgl_logs?->format('Y-m-d H:i'),
+                                'tgl'  => $log->tgl_logs ? \Carbon\Carbon::parse($log->tgl_logs)->format('Y-m-d H:i') : null,
                                 'log'  => $log->logs,
                             ];
                         }),
                     ];
-                })->values(),
+                })->filter()->values(), // filter() untuk buang null result
+
             ];
         });
 

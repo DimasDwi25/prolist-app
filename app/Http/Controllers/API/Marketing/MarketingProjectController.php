@@ -114,14 +114,14 @@ class MarketingProjectController extends Controller
                 'project_progress'       => 'sometimes|integer|min:0|max:100',
                 'po_date'                => 'sometimes|date',
                 'sales_weeks'            => 'sometimes|string|max:50',
-                'po_number'              => 'sometimes|string|max:100',
+                'po_number'              => 'nullable|string|max:100',
                 'po_value'               => 'sometimes|numeric',
                 'is_confirmation_order'  => 'sometimes|boolean',
                 'parent_pn_number'       => 'sometimes|exists:projects,pn_number',
-                'client_id'              => 'sometimes|exists:clients,id',
+                'client_id'              => 'nullable|exists:clients,id',
             ]);
 
-            $validated['is_confirmation_order'] = $request->has('is_confirmation_order');
+            $validated['is_confirmation_order'] = $request->boolean('is_confirmation_order', false);
 
             $project->update($validated);
 

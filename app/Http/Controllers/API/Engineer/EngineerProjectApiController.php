@@ -58,10 +58,13 @@ class EngineerProjectApiController extends Controller
     {
         // Validasi request
         $validated = $request->validate([
-            'status_project_id' => [
-                'required',
-                'integer',
-            ],
+            'phc_dates' => 'nullable|date',
+            'material_status' => 'nullable|string',
+            'dokumen_finish_date' => 'nullable|date',
+            'engineering_finish_date' => 'nullable|date',
+            'status_project_id' => 'nullable|integer',
+            'project_progress' => 'nullable|numeric|min:0|max:100',
+            'project_finish_date' => 'nullable|date'
         ]);
 
         // Ambil project berdasarkan pn_number
@@ -71,13 +74,33 @@ class EngineerProjectApiController extends Controller
             return response()->json(['message' => 'Project not found'], 404);
         }
 
-        // Update status
-        $project->status_project_id = $validated['status_project_id'];
+        // Update fields
+        if (isset($validated['phc_dates'])) {
+            $project->phc_dates = $validated['phc_dates'];
+        }
+        if (isset($validated['material_status'])) {
+            $project->material_status = $validated['material_status'];
+        }
+        if (isset($validated['dokumen_finish_date'])) {
+            $project->dokumen_finish_date = $validated['dokumen_finish_date'];
+        }
+        if (isset($validated['engineering_finish_date'])) {
+            $project->engineering_finish_date = $validated['engineering_finish_date'];
+        }
+        if (isset($validated['status_project_id'])) {
+            $project->status_project_id = $validated['status_project_id'];
+        }
+        if (isset($validated['project_progress'])) {
+            $project->project_progress = $validated['project_progress'];
+        }
+        if (isset($validated['project_finish_date'])) {
+            $project->project_finish_date = $validated['project_finish_date'];
+        }
         $project->save();
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Project status updated successfully',
+            'message' => 'Project updated successfully',
             'data' => $project,
         ]);
     }

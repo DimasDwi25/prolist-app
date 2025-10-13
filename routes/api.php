@@ -11,9 +11,11 @@ use App\Http\Controllers\API\Engineer\EngineerProjectApiController;
 use App\Http\Controllers\API\Engineer\ManPowerAllocationApiController;
 use App\Http\Controllers\API\Engineer\ManPowerProjectApiController;
 use App\Http\Controllers\API\Engineer\OutstandingProjectApiController;
+use App\Http\Controllers\API\Engineer\ProjectFinishedSummaryApiController;
 use App\Http\Controllers\API\Engineer\PurposeWorkOrderApiController;
 use App\Http\Controllers\API\Engineer\ScopeOfWorkProjectApiController;
 use App\Http\Controllers\API\Engineer\WorkOrderApiController;
+use App\Http\Controllers\API\Engineer\WorkOrderSummaryApiController;
 use App\Http\Controllers\API\LogController;
 use App\Http\Controllers\API\Marketing\BillOfQuantityController;
 use App\Http\Controllers\API\Marketing\MarketingCategorieProject;
@@ -53,6 +55,8 @@ Route::get('/user', [AuthController::class, 'me']);
 Route::middleware('auth:api')->group(function () {
 
     Route::get('/engineer/dashboard', [EngineerDashboardApiController::class, 'index']);
+    Route::get('/projects/finished-summary', [ProjectFinishedSummaryApiController::class, 'finishedSummary']);
+    Route::get('/work-order/work-order-summary', [WorkOrderSummaryApiController::class, 'workOrderSummary']);
 
     // Cek profil user
     Route::get('/account/profile', [ProfileApiController::class, 'profile']);
@@ -298,6 +302,8 @@ Route::middleware('auth:api')->group(function () {
     Route::post('engineer/projects/{pn_number}/status', [EngineerProjectApiController::class, 'updateStatus']);
 
     Route::post('/users/{user}/upload-photo', [UsersController::class, 'uploadPhoto']);
+
+    
 
     
     

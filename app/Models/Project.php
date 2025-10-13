@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Attribute;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -37,6 +38,7 @@ class Project extends Model
         'parent_pn_number',
         'client_id',
         'pn_number',
+        'project_finish_date'
     ];
 
     public function getRouteKeyName()
@@ -172,14 +174,23 @@ class Project extends Model
         return $this->hasMany(WorkOrder::class, 'project_id');
     }
 
+    protected function phcDates(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value ? \Carbon\Carbon::parse($value)->format('Y-m-d') : null,
+        );
+    }
+
+
     protected $casts = [
-        'target_dates' => \App\Casts\IndonesianDateCast::class,
-        'po_date' => \App\Casts\IndonesianDateCast::class,
-        'phc_dates' => \App\Casts\IndonesianDateCast::class,
-        'dokumen_finish_date' => \App\Casts\IndonesianDateCast::class,
-        'engineering_finish_date' => \App\Casts\IndonesianDateCast::class,
-        'created_at' => \App\Casts\IndonesianDateCast::class,
-        'updated_at' => \App\Casts\IndonesianDateCast::class,
+        'target_dates' => 'date:Y-m-d',
+        'po_date' => 'date:Y-m-d',
+        'phc_dates' => 'date:Y-m-d',
+        'dokumen_finish_date' => 'date:Y-m-d',
+        'engineering_finish_date' => 'date:Y-m-d',
+        'created_at' => 'date:Y-m-d',
+        'updated_at' => 'date:Y-m-d',
+        'project_finish_date' => 'date:Y-m-d',
     ];
 
 

@@ -33,6 +33,9 @@ class UsersController extends Controller
                     'project manager',
                     'project controller',
                     'engineering_admin',
+                    'engineering_director',
+                    'electrician_supervisor',
+                    'drafter'
                 ]);
             })
             ->with('role')

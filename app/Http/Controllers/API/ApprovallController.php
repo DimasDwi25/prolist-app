@@ -185,7 +185,7 @@ class ApprovallController extends Controller
         $user = $approval->user;
         $pinDb = $user->pin;
 
-        // cek PIN
+        // 🔐 Validasi PIN
         if (str_starts_with($pinDb, '$2y$') && strlen($pinDb) === 60) {
             $isValid = Hash::check($request->pin, $pinDb);
         } else {
@@ -196,27 +196,46 @@ class ApprovallController extends Controller
             return response()->json(['message' => 'PIN tidak valid'], 403);
         }
 
-        // hash PIN jika belum di-hash
+        // 🔒 Hash PIN jika belum di-hash
         if (!str_starts_with($pinDb, '$2y$') || strlen($pinDb) !== 60) {
             $user->pin = Hash::make($request->pin);
             $user->save();
         }
 
-        // update status approval
+        // ✅ Update status approval
         $approval->update([
             'status' => $request->status,
             'validated_at' => now(),
         ]);
 
-        $logs = $approval->approvable;
+        // 🔄 Ambil model Log yang di-approve
+        $log = $approval->approvable;
+
+        // ✅ Jika disetujui → update status log
+        if ($request->status === 'approved') {
+            $log->update([
+                'status' => 'approved',
+                'closing_date' => now(),
+                'closing_users' => $user->id,
+            ]);
+        }
+
+        // ❌ Jika ditolak → ubah status log jadi 'rejected'
+        if ($request->status === 'rejected') {
+            $log->update([
+                'status' => 'rejected',
+            ]);
+        }
 
         return response()->json([
             'message' => "Approval berhasil {$request->status}",
             'approval' => $approval,
-            'wo_status' => $logs->status,
-            'approved_by' => $logs->approved_by,
+            'log_status' => $log->status,
+            'closing_user' => $log->closing_users,
+            'closing_date' => $log->closing_date,
         ]);
     }
+
 
 
 
