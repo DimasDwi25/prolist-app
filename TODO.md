@@ -1,0 +1,4 @@
+-   [x] Modify SalesReportApiController index method to accept Request $request and implement filtering logic for projects based on year, range_type, month, from_date, to_date using created_at
+-   [x] Add getYears method to extract years from pn_number
+-   [x] Update response to include totalProjectValue and filters
+-   [ ] Test the API endpoint

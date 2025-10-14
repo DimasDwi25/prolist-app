@@ -151,14 +151,22 @@ class ApprovallController extends Controller
                 ->where('user_id', '!=', $user->id)
                 ->delete();
 
-            // Catat user yang approve di field approved_by
-            $wo->update([
-                'approved_by' => $user->id,
-                'status' => 'approved',
-            ]);
+            // Jika status WO adalah waiting client approval, ini adalah approval kedua
+            if ($wo->status === WorkOrder::STATUS_WAITING_CLIENT) {
+                $wo->update([
+                    'accepted_by' => $user->id,
+                    'status' => WorkOrder::STATUS_FINISHED,
+                ]);
+            } else {
+                // Approval pertama
+                $wo->update([
+                    'approved_by' => $user->id,
+                    'status' => WorkOrder::STATUS_APPROVED,
+                ]);
+            }
         } elseif ($request->status === 'rejected') {
             // Jika rejected, tetap tunggu approval lain
-            $wo->update(['status' => 'waiting approval']);
+            $wo->update(['status' => WorkOrder::STATUS_WAITING_APPROVAL]);
         }
 
         return response()->json([
