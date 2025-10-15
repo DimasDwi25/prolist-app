@@ -152,6 +152,20 @@ class SupervisorPhcController extends Controller
 
         // 🔹 Tidak ada approval untuk PIC Engineering
 
+        // 🔹 Jika tidak ada approver yang dipilih, kirim notifikasi ke roles tertentu
+        if (empty($allApproverIds)) {
+            $fallbackUsers = User::whereHas('role', function ($q) {
+                $q->whereIn('name', [
+                    'project manager',
+                    'project controller',
+                    'engineering_admin',
+                    'sales_supervisor',
+                    'supervisor marketing'
+                ]);
+            })->pluck('id')->toArray();
+            $allApproverIds = array_merge($allApproverIds, $fallbackUsers);
+        }
+
         // 🔹 Event approver
         $allApproverIds = array_unique($allApproverIds);
         event(new PhcCreatedEvent($phc, $allApproverIds));

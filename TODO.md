@@ -1,8 +1,4 @@
-# Update Overdue Project Logic in EngineerDashboardApiController
-
-## Tasks
-
--   [x] Update getProjectsByCriteria method to exclude projects with status 'Engineering Work Completed' or 'Project Finished' instead of checking engineering_finish_date
--   [x] Update top5Overdue query in getProjectLists to exclude projects with status 'Engineering Work Completed' or 'Project Finished'
--   [x] Update projectOnTrackList query in getProjectLists to exclude projects with status 'Engineering Work Completed' or 'Project Finished'
--   [ ] Test the changes to ensure overdue projects are correctly filtered
+-   [x] Modify LogController.php store method to skip 1 log per day validation for 'project controller' and 'engineering_admin' roles
+-   [x] Allow delegation by adding optional 'users_id' field in validation for those roles
+-   [x] Set users_id to request value or auth id
+-   [ ] Test the changes

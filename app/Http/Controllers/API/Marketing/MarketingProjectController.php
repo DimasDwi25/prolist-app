@@ -201,4 +201,95 @@ class MarketingProjectController extends Controller
             ]);
     }
 
+    public function nextProjectNumber()
+    {
+        $yearShort = now()->format('y'); // '25'
+        $start = (int) ($yearShort . '000');
+        $end = (int) ($yearShort . '999');
+
+        $last = Project::whereBetween('pn_number', [$start, $end])
+            ->orderByDesc('pn_number')
+            ->first();
+
+        if ($last) {
+            $lastNumber = (int) substr((string) $last->pn_number, 2);
+            $next = $lastNumber + 1;
+        } else {
+            $next = 1;
+        }
+
+        return response()->json([
+            'next_number' => str_pad($next, 3, '0', STR_PAD_LEFT),
+            'year' => $yearShort
+        ]);
+    }
+
+    public function storeCustom(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'project_name'           => 'required|string|max:255',
+                'categories_project_id'  => 'nullable|exists:project_categories,id',
+                'quotations_id'          => 'required|exists:quotations,quotation_number',
+                'phc_dates'              => 'nullable|date',
+                'mandays_engineer'       => 'nullable|integer',
+                'mandays_technician'     => 'nullable|integer',
+                'target_dates'           => 'nullable|date',
+                'status_project_id'      => 'nullable|exists:status_projects,id',
+                'po_date'                => 'nullable|date',
+                'sales_weeks'            => 'nullable|string|max:50',
+                'po_number'              => 'nullable|string|max:100',
+                'po_value'               => 'nullable|numeric',
+                'is_confirmation_order'  => 'nullable|boolean',
+                'parent_pn_number'       => 'nullable|exists:projects,pn_number',
+                'client_id'              => 'nullable|exists:clients,id',
+                'project_no'             => 'nullable|integer|min:1|max:999',
+            ]);
+
+            // Set default false jika checkbox tidak dicentang
+            $validated['is_confirmation_order'] = $request->boolean('is_confirmation_order', false);
+
+            // default category = 1 kalau tidak ada input
+            $validated['status_project_id'] = $request->input('status_project_id', 1);
+
+            // Handle custom project number
+            $yearShort = now()->format('y');
+            if ($request->has('project_no') && $request->project_no) {
+                $projectNo = $request->project_no;
+            } else {
+                // Auto generate next
+                $start = (int) ($yearShort . '000');
+                $end = (int) ($yearShort . '999');
+                $last = Project::whereBetween('pn_number', [$start, $end])
+                    ->orderByDesc('pn_number')
+                    ->first();
+                if ($last) {
+                    $lastNumber = (int) substr((string) $last->pn_number, 2);
+                    $projectNo = $lastNumber + 1;
+                } else {
+                    $projectNo = 1;
+                }
+            }
+
+            $validated['pn_number'] = (int) ($yearShort . str_pad($projectNo, 3, '0', STR_PAD_LEFT));
+            $validated['project_number'] = Project::generateProjectNumber($validated['pn_number'], false);
+
+            $project = Project::create($validated);
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Project created successfully',
+                'data'    => $project,
+            ]);
+        } catch (\Throwable $e) {
+            FacadesLog::error($e->getMessage());
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Failed to create project',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }

@@ -21,9 +21,9 @@ Broadcast::channel('logs.project.{projectId}', function ($user, $projectId) {
     return true; // atau tambahkan pengecekan user punya akses
 });
 
-Broadcast::channel('phc.notifications', function ($user) {
-    // Hanya izinkan 4 user tertentu
-    return in_array($user->id, [1, 2, 3, 4]); // Ganti dengan ID user target
+Broadcast::channel('phc.notifications.{userId}', function ($user, $userId) {
+    // Hanya izinkan user yang sesuai dengan userId di channel
+    return (int) $user->id === (int) $userId;
 });
 
 Broadcast::channel('notifications.{userId}', function ($user, $userId) {

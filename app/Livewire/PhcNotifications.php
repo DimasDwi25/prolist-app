@@ -7,8 +7,8 @@ use Livewire\Component;
 class PhcNotifications extends Component
 {
     protected $listeners = [
-        'echo:phc.validations,phc.created' => '$refresh',
-        'echo:phc.validations,phc.updated' => '$refresh',
+        'echo:phc.notifications.{auth()->id()},phc.created' => '$refresh',
+        'echo:phc.notifications.{auth()->id()},phc.updated' => '$refresh',
     ];
 
     public function render()

@@ -31,9 +31,9 @@ class MarketingPhcApiController extends Controller
             'ho_marketings_id' => 'nullable|exists:users,id',
             'ho_engineering_id' => 'nullable|exists:users,id',
             'notes' => 'nullable|string',
-            'retention' => 'nullable|string',
-            'warranty' => 'nullable|string',
-            'penalty' => 'nullable|string',
+            'retention' => 'nullable',
+            'warranty' => 'nullable',
+            'penalty' => 'nullable',
         ]);
 
         $mapRadio = function ($value) {

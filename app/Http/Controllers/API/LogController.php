@@ -37,25 +37,32 @@ class LogController extends Controller
     // Create new log
     public function store(Request $request)
 {
-    $userId = auth()->id(); // user yang create log
+    $user = auth()->user(); // get authenticated user
+    $userId = $user->id;
     $today = Carbon::today()->toDateString();
 
     // ambil project ID dari pn_number
     $project = Project::where('pn_number', $request->project_id)->firstOrFail();
 
-    // cek 1 log per hari
-    $exists = Log::where('users_id', $userId) // sesuai kolom di DB
-        ->where('project_id', $project->pn_number)
-        ->whereDate('tgl_logs', $today)
-        ->exists();
+    // Check if user has special roles that bypass the 1 log per day rule
+    $isSpecialRole = $user->hasAnyRole(['project controller', 'engineering_admin']);
 
-    if ($exists) {
-        return response()->json([
-            'message' => 'User can only create 1 log per project per day'
-        ], 422);
+    if (!$isSpecialRole) {
+        // cek 1 log per hari for non-special roles
+        $exists = Log::where('users_id', $userId) // sesuai kolom di DB
+            ->where('project_id', $project->pn_number)
+            ->whereDate('tgl_logs', $today)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'message' => 'User can only create 1 log per project per day'
+            ], 422);
+        }
     }
 
-    $validated = $request->validate([
+    // Validation rules
+    $validationRules = [
         'categorie_log_id' => 'required|integer',
         'logs' => 'required|string',
         'tgl_logs' => 'required|date',
@@ -65,9 +72,17 @@ class LogController extends Controller
         'response_by' => 'nullable|integer',
         'need_response' => 'nullable|boolean',
         'project_id' => 'required|exists:projects,pn_number',
-    ]);
+    ];
 
-    $validated['users_id'] = $userId; // pakai users_id
+    // Add users_id validation for special roles (delegation)
+    if ($isSpecialRole) {
+        $validationRules['users_id'] = 'nullable|integer|exists:users,id';
+    }
+
+    $validated = $request->validate($validationRules);
+
+    // Set users_id: use request value for special roles, otherwise auth id
+    $validated['users_id'] = $isSpecialRole ? ($request->users_id ?? $userId) : $userId;
     $validated['project_id'] = $project->pn_number; // pastikan ID numeric
 
     // Tentukan status otomatis

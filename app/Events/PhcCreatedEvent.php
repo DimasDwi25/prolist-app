@@ -24,8 +24,12 @@ class PhcCreatedEvent implements ShouldBroadcast
 
     public function broadcastOn(): array
     {
-        // Public channel supaya semua bisa dengar (tes dulu)
-        return [new Channel('phc.notifications')];
+        // Private channels untuk setiap user yang terlibat
+        $channels = [];
+        foreach ($this->userIds as $userId) {
+            $channels[] = new Channel("phc.notifications.{$userId}");
+        }
+        return $channels;
     }
 
     public function broadcastAs(): string
