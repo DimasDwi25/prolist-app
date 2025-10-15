@@ -28,7 +28,9 @@ return [
         'http://127.0.0.1',
         'http://prolist.citasys',
         'http://192.168.0.102:5173',
-        'http://127.0.0.1:5173'
+        'http://127.0.0.1:5173',
+        'http://localhost:8000', // Tambahkan untuk Laravel serve
+        'http://127.0.0.1:8000'
     ],
 
     'allowed_origins_patterns' => [],

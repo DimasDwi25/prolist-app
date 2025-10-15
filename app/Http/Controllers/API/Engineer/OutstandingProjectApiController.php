@@ -50,9 +50,9 @@ class OutstandingProjectApiController extends Controller
         $result = $users->map(function ($user) {
             return [
                 'user_id' => $user->id,
-               'photo' => $user->photo
-                ? (Storage::exists($user->photo)
-                    ? Storage::url($user->photo)
+                'photo' => $user->photo
+                ? (Storage::disk('public')->exists($user->photo)
+                    ? Storage::disk('public')->url($user->photo)
                     : asset('storage/' . ltrim($user->photo, '/')))
                 : null,
 

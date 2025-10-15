@@ -57,7 +57,7 @@ class ManPowerProjectApiController extends Controller
                     }
                 });
             })
-            ->with(['client:id,name', 'statusProject:id,name'])
+            ->with(['category', 'quotation.client', 'client', 'statusProject'])
             ->latest()
             ->get();
 

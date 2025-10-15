@@ -57,6 +57,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/engineer/dashboard', [EngineerDashboardApiController::class, 'index']);
     Route::get('/projects/finished-summary', [ProjectFinishedSummaryApiController::class, 'finishedSummary']);
     Route::get('/work-order/work-order-summary', [WorkOrderSummaryApiController::class, 'workOrderSummary']);
+    Route::post('/users/{user}/upload-photo', [UsersController::class, 'uploadPhoto']);
 
     // Cek profil user
     Route::get('/account/profile', [ProfileApiController::class, 'profile']);
@@ -301,7 +302,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('engineer/projects/{pn_number}/status', [EngineerProjectApiController::class, 'updateStatus']);
 
-    Route::post('/users/{user}/upload-photo', [UsersController::class, 'uploadPhoto']);
+    
 
     
 

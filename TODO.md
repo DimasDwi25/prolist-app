@@ -1,4 +1,8 @@
--   [x] Modify SalesReportApiController index method to accept Request $request and implement filtering logic for projects based on year, range_type, month, from_date, to_date using created_at
--   [x] Add getYears method to extract years from pn_number
--   [x] Update response to include totalProjectValue and filters
--   [ ] Test the API endpoint
+# Update Overdue Project Logic in EngineerDashboardApiController
+
+## Tasks
+
+-   [x] Update getProjectsByCriteria method to exclude projects with status 'Engineering Work Completed' or 'Project Finished' instead of checking engineering_finish_date
+-   [x] Update top5Overdue query in getProjectLists to exclude projects with status 'Engineering Work Completed' or 'Project Finished'
+-   [x] Update projectOnTrackList query in getProjectLists to exclude projects with status 'Engineering Work Completed' or 'Project Finished'
+-   [ ] Test the changes to ensure overdue projects are correctly filtered

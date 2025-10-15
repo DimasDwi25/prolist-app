@@ -107,7 +107,10 @@ class UsersController extends Controller
                     'engineer',
                     'electrician',
                     'project manager',
+                    'engineer_supervisor',
                     'engineering_admin',
+                    'drafter',
+                    'electrician_supervisor'
                 ]);
             })
             ->with('role')
@@ -221,13 +224,18 @@ class UsersController extends Controller
             $path = $request->file('photo')->store('user_photos', 'public');
 
 
-            $user->photo = $path;
-            $user->save();
+            try {
+                $user->photo = $path;
+                $user->save();
+                
+                return response()->json([
+                    'message' => 'Photo uploaded successfully',
+                    'data' => $user
+                ]);
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'Failed to save photo: ' . $e->getMessage()], 500);
+            }
 
-            return response()->json([
-                'message' => 'Photo uploaded successfully',
-                'data' => $user
-            ]);
         }
 
         return response()->json(['message' => 'No file uploaded'], 400);

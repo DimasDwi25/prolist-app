@@ -57,7 +57,9 @@ class EngineerDashboardApiController extends Controller
         $query = Project::whereHas('phc', $phcFilter);
 
         if ($excludeFinished) {
-            $query->whereNull('engineering_finish_date');
+            $query->whereHas('statusProject', function($q) {
+                $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished']);
+            });
         }
 
         $count = $query->count();
@@ -164,7 +166,9 @@ class EngineerDashboardApiController extends Controller
                 $q->whereNotNull('target_finish_date')
                   ->where('target_finish_date', '>=', $now);
             })
-            ->whereNull('engineering_finish_date')
+            ->whereHas('statusProject', function($q) {
+                $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished']);
+            })
             ->with(['statusProject', 'phc'])
             ->get()
             ->map(function ($p) {
@@ -182,7 +186,9 @@ class EngineerDashboardApiController extends Controller
                 $q->whereNotNull('target_finish_date')
                   ->where('target_finish_date', '<', $now);
             })
-            ->whereNull('engineering_finish_date')
+            ->whereHas('statusProject', function($q) {
+                $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished']);
+            })
             ->with([
                 'statusProject',
                 'phc.picEngineering',
@@ -199,6 +205,7 @@ class EngineerDashboardApiController extends Controller
                 ];
             })
             ->sortByDesc('delay_days')
+            // ->take(5)
             ->values();
 
         return [
