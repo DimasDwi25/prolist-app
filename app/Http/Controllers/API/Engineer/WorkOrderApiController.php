@@ -103,7 +103,8 @@ class WorkOrderApiController extends Controller
             for ($i = 0; $i < $woCount; $i++) {
                 $woData = $data;
                 $woData['wo_date'] = $baseDate->copy()->addDays($i);
-                $woData['status'] = WorkOrder::STATUS_WAITING_APPROVAL;
+                // $woData['status'] = WorkOrder::STATUS_WAITING_APPROVAL;
+                $woData['status'] = WorkOrder::STATUS_FINISHED;
 
                 $lastInProject = WorkOrder::where('project_id', $data['project_id'])
                     ->max('wo_number_in_project');
@@ -186,18 +187,18 @@ class WorkOrderApiController extends Controller
                 ]);
 
                 // Buat approval untuk role tertentu
-                $approvalRoles = ['project manager', 'engineering_director'];
-                $users = User::whereHas('role', fn($q) => $q->whereIn('name', $approvalRoles))->get();
+                // $approvalRoles = ['project manager', 'engineering_director'];
+                // $users = User::whereHas('role', fn($q) => $q->whereIn('name', $approvalRoles))->get();
 
-                foreach ($users as $user) {
-                    Approval::create([
-                        'approvable_type' => WorkOrder::class,
-                        'approvable_id'   => $wo->id,
-                        'user_id'         => $user->id,
-                        'status'          => 'pending',
-                        'type'            => 'Work Order',
-                    ]);
-                }
+                // foreach ($users as $user) {
+                //     Approval::create([
+                //         'approvable_type' => WorkOrder::class,
+                //         'approvable_id'   => $wo->id,
+                //         'user_id'         => $user->id,
+                //         'status'          => 'pending',
+                //         'type'            => 'Work Order',
+                //     ]);
+                // }
 
                 $results[] = $wo->load(['pics.user', 'pics.role', 'descriptions', 'purpose']);
             }
@@ -255,29 +256,103 @@ class WorkOrderApiController extends Controller
         ]);
 
         // Deteksi perubahan pada fields tertentu
-        $hasChanges = false;
+        // $hasChanges = false;
 
-        if (isset($data['wo_date']) && $data['wo_date'] != $workOrder->wo_date->format('Y-m-d')) {
-            $hasChanges = true;
-        }
+        // if (isset($data['wo_date']) && $data['wo_date'] != $workOrder->wo_date->format('Y-m-d')) {
+        //     $hasChanges = true;
+        // }
 
-        if (isset($data['pics'])) {
-            $currentPics = $workOrder->pics->map(fn($p) => ['user_id' => $p->user_id, 'role_id' => $p->role_id])->sortBy(['user_id', 'role_id'])->values()->toArray();
-            $newPics = collect($data['pics'])->sortBy(['user_id', 'role_id'])->values()->toArray();
-            if ($currentPics != $newPics) {
-                $hasChanges = true;
-            }
-        }
+        // if (isset($data['pics'])) {
+        //     $currentPics = $workOrder->pics->map(fn($p) => ['user_id' => $p->user_id, 'role_id' => $p->role_id])->sortBy(['user_id', 'role_id'])->values()->toArray();
+        //     $newPics = collect($data['pics'])->sortBy(['user_id', 'role_id'])->values()->toArray();
+        //     if ($currentPics != $newPics) {
+        //         $hasChanges = true;
+        //     }
+        // }
 
-        if (isset($data['descriptions'])) {
-            $currentDescs = $workOrder->descriptions->pluck('description')->sort()->values()->toArray();
-            $newDescs = collect($data['descriptions'])->pluck('description')->sort()->values()->toArray();
-            if ($currentDescs != $newDescs) {
-                $hasChanges = true;
-            }
-        }
+        // if (isset($data['descriptions'])) {
+        //     $currentDescs = $workOrder->descriptions->pluck('description')->sort()->values()->toArray();
+        //     $newDescs = collect($data['descriptions'])->pluck('description')->sort()->values()->toArray();
+        //     if ($currentDescs != $newDescs) {
+        //         $hasChanges = true;
+        //     }
+        // }
 
-        DB::transaction(function () use ($workOrder, $data, $hasChanges) {
+        // DB::transaction(function () use ($workOrder, $data, $hasChanges) {
+        //     // Update Work Order utama
+        //     $workOrder->update(Arr::except($data, ['pics', 'descriptions']));
+
+        //     // Update PICs
+        //     if (isset($data['pics'])) {
+        //         $workOrder->pics()->delete();
+        //         $workOrder->pics()->createMany($data['pics']);
+        //     }
+
+        //     // Update Descriptions
+        //     if (isset($data['descriptions'])) {
+        //         $workOrder->descriptions()->delete();
+
+        //         $descriptions = collect($data['descriptions'])->map(function ($desc) use ($workOrder) {
+        //             return [
+        //                 'description' => $desc['description'] ?? null,
+        //                 // boleh isi result kalau status WAITING CLIENT APPROVAL atau APPROVED
+        //                 'result'      => in_array($workOrder->status, [WorkOrder::STATUS_WAITING_CLIENT, WorkOrder::STATUS_APPROVED])
+        //                                     ? ($desc['result'] ?? null)
+        //                                     : null,
+        //             ];
+        //         })->toArray();
+
+        //         $workOrder->descriptions()->createMany($descriptions);
+        //     }
+
+        //     $mandaysEngineerRoles = [
+        //             'engineer',
+        //             'project_manager',
+        //             'site_manager',
+        //             'site_supervisor',
+        //             'site_admin',
+        //             'foreman',
+        //             'project_controller',
+        //             'document_controller',
+        //             'hse',
+        //             'quality_control',
+        //             'site_warehouse',
+        //         ];
+
+        //         // Hitung mandays
+        //        $totalEng = $workOrder->pics()
+        //             ->whereHas('role', fn($q) => $q->whereIn('name', $mandaysEngineerRoles))
+        //             ->count();
+
+        //         $totalElect = $workOrder->pics()
+        //             ->whereHas('role', fn($q) => $q->where('name', 'electrician'))
+        //             ->count();
+
+        //         $workOrder->update([
+        //             'total_mandays_eng'   => $totalEng,
+        //             'total_mandays_elect' => $totalElect,
+        //         ]);
+
+        //     // Jika ada perubahan dan status approved, kirim approval baru
+        //     if ($hasChanges && $workOrder->status === WorkOrder::STATUS_APPROVED) {
+        //         $approvalRoles = ['project manager', 'engineering_director'];
+        //         $users = User::whereHas('role', fn($q) => $q->whereIn('name', $approvalRoles))->get();
+
+        //         foreach ($users as $user) {
+        //             Approval::create([
+        //                 'approvable_type' => WorkOrder::class,
+        //                 'approvable_id'   => $workOrder->id,
+        //                 'user_id'         => $user->id,
+        //                 'status'          => 'pending',
+        //                 'type'            => 'Work Order Update',
+        //             ]);
+        //         }
+
+        //         $workOrder->update(['status' => WorkOrder::STATUS_WAITING_CLIENT]);
+        //     }
+        // });
+
+        DB::transaction(function () use ($workOrder, $data) {
             // Update Work Order utama
             $workOrder->update(Arr::except($data, ['pics', 'descriptions']));
 
@@ -331,24 +406,7 @@ class WorkOrderApiController extends Controller
                     'total_mandays_eng'   => $totalEng,
                     'total_mandays_elect' => $totalElect,
                 ]);
-
-            // Jika ada perubahan dan status approved, kirim approval baru
-            if ($hasChanges && $workOrder->status === WorkOrder::STATUS_APPROVED) {
-                $approvalRoles = ['project manager', 'engineering_director'];
-                $users = User::whereHas('role', fn($q) => $q->whereIn('name', $approvalRoles))->get();
-
-                foreach ($users as $user) {
-                    Approval::create([
-                        'approvable_type' => WorkOrder::class,
-                        'approvable_id'   => $workOrder->id,
-                        'user_id'         => $user->id,
-                        'status'          => 'pending',
-                        'type'            => 'Work Order Update',
-                    ]);
-                }
-
-                $workOrder->update(['status' => WorkOrder::STATUS_WAITING_CLIENT]);
-            }
+            $workOrder->update(['status' => WorkOrder::STATUS_FINISHED]);
         });
 
         return response()->json([
