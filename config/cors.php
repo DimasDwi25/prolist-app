@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout', 'broadcasting/*'],
 
     'allowed_methods' => ['*'],
 
@@ -30,7 +30,9 @@ return [
         'http://192.168.0.102:5173',
         'http://127.0.0.1:5173',
         'http://localhost:8000', // Tambahkan untuk Laravel serve
-        'http://127.0.0.1:8000'
+        'http://127.0.0.1:8000',
+        'http://localhost:6001', // Tambahkan untuk WebSocket server
+        'http://127.0.0.1:6001'
     ],
 
     'allowed_origins_patterns' => [],

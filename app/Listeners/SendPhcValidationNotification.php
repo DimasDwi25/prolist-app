@@ -13,36 +13,13 @@ class SendPhcValidationNotification
     public function handle(PhcCreatedEvent $event)
     {
         $phc = $event->phc;
+        $userIds = $event->userIds;
 
-        // Ambil user HO & PIC yang dipilih di form PHC
-        $userIds = array_filter([
-            $phc->ho_engineering_id,
-            $phc->ho_marketings_id,
-            $phc->pic_engineering_id,
-            $phc->marketing_pic_id,
-        ]);
+        // Kirim notifikasi ke user IDs yang sudah ditentukan
+        $users = User::whereIn('id', $userIds)->get();
 
-        // Jika tidak ada approver yang dipilih, kirim notifikasi ke roles tertentu
-        if (empty($userIds)) {
-            $fallbackUsers = User::whereHas('role', function ($q) {
-                $q->whereIn('name', [
-                    'project manager',
-                    'project controller',
-                    'engineering_admin',
-                    'sales_supervisor',
-                    'supervisor marketing'
-                ]);
-            })->get();
-
-            foreach ($fallbackUsers as $user) {
-                $user->notify(new PhcValidationRequested($phc));
-            }
-        } else {
-            $users = User::whereIn('id', $userIds)->get();
-
-            foreach ($users as $user) {
-                $user->notify(new PhcValidationRequested($phc));
-            }
+        foreach ($users as $user) {
+            $user->notify(new PhcValidationRequested($phc));
         }
     }
 }

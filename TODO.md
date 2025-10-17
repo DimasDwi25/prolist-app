@@ -1,4 +1,3 @@
--   [x] Modify LogController.php store method to skip 1 log per day validation for 'project controller' and 'engineering_admin' roles
--   [x] Allow delegation by adding optional 'users_id' field in validation for those roles
--   [x] Set users_id to request value or auth id
--   [ ] Test the changes
+-   [x] Uncomment the PhcCreatedEvent in MarketingPhcApiController.php store method
+-   [x] Update SendPhcValidationNotification listener to use $event->userIds instead of collecting from $phc
+-   [x] Test the notification logic

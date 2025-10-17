@@ -17,12 +17,12 @@ use Illuminate\Support\Facades\Broadcast;
 //     return (int) $user->id === (int) $id;
 // });
 
+
 Broadcast::channel('logs.project.{projectId}', function ($user, $projectId) {
-    return true; // atau tambahkan pengecekan user punya akses
+    return true;
 });
 
 Broadcast::channel('phc.notifications.{userId}', function ($user, $userId) {
-    // Hanya izinkan user yang sesuai dengan userId di channel
     return (int) $user->id === (int) $userId;
 });
 

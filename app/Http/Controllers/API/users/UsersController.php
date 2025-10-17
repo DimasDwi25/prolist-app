@@ -73,7 +73,13 @@ class UsersController extends Controller
     {
         // pastikan role_id dan id sama tipe bigint
         $users = User::whereHas('role', function ($q) {
-            $q->whereIn('name', ['engineer', 'electrician']);
+            $q->whereIn('name', ['engineer',
+                    'engineer_supervisor',
+                    'project manager',
+                    'project controller',
+                    'engineering_admin',
+                    'electrician_supervisor',
+                    'drafter']);
         })
         ->with(['role' => function ($q) {
             $q->select(['id', 'name', 'type_role']); // pilih field spesifik

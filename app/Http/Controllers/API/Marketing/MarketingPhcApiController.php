@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\API\Marketing;
 
+use App\Events\PhcCreatedEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Approval;
 use App\Models\PHC;
 use App\Models\User;
+use App\Notifications\PhcCreated;
 use App\Notifications\PhcValidationRequested;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -58,10 +60,47 @@ class MarketingPhcApiController extends Controller
             'phc_dates' => now(),
         ]);
 
+        // 🔹 Kirim notifikasi ke creator
+        Auth::user()->notify(new PhcCreated($phc));
+
+        // 🔹 Kirim notifikasi WebSocket
+        $userIds = array_filter([
+            $validated['ho_marketings_id'] ?? null,
+            $validated['pic_marketing_id'] ?? null,
+            $validated['ho_engineering_id'] ?? null,
+            $validated['pic_engineering_id'] ?? null,
+        ]);
+
+        // Jika tidak ada approver yang dipilih, kirim ke roles tertentu
+        if (empty($userIds)) {
+            $fallbackUsers = User::whereHas('role', function($q){
+                $q->whereIn('name', ['project manager', 'project controller', 'engineering_admin', 'sales_supervisor', 'supervisor marketing']);
+            })->pluck('id')->toArray();
+            $userIds = $fallbackUsers;
+        }
+
+        // Uncomment the event to enable real-time notifications
+        event(new PhcCreatedEvent($phc, $userIds));
+
+        
+
         // $approverIds = [];
 
-        // $hasMarketing = !empty($request->ho_marketings_id) || !empty($request->pic_marketing_id);
-        // $hasEngineering = !empty($request->ho_engineering_id);
+        $hasMarketing = !empty($request->ho_marketings_id) || !empty($request->pic_marketing_id);
+        $hasEngineering = !empty($request->ho_engineering_id);
+
+        if ($hasEngineering) {
+            User::find($request->ho_engineering_id)?->notify(new PhcValidationRequested($phc));
+        } elseif ($hasMarketing && !$hasEngineering) {
+            // Kirim ke semua role engineering
+            $engineeringUsers = User::whereHas('role', function($q){
+                $q->whereIn('name', ['project manager', 'project controller', 'engineering_director']);
+            })->get();
+            
+            foreach ($engineeringUsers as $user) {
+                $user->notify(new PhcValidationRequested($phc));
+            }
+        }
 
         // if ($hasMarketing || $hasEngineering) {
         //     // 🔹 HO & PIC Marketing

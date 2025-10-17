@@ -58,7 +58,7 @@ class EngineerDashboardApiController extends Controller
 
         if ($excludeFinished) {
             $query->whereHas('statusProject', function($q) {
-                $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished']);
+                $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished', 'Invoice On Progress', 'Documents Completed', 'Cancelled']);
             });
         }
 
@@ -167,7 +167,7 @@ class EngineerDashboardApiController extends Controller
                   ->where('target_finish_date', '>=', $now);
             })
             ->whereHas('statusProject', function($q) {
-                $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished']);
+                $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished', 'Invoice On Progress', 'Documents Completed', 'Cancelled']);
             })
             ->with(['statusProject', 'phc'])
             ->get()
@@ -187,7 +187,7 @@ class EngineerDashboardApiController extends Controller
                   ->where('target_finish_date', '<', $now);
             })
             ->whereHas('statusProject', function($q) {
-                $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished']);
+                $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished', 'Invoice On Progress', 'Documents Completed', 'Cancelled']);
             })
             ->with([
                 'statusProject',

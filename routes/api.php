@@ -34,6 +34,7 @@ use App\Http\Controllers\API\SUC\PackingListApiController;
 use App\Http\Controllers\API\users\DepartmentController;
 use App\Http\Controllers\API\users\RoleController;
 use App\Http\Controllers\API\users\UsersController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -44,7 +45,7 @@ use Illuminate\Support\Facades\Route;
 | supaya cookie session dan CSRF token ikut terkirim.
 |--------------------------------------------------------------------------
 */
-
+Broadcast::routes(['middleware' => ['auth:api']]);
 // Login & CSRF cookie
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/refresh', [AuthController::class, 'refresh']);

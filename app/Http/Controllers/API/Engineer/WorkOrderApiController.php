@@ -370,9 +370,11 @@ class WorkOrderApiController extends Controller
                     return [
                         'description' => $desc['description'] ?? null,
                         // boleh isi result kalau status WAITING CLIENT APPROVAL atau APPROVED
-                        'result'      => in_array($workOrder->status, [WorkOrder::STATUS_WAITING_CLIENT, WorkOrder::STATUS_APPROVED])
-                                            ? ($desc['result'] ?? null)
-                                            : null,
+                        // 'result'      => in_array($workOrder->status, [WorkOrder::STATUS_WAITING_CLIENT, WorkOrder::STATUS_APPROVED])
+                        //                     ? ($desc['result'] ?? null)
+                        //                     : null,
+                        'result' => $desc['result'] ?? null,
+
                     ];
                 })->toArray();
 
