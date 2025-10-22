@@ -19,8 +19,8 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\PhcCreatedEvent::class => [
             \App\Listeners\SendPhcValidationNotification::class,
         ],
-        PhcApprovalUpdatedEvent::class => [
-            RemovePendingApprovals::class,
+        \App\Events\RequestInvoiceCreated::class => [
+            \App\Listeners\SendRequestInvoiceNotification::class,
         ],
     ];
 

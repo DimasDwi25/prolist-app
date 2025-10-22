@@ -9,11 +9,13 @@ use App\Http\Controllers\API\Engineer\EngineerDashboardApiController;
 use App\Http\Controllers\API\Engineer\EngineerPhcDocumentiApi;
 use App\Http\Controllers\API\Engineer\EngineerProjectApiController;
 use App\Http\Controllers\API\Engineer\ManPowerAllocationApiController;
+use App\Http\Controllers\API\Engineer\ManPowerDashboardApiController;
 use App\Http\Controllers\API\Engineer\ManPowerProjectApiController;
 use App\Http\Controllers\API\Engineer\OutstandingProjectApiController;
 use App\Http\Controllers\API\Engineer\ProjectFinishedSummaryApiController;
 use App\Http\Controllers\API\Engineer\PurposeWorkOrderApiController;
 use App\Http\Controllers\API\Engineer\ScopeOfWorkProjectApiController;
+use App\Http\Controllers\API\Engineer\ManPower\WorkOrderManPowerApiController;
 use App\Http\Controllers\API\Engineer\WorkOrderApiController;
 use App\Http\Controllers\API\Engineer\WorkOrderSummaryApiController;
 use App\Http\Controllers\API\LogController;
@@ -34,6 +36,10 @@ use App\Http\Controllers\API\SUC\PackingListApiController;
 use App\Http\Controllers\API\users\DepartmentController;
 use App\Http\Controllers\API\users\RoleController;
 use App\Http\Controllers\API\users\UsersController;
+use App\Http\Controllers\API\Finance\InvoiceTypeController;
+use App\Http\Controllers\API\Finance\InvoicePaymentController;
+use App\Http\Controllers\API\Finance\RequestInvoiceApiController;
+use App\Http\Controllers\API\Finance\FinanceDashboardController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +57,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/refresh', [AuthController::class, 'refresh']);
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::get('/user', [AuthController::class, 'me']);
+
 
 // Semua route berikut butuh auth:sanctum
 Route::middleware('auth:api')->group(function () {
@@ -163,7 +170,11 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/phc', [MarketingPhcApiController::class, 'store']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/all', [NotificationController::class, 'all']);
+    Route::get('/notifications/count', [NotificationController::class, 'count']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
 
     
 
@@ -194,7 +205,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/projects/{project}', [MarketingProjectController::class, 'show']);
 
     Route::get('/phcs/show/{phc}', [EngineerPhcDocumentiApi::class, 'show']);
-
+    
+    Route::get('/document-preparations/{documentPreparationId}/attachment', [EngineerPhcDocumentiApi::class, 'viewAttachment']);
     Route::get('/phcs/{phc}/document-preparations', [DocumentPreparationApiController::class, 'index']);
 
     Route::get('/document-phc', [DocumentApiController::class, 'index']);
@@ -211,12 +223,13 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/document-phc/{id}', [DocumentApiController::class, 'update']); 
     Route::delete('/document-phc/{id}', [DocumentApiController::class, 'destroy']); 
 
-    Route::put('/phcs/{phc}', [EngineerPhcDocumentiApi::class, 'update']);    
-        
+    Route::put('/phcs/{phc}', [EngineerPhcDocumentiApi::class, 'update']);
+    
+
     Route::get('/document-phc', [DocumentApiController::class, 'index']);
-    Route::get('/document-phc/{id}', [DocumentApiController::class, 'show']); 
-    Route::post('/document-phc', [DocumentApiController::class, 'store']);    
-    Route::put('/document-phc/{id}', [DocumentApiController::class, 'update']); 
+    Route::get('/document-phc/{id}', [DocumentApiController::class, 'show']);
+    Route::post('/document-phc', [DocumentApiController::class, 'store']);
+    Route::put('/document-phc/{id}', [DocumentApiController::class, 'update']);
     Route::delete('/document-phc/{id}', [DocumentApiController::class, 'destroy']);
 
     Route::get('/material-requests', [MaterialRequestApiController::class, 'index']);      
@@ -240,7 +253,16 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/wo-summary', [WorkOrderApiController::class, 'getWoSummary']);
     
     
+    Route::get('/man-power/dashboard', [ManPowerDashboardApiController::class, 'index']);
     Route::get('/man-power/projects', [ManPowerProjectApiController::class, 'index']);
+
+    // Work Orders for Man Power
+    Route::get('/man-power/work-orders/{pn_number}', [WorkOrderManPowerApiController::class, 'index']);
+    Route::post('/man-power/work-orders', [WorkOrderManPowerApiController::class, 'store']);
+    Route::get('/man-power/work-orders/{id}', [WorkOrderManPowerApiController::class, 'show']);
+    Route::put('/man-power/work-orders/{id}', [WorkOrderManPowerApiController::class, 'update']);
+    Route::get('/man-power/work-orders/{id}/pdf', [WorkOrderManPowerApiController::class, 'downloadPdf']);
+    Route::get('/man-power/work-orders-summary', [WorkOrderManPowerApiController::class, 'getWoSummary']);
 
     // List all allocations by project PN number
     Route::get('man-power/{pn_number}', [ManPowerAllocationApiController::class, 'index']);
@@ -303,10 +325,43 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('engineer/projects/{pn_number}/status', [EngineerProjectApiController::class, 'updateStatus']);
 
-    
+    // Finance routes
+    Route::prefix('finance')->group(function () {
+        Route::get('dashboard', [FinanceDashboardController::class, 'index']);
 
-    
+        Route::get('invoice-types', [InvoiceTypeController::class, 'index']);
+        Route::post('invoice-types', [InvoiceTypeController::class, 'store']);
+        Route::get('invoice-types/{id}', [InvoiceTypeController::class, 'show']);
+        Route::put('invoice-types/{id}', [InvoiceTypeController::class, 'update']);
+        Route::delete('invoice-types/{id}', [InvoiceTypeController::class, 'destroy']);
 
-    
-    
-});     
+        Route::get('invoices', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'index']);
+        Route::post('invoices', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'store']);
+        Route::get('invoices/next-id', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'nextInvoiceId']);
+        Route::get('invoice-summary', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'invoiceSummary']);
+        Route::get('invoices/validate', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'validateInvoice']);
+        Route::get('invoices/{id}', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'show']);
+        Route::put('invoices/{id}', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'update']);
+        Route::delete('invoices/{id}', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'destroy']);
+
+
+        Route::get('invoice-payments', [InvoicePaymentController::class, 'index']);
+        Route::post('invoice-payments', [InvoicePaymentController::class, 'store']);
+        Route::get('invoice-payments/validate', [InvoicePaymentController::class, 'validatePayment']);
+        Route::get('invoice-payments/{id}', [InvoicePaymentController::class, 'show']);
+        Route::put('invoice-payments/{id}', [InvoicePaymentController::class, 'update']);
+        Route::delete('invoice-payments/{id}', [InvoicePaymentController::class, 'destroy']);
+    });
+
+    Route::get('request-invoices-summary', [RequestInvoiceApiController::class, 'summary']);
+    Route::get('request-invoices/{pn_number}', [RequestInvoiceApiController::class, 'index']);
+    Route::get('request-invoices/{pn_number}/phc-documents', [RequestInvoiceApiController::class, 'getPhcDocuments']);
+    Route::post('request-invoices', [RequestInvoiceApiController::class, 'store']);
+    Route::get('request-invoices/show/{id}', [RequestInvoiceApiController::class, 'show']);
+    Route::put('request-invoices/{id}', [RequestInvoiceApiController::class, 'update']);
+
+
+
+
+
+});

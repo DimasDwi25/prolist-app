@@ -5,7 +5,9 @@ namespace App\Http\Controllers\API\Engineer;
 use App\Http\Controllers\Controller;
 use App\Models\PHC;
 use App\Models\User;
+use App\Models\DocumentPreparation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EngineerPhcDocumentiApi extends Controller
 {
@@ -62,7 +64,7 @@ class EngineerPhcDocumentiApi extends Controller
                 $status = $docData['status'] ?? 'NA';
                 $datePrepared = $docData['date_prepared'] ?? null;
 
-                \App\Models\DocumentPreparation::updateOrCreate(
+                DocumentPreparation::updateOrCreate(
                     ['phc_id' => $phc->id, 'document_id' => $docId],
                     [
                         'is_applicable' => $status === 'A',
@@ -81,5 +83,69 @@ class EngineerPhcDocumentiApi extends Controller
             'message' => 'PHC updated successfully',
             'phc' => $phc->fresh(),
         ]);
+    }
+
+    /**
+     * Upload document file for Document Preparation
+     */
+    public function uploadDocument(Request $request, $documentPreparationId)
+    {
+        $request->validate([
+            'document' => 'required|file|max:10240', // 10MB max
+        ]);
+
+        $documentPreparation = DocumentPreparation::findOrFail($documentPreparationId);
+
+        if ($request->hasFile('document')) {
+            // Delete old file if exists
+            if ($documentPreparation->attachment_path && Storage::exists($documentPreparation->attachment_path)) {
+                Storage::delete($documentPreparation->attachment_path);
+            }
+
+            $path = $request->file('document')->store('document_preparations', 'public');
+
+            try {
+                $documentPreparation->attachment_path = $path;
+                $documentPreparation->save();
+
+                return response()->json([
+                    'message' => 'Document uploaded successfully',
+                    'data' => $documentPreparation
+                ]);
+            } catch (\Exception $e) {
+                // Delete uploaded file if save fails
+                if (Storage::exists($path)) {
+                    Storage::delete($path);
+                }
+                return response()->json(['message' => 'Failed to save document: ' . $e->getMessage()], 500);
+            }
+        }
+
+        return response()->json(['message' => 'No file uploaded'], 400);
+    }
+
+    /**
+     * View/Download attachment file for Document Preparation
+     */
+    public function viewAttachment($documentPreparationId)
+    {
+        $documentPreparation = DocumentPreparation::findOrFail($documentPreparationId);
+
+        if (
+            !$documentPreparation->attachment_path ||
+            !Storage::disk('public')->exists($documentPreparation->attachment_path)
+        ) {
+            return response()->json(['message' => 'Attachment not found'], 404);
+        }
+
+        $filePath = storage_path('app/public/' . $documentPreparation->attachment_path);
+
+        $mimeType = mime_content_type($filePath);
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($documentPreparation->attachment_path) . '"'
+        ]);
+
     }
 }

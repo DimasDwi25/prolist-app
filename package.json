@@ -12,10 +12,10 @@
         "autoprefixer": "^10.4.21",
         "axios": "^1.6.4",
         "daisyui": "^5.0.54",
-        "laravel-echo": "^1.15.0",
+        "laravel-echo": "^1.19.0",
         "laravel-vite-plugin": "^1.0.0",
         "postcss": "^8.5.6",
-        "pusher-js": "^8.0.1",
+        "pusher-js": "^8.4.0",
         "tailwindcss": "^3.4.17",
         "vite": "^5.0.0"
     },
@@ -28,8 +28,6 @@
         "flatpickr": "^4.6.13",
         "install": "^0.13.0",
         "jquery": "^3.7.1",
-        "laravel-echo": "^2.1.6",
-        "pusher-js": "^8.4.0",
         "select2": "^4.1.0-rc.0",
         "tabulator-tables": "^6.3.1"
     }

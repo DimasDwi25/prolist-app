@@ -10,6 +10,7 @@
     "require": {
         "php": "^8.1",
         "barryvdh/laravel-dompdf": "^3.1",
+        "beyondcode/laravel-websockets": "^1.14",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
@@ -17,6 +18,7 @@
         "livewire/livewire": "*",
         "maatwebsite/excel": "^3.1",
         "power-components/livewire-powergrid": "^6.6",
+        "predis/predis": "^3.2",
         "pusher/pusher-php-server": "^7.2",
         "rappasoft/laravel-livewire-tables": "3.7.3",
         "setasign/fpdf": "^1.8",

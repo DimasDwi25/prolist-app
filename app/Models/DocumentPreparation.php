@@ -9,7 +9,7 @@ class DocumentPreparation extends Model
 {
     use HasFactory;
 
-     protected $fillable = ['document_id', 'phc_id', 'is_applicable', 'date_prepared'];
+    protected $fillable = ['document_id', 'phc_id', 'is_applicable', 'date_prepared', 'attachment_path'];
 
     public function document()
     {

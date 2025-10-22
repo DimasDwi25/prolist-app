@@ -24,10 +24,10 @@ class AppServiceProvider extends ServiceProvider
     {
         //
         DB::listen(function ($query) {
-            Log::info("SQL Executed: " . $query->sql, [
-                'bindings' => $query->bindings,
-                'time' => $query->time
-            ]);
+            // Log::info("SQL Executed: " . $query->sql, [
+            //     'bindings' => $query->bindings,
+            //     'time' => $query->time
+            // ]);
         });
     }
 }

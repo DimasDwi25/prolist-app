@@ -32,7 +32,8 @@ return [
         'http://localhost:8000', // Tambahkan untuk Laravel serve
         'http://127.0.0.1:8000',
         'http://localhost:6001', // Tambahkan untuk WebSocket server
-        'http://127.0.0.1:6001'
+        'http://127.0.0.1:6001',
+        'http://127.0.0.1:6379',
     ],
 
     'allowed_origins_patterns' => [],

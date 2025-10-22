@@ -68,6 +68,11 @@ class PHC extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function documentPreparations()
+    {
+        return $this->hasMany(DocumentPreparation::class, 'phc_id');
+    }
+
     // public function approvals()
     // {
     //     return $this->hasMany(PhcApproval::class, 'phc_id'); // foreign key yang benar
@@ -88,11 +93,11 @@ class PHC extends Model
     {
         static::updating(function ($phc) {
             if ($phc->isDirty('ho_engineering_id')) {
-                Log::info("HO Engineering Updated", [
-                    'phc_id' => $phc->id,
-                    'old_value' => $phc->getOriginal('ho_engineering_id'),
-                    'new_value' => $phc->ho_engineering_id
-                ]);
+                // Log::info("HO Engineering Updated", [
+                //     'phc_id' => $phc->id,
+                //     'old_value' => $phc->getOriginal('ho_engineering_id'),
+                //     'new_value' => $phc->ho_engineering_id
+                // ]);
             }
         });
     }

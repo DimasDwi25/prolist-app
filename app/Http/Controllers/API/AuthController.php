@@ -29,14 +29,28 @@ class AuthController extends Controller
             'manager_marketing'    => '/marketing',
             'sales_supervisor'     => '/marketing',
             'marketing_admin'      => '/marketing',
+            'marketing_estimator'  => '/marketing',
             'estimator'            => '/estimator',
-            'engineer'             => '/man-power',
+            
             'project controller'   => '/engineer',
             'project manager'      => '/engineer',
             'engineering_director' => '/engineer',
-            'marketing_estimator'  => '/marketing',
-            'warehouse'            => '/suc',
             'engineering_admin'    => '/engineer',
+
+            'warehouse'            => '/suc',
+            'suc_manager'          => '/suc',
+            'purchasing'           => '/suc',
+            'logistic'             => '/suc', 
+            
+            'engineer_supervisor'  => '/man-power',
+            'engineer'             => '/man-power',
+            'drafter'              => '/man-power',
+            'electrician_supervisor'              => '/man-power',
+            'electrician'              => '/man-power',
+
+            'acc_fin_manager'              => '/finance',
+            'acc_fin_supervisor'              => '/finance',
+            'finance_administration'              => '/finance',
         ];
 
         return response()->json([

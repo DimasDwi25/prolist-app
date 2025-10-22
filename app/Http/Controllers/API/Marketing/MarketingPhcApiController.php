@@ -60,47 +60,98 @@ class MarketingPhcApiController extends Controller
             'phc_dates' => now(),
         ]);
 
-        // 🔹 Kirim notifikasi ke creator
-        Auth::user()->notify(new PhcCreated($phc));
+        // 🔹 Tentukan siapa saja yang akan menerima notifikasi WebSocket
+        $hasMarketing = !empty($request->ho_marketings_id) || !empty($request->pic_marketing_id);
+        $hasEngineering = !empty($request->ho_engineering_id);
 
-        // 🔹 Kirim notifikasi WebSocket
-        $userIds = array_filter([
-            $validated['ho_marketings_id'] ?? null,
-            $validated['pic_marketing_id'] ?? null,
-            $validated['ho_engineering_id'] ?? null,
-            $validated['pic_engineering_id'] ?? null,
-        ]);
+        $userIds = [];
 
-        // Jika tidak ada approver yang dipilih, kirim ke roles tertentu
-        if (empty($userIds)) {
-            $fallbackUsers = User::whereHas('role', function($q){
-                $q->whereIn('name', ['project manager', 'project controller', 'engineering_admin', 'sales_supervisor', 'supervisor marketing']);
+        if ($hasEngineering) {
+            // Jika ada engineering, kirim ke user itu saja
+            $userIds[] = $request->ho_engineering_id;
+        } elseif ($hasMarketing && !$hasEngineering) {
+            // Jika hanya ada marketing, kirim ke semua role engineering
+            $engineeringUsers = User::whereHas('role', function($q) {
+                $q->whereIn('name', ['project manager', 'project controller', 'engineering_director']);
             })->pluck('id')->toArray();
-            $userIds = $fallbackUsers;
+
+            $userIds = array_merge($userIds, $engineeringUsers);
+        } else {
+            // Jika tidak ada marketing maupun engineering → fallback
+            $fallbackUsers = User::whereHas('role', function($q){
+                $q->whereIn('name', [
+                    'project manager',
+                    'project controller',
+                    'engineering_admin',
+                    'sales_supervisor',
+                    'supervisor marketing'
+                ]);
+            })->pluck('id')->toArray();
+
+            $userIds = array_merge($userIds, $fallbackUsers);
         }
 
-        // Uncomment the event to enable real-time notifications
+        // 🔹 Hapus duplikat dan null
+        $userIds = array_filter(array_unique($userIds));
+
+        // 🔹 Kirim event WebSocket publik (misalnya untuk frontend)
         event(new PhcCreatedEvent($phc, $userIds));
+
+        // 🔹 Kirim notifikasi Laravel ke user tertentu (via database/email)
+        if ($hasEngineering) {
+            User::find($request->ho_engineering_id)?->notify(new PhcValidationRequested($phc));
+        } elseif ($hasMarketing && !$hasEngineering) {
+            $engineeringUsers = User::whereHas('role', function($q) {
+                $q->whereIn('name', ['project manager', 'project controller', 'engineering_director']);
+            })->get();
+
+            foreach ($engineeringUsers as $user) {
+                $user->notify(new PhcValidationRequested($phc));
+            }
+        }
+
+
+        // 🔹 Kirim notifikasi ke user yang sedang login (untuk polling)
+        // $request->user()->notify(new PhcCreated($phc));
+
+        // // 🔹 Kirim notifikasi WebSocket
+        // $userIds = array_filter([
+        //     $validated['ho_marketings_id'] ?? null,
+        //     $validated['pic_marketing_id'] ?? null,
+        //     $validated['ho_engineering_id'] ?? null,
+        //     $validated['pic_engineering_id'] ?? null,
+        // ]);
+
+        // // Jika tidak ada approver yang dipilih, kirim ke roles tertentu
+        // if (empty($userIds)) {
+        //     $fallbackUsers = User::whereHas('role', function($q){
+        //         $q->whereIn('name', ['project manager', 'project controller', 'engineering_admin', 'sales_supervisor', 'supervisor marketing']);
+        //     })->pluck('id')->toArray();
+        //     $userIds = $fallbackUsers;
+        // }
+
+        // Uncomment the event to enable real-time notifications
+        // event(new PhcCreatedEvent($phc, $userIds));
 
         
 
         // $approverIds = [];
 
-        $hasMarketing = !empty($request->ho_marketings_id) || !empty($request->pic_marketing_id);
-        $hasEngineering = !empty($request->ho_engineering_id);
+        // $hasMarketing = !empty($request->ho_marketings_id) || !empty($request->pic_marketing_id);
+        // $hasEngineering = !empty($request->ho_engineering_id);
 
-        if ($hasEngineering) {
-            User::find($request->ho_engineering_id)?->notify(new PhcValidationRequested($phc));
-        } elseif ($hasMarketing && !$hasEngineering) {
-            // Kirim ke semua role engineering
-            $engineeringUsers = User::whereHas('role', function($q){
-                $q->whereIn('name', ['project manager', 'project controller', 'engineering_director']);
-            })->get();
+        // if ($hasEngineering) {
+        //     User::find($request->ho_engineering_id)?->notify(new PhcValidationRequested($phc));
+        // } elseif ($hasMarketing && !$hasEngineering) {
+        //     // Kirim ke semua role engineering
+        //     $engineeringUsers = User::whereHas('role', function($q){
+        //         $q->whereIn('name', ['project manager', 'project controller', 'engineering_director']);
+        //     })->get();
             
-            foreach ($engineeringUsers as $user) {
-                $user->notify(new PhcValidationRequested($phc));
-            }
-        }
+        //     foreach ($engineeringUsers as $user) {
+        //         $user->notify(new PhcValidationRequested($phc));
+        //     }
+        // }
 
         // if ($hasMarketing || $hasEngineering) {
         //     // 🔹 HO & PIC Marketing

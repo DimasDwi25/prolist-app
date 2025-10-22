@@ -12,17 +12,24 @@ window.Echo = new Echo({
     key: import.meta.env.VITE_PUSHER_APP_KEY,
     cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
     forceTLS: true,
+    auth: {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+    },
+    authEndpoint: "/api/broadcasting/auth",
 });
 
 // Ambil user ID dari meta tag
 const userMeta = document.head.querySelector('meta[name="user-id"]');
 
-// Public channel listener
-window.Echo.channel("phc.notifications").listen(".phc.created", (e) => {
-    // Filter supaya hanya user tertentu yang dapat notifikasi
-    if (userMeta) {
-        const userId = parseInt(userMeta.content, 10);
-        if (e.user_ids.includes(userId)) {
+if (userMeta) {
+    const userId = parseInt(userMeta.content, 10);
+
+    // Private channel listener for notifications
+    window.Echo.private(`phc.notifications.${userId}`).listen(
+        ".phc.created",
+        (e) => {
             if (window.Livewire) {
                 Livewire.emit("refreshNotifications");
             }
@@ -30,5 +37,5 @@ window.Echo.channel("phc.notifications").listen(".phc.created", (e) => {
             // Bisa juga munculin notifikasi manual:
             console.log("New PHC Notification:", e.message);
         }
-    }
-});
+    );
+}

@@ -1,3 +1,3 @@
--   [x] Uncomment the PhcCreatedEvent in MarketingPhcApiController.php store method
--   [x] Update SendPhcValidationNotification listener to use $event->userIds instead of collecting from $phc
--   [x] Test the notification logic
+-   [x] Add method to view/download attachment files in EngineerPhcDocumentiApi controller
+-   [x] Add route for the new method in api.php
+-   [x] Update DocumentPreparationApiController to include attachment_path in response

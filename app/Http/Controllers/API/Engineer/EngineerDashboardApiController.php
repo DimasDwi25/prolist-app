@@ -35,18 +35,19 @@ class EngineerDashboardApiController extends Controller
             $q->whereNotNull('target_finish_date')
               ->whereMonth('target_finish_date', $now->month)
               ->whereYear('target_finish_date', $now->year);
-        }, false);
+        }, true);
 
         $onTrack = $this->getProjectsByCriteria($now, function($q) use ($now) {
             $q->whereNotNull('target_finish_date')->where('target_finish_date', '>=', $now);
         }, true);
 
-        
+        $totalOutstanding = $overdue['count'] + $dueThisMonth['count'] + $onTrack['count'];
 
         return [
             'projectOverdue'         => $overdue['count'],
             'projectDueThisMonth'    => $dueThisMonth['count'],
             'projectOnTrack'         => $onTrack['count'],
+            'totalOutstandingProjects' => $totalOutstanding,
             'totalActiveProjects'    => Project::count(),
             'totalWorkOrders'        => WorkOrder::whereMonth('wo_date', $now->month)->whereYear('wo_date', $now->year)->where('status', 'finished')->count(),
         ];
@@ -85,14 +86,26 @@ class EngineerDashboardApiController extends Controller
 
     private function getCharts(Carbon $now)
     {
-        // Line Chart: Completed projects per month
-        $completedProjects = Project::select([
+        // Get current year from pn_number (assuming pn_number starts with year like '25' for 2025)
+        $currentYear = Project::selectRaw('LEFT(pn_number, 2) as year_short')
+            ->distinct()
+            ->orderBy('year_short', 'desc')
+            ->first()
+            ->year_short ?? date('y');
+
+        $year = '20' . $currentYear; // e.g., '2025'
+
+        // Line Chart: Completed projects per month - On Time and Late
+        $onTimeProjects = Project::select([
             DB::raw("YEAR(engineering_finish_date) as year"),
             DB::raw("MONTH(engineering_finish_date) as month"),
             DB::raw("COUNT(*) as total")
         ])
         ->whereNotNull('engineering_finish_date')
-        ->where('engineering_finish_date', '>=', $now->copy()->subMonths(11)->startOfMonth())
+        ->whereYear('engineering_finish_date', $year)
+        ->whereHas('phc', function($q) {
+            $q->whereRaw('engineering_finish_date <= target_finish_date');
+        })
         ->groupBy(DB::raw("YEAR(engineering_finish_date), MONTH(engineering_finish_date)"))
         ->orderBy(DB::raw("MIN(engineering_finish_date)"))
         ->get()
@@ -101,112 +114,98 @@ class EngineerDashboardApiController extends Controller
             return [$month => $row->total];
         });
 
-        $months = collect(range(0, 11))->map(function ($i) use ($now, $completedProjects) {
-            $month = $now->copy()->subMonths(11 - $i)->format('Y-m');
+        $lateProjects = Project::select([
+            DB::raw("YEAR(engineering_finish_date) as year"),
+            DB::raw("MONTH(engineering_finish_date) as month"),
+            DB::raw("COUNT(*) as total")
+        ])
+        ->whereNotNull('engineering_finish_date')
+        ->whereYear('engineering_finish_date', $year)
+        ->whereHas('phc', function($q) {
+            $q->whereRaw('engineering_finish_date > target_finish_date');
+        })
+        ->groupBy(DB::raw("YEAR(engineering_finish_date), MONTH(engineering_finish_date)"))
+        ->orderBy(DB::raw("MIN(engineering_finish_date)"))
+        ->get()
+        ->mapWithKeys(function ($row) {
+            $month = sprintf("%04d-%02d", $row->year, $row->month);
+            return [$month => $row->total];
+        });
+
+        $months = collect(range(1, 12))->map(function ($i) use ($year, $onTimeProjects, $lateProjects) {
+            $month = sprintf("%04d-%02d", $year, $i);
             return [
-                'label' => $now->copy()->subMonths(11 - $i)->format('M Y'),
-                'value' => $completedProjects[$month] ?? 0,
+                'label' => Carbon::createFromFormat('Y-m', $month)->format('M Y'),
+                'onTime' => $onTimeProjects[$month] ?? 0,
+                'late' => $lateProjects[$month] ?? 0,
             ];
         });
 
-        // Pie Chart: Status Distribution
-        $statusCounts = Project::select('status_project_id', DB::raw('COUNT(*) as total'))
-            ->groupBy('status_project_id')
-            ->get()
-            ->mapWithKeys(function ($row) {
-                return [$row->status_project_id => $row->total];
-            });
+        // Pie Chart: Outstanding Projects
+        $overdueCount = Project::whereHas('phc', function($q) use ($now) {
+            $q->whereNotNull('target_finish_date')->where('target_finish_date', '<', $now);
+        })->whereHas('statusProject', function($q) {
+            $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished', 'Invoice On Progress', 'Documents Completed', 'Cancelled']);
+        })->count();
 
-        $statusLabels = StatusProject::whereIn('id', $statusCounts->keys())->pluck('name', 'id');
+        $dueThisMonthCount = Project::whereHas('phc', function($q) use ($now) {
+            $q->whereNotNull('target_finish_date')
+              ->whereMonth('target_finish_date', $now->month)
+              ->whereYear('target_finish_date', $now->year);
+        })->whereHas('statusProject', function($q) {
+            $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished', 'Invoice On Progress', 'Documents Completed', 'Cancelled']);
+        })->count();
+
+        $onTrackCount = Project::whereHas('phc', function($q) use ($now) {
+            $q->whereNotNull('target_finish_date')->where('target_finish_date', '>=', $now);
+        })->whereHas('statusProject', function($q) {
+            $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished', 'Invoice On Progress', 'Documents Completed', 'Cancelled']);
+        })->count();
 
         return [
             'months'             => $months->pluck('label'),
-            'completedProjects'  => $months->pluck('value'),
-            'statusLabels'       => $statusLabels->values(),
-            'statusCounts'       => $statusLabels->keys()->map(fn ($id) => $statusCounts[$id] ?? 0),
+            'onTimeProjects'     => $months->pluck('onTime'),
+            'lateProjects'       => $months->pluck('late'),
+            'statusLabels'       => ['Overdue', 'Due This Month', 'On Track'],
+            'statusCounts'       => [$overdueCount, $dueThisMonthCount, $onTrackCount],
         ];
     }
 
     private function getProjectLists(Carbon $now)
     {
         // Upcoming Projects
-        $upcomingProjects = Project::whereHas('phc', function($q) use ($now) {
-                $q->whereBetween('target_finish_date', [$now, $now->copy()->addDays(30)]);
-            })
-            ->with(['statusProject', 'phc'])
-            ->get()
-            ->sortBy('phc.target_finish_date')
-            ->map(function ($p) {
-                return [
-                    'pn_number'    => $p->pn_number,
-                    'project_name' => $p->project_name,
-                    'target_dates' => $p->phc->target_finish_date,
-                    'status'       => $p->statusProject->name ?? '-',
-                ];
-            });
-
-        $projectDueThisMonthList = Project::whereHas('phc', function($q) use ($now) {
+        $upcomingProjects = $this->getProjectsByCriteria($now, function($q) use ($now) {
             $q->whereNotNull('target_finish_date')
-                ->whereMonth('target_finish_date', $now->month)
-                ->whereYear('target_finish_date', $now->year);
-        })
-        ->with(['statusProject', 'phc'])
-        ->get()
-        ->map(function ($p) {
-            return [
-                'pn_number'    => $p->pn_number,
-                'project_name' => $p->project_name,
-                'target_dates' => $p->phc->target_finish_date,
-                'status'       => $p->statusProject->name ?? '-',
-                'pic'          => $p->phc?->picEngineering?->name ?? '-',
-            ];
-        });
+              ->whereMonth('target_finish_date', $now->copy()->addMonth()->month)
+              ->whereYear('target_finish_date', $now->copy()->addMonth()->year);
+        }, true)['list'];
 
-        $projectOnTrackList = Project::whereHas('phc', function($q) use ($now) {
-                $q->whereNotNull('target_finish_date')
-                  ->where('target_finish_date', '>=', $now);
-            })
-            ->whereHas('statusProject', function($q) {
-                $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished', 'Invoice On Progress', 'Documents Completed', 'Cancelled']);
-            })
-            ->with(['statusProject', 'phc'])
-            ->get()
-            ->map(function ($p) {
-                return [
-                    'pn_number'    => $p->pn_number,
-                    'project_name' => $p->project_name,
-                    'target_dates' => $p->phc->target_finish_date,
-                    'status'       => $p->statusProject->name ?? '-',
-                    'pic'          => $p->phc?->picEngineering?->name ?? '-',
-                ];
-            });
+        $projectDueThisMonthList = $this->getProjectsByCriteria($now, function($q) use ($now) {
+            $q->whereNotNull('target_finish_date')
+              ->whereMonth('target_finish_date', $now->month)
+              ->whereYear('target_finish_date', $now->year);
+        }, true)['list'];
+
+        $projectOnTrackList = $this->getProjectsByCriteria($now, function($q) use ($now) {
+            $q->whereNotNull('target_finish_date')->where('target_finish_date', '>=', $now);
+        }, true)['list'];
 
         // Top 5 Overdue Projects
-        $top5Overdue = Project::whereHas('phc', function($q) use ($now) {
-                $q->whereNotNull('target_finish_date')
-                  ->where('target_finish_date', '<', $now);
-            })
-            ->whereHas('statusProject', function($q) {
-                $q->whereNotIn('name', ['Engineering Work Completed', 'Project Finished', 'Invoice On Progress', 'Documents Completed', 'Cancelled']);
-            })
-            ->with([
-                'statusProject',
-                'phc.picEngineering',
-            ])
-            ->get()
-            ->map(function ($p) use ($now) {
-                return [
-                    'pn_number'    => $p->pn_number,
-                    'project_name' => $p->project_name,
-                    'target_dates' => $p->phc->target_finish_date,
-                    'delay_days'   => Carbon::parse($p->phc->target_finish_date)->diffInDays($now),
-                    'status'       => $p->statusProject->name ?? '-',
-                    'pic'          => $p->phc?->picEngineering?->name ?? '-',
-                ];
-            })
-            ->sortByDesc('delay_days')
-            // ->take(5)
-            ->values();
+        $top5Overdue = $this->getProjectsByCriteria($now, function($q) use ($now) {
+            $q->whereNotNull('target_finish_date')->where('target_finish_date', '<', $now);
+        }, true)['list']->map(function ($p) use ($now) {
+            return [
+                'pn_number'    => $p['pn_number'],
+                'project_name' => $p['project_name'],
+                'target_dates' => $p['target_dates'],
+                'delay_days'   => Carbon::parse($p['target_dates'])->diffInDays($now),
+                'status'       => $p['status'],
+                'pic'          => $p['pic'],
+            ];
+        })
+        ->sortByDesc('delay_days')
+        // ->take(5)
+        ->values();
 
         return [
             'upcomingProjects' => $upcomingProjects,

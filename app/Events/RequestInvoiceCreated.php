@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\PHC;
+use App\Models\RequestInvoice;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -11,38 +11,39 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class PhcCreatedEvent implements ShouldBroadcast
+class RequestInvoiceCreated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $phc;
+    public $requestInvoice;
     public $userIds;
 
-    public function __construct(PHC $phc, array $userIds)
+    public function __construct(RequestInvoice $requestInvoice, array $userIds)
     {
-        $this->phc = $phc;
+        $this->requestInvoice = $requestInvoice;
         $this->userIds = $userIds;
     }
 
     public function broadcastOn()
     {
-        return new Channel('phc.created'); // ✅ public channel
+        return new Channel('request.invoice.created'); // ✅ public channel
     }
 
     public function broadcastAs(): string
     {
-        return 'phc.created';
+        return 'request.invoice.created';
     }
 
     public function broadcastWith(): array
     {
-        $projectNumber = $this->phc->project ? $this->phc->project->project_number : 'Unknown';
+        $projectNumber = $this->requestInvoice->project ? $this->requestInvoice->project->project_number : 'Unknown';
         return [
-            'phc_id' => $this->phc->id,
-            'status' => $this->phc->status,
+            'request_invoice_id' => $this->requestInvoice->id,
+            'status' => $this->requestInvoice->status,
             'user_ids' => $this->userIds,
-            'message' => "PHC for project {$projectNumber} has been created.",
+            'message' => "Request Invoice for project {$projectNumber} has been created.",
             'created_at' => now()->toISOString(),
         ];
     }
+
 }

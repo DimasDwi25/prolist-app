@@ -22,8 +22,10 @@ class DocumentPreparationApiController extends Controller
                     'name' => $doc->name,
                     'preparations' => $items->map(function ($prep) {
                         return [
+                            'id' => $prep->id,
                             'is_applicable' => $prep->is_applicable,
                             'date_prepared' => optional($prep->date_prepared)->toDateString(),
+                            'attachment_path' => $prep->attachment_path,
                         ];
                     })->values(),
                 ];

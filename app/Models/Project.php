@@ -166,6 +166,21 @@ class Project extends Model
         return $this->hasMany(MaterialRequest::class, 'pn_id', 'pn_number');
     }
 
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class, 'project_id', 'pn_number');
+    }
+
+    public function paymentRemarks()
+    {
+        return $this->hasMany(PaymentRemark::class, 'project_id', 'pn_number');
+    }
+
+    public function requestInvoices()
+    {
+        return $this->hasMany(RequestInvoice::class, 'project_id', 'pn_number');
+    }
+
      /**
      * Relasi ke Work Orders
      */

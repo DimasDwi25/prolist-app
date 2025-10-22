@@ -14,10 +14,10 @@ class DashboardController extends Controller
     //
     public function index()
     {
-        DB::listen(function ($query) {
-            // Simpan ke laravel.log
-            Log::info('SQL: ' . $query->sql, $query->bindings);
-        });
+        // DB::listen(function ($query) {
+        //     // Simpan ke laravel.log
+        //     Log::info('SQL: ' . $query->sql, $query->bindings);
+        // });
         // Statistik utama
         $totalQuotation = Quotation::count();
         $totalQuotationValue = Quotation::sum('quotation_value');

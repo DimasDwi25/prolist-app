@@ -28,7 +28,8 @@ class PhcValidationRequested extends Notification implements ShouldQueue
     public function toDatabase($notifiable)
     {
         return [
-            'message' => "PHC baru dibuat untuk Project {$this->phc->project->project_name}",
+            'title' => 'PHC Validation Requested',
+            'message' => "A new PHC has been created for Project {$this->phc->project->project_name}",
             'phc_id'  => $this->phc->id,
             'project' => $this->phc->project->project_number,
         ];
@@ -38,7 +39,8 @@ class PhcValidationRequested extends Notification implements ShouldQueue
     {
         return [
             'data' => [
-                'message' => "PHC baru dibuat untuk Project {$this->phc->project->project_name}",
+                'title' => 'PHC Validation Requested',
+                'message' => "A new PHC has been created for Project {$this->phc->project->project_name}",
                 'phc_id'  => $this->phc->id,
                 'project' => $this->phc->project->project_number,
             ],

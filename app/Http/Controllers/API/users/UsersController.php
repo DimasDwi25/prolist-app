@@ -35,6 +35,7 @@ class UsersController extends Controller
                     'engineering_admin',
                     'engineering_director',
                     'electrician_supervisor',
+                    'site_engineer',
                     'drafter'
                 ]);
             })
@@ -79,6 +80,7 @@ class UsersController extends Controller
                     'project controller',
                     'engineering_admin',
                     'electrician_supervisor',
+                    'site_engineer',
                     'drafter']);
         })
         ->with(['role' => function ($q) {
@@ -116,6 +118,7 @@ class UsersController extends Controller
                     'engineer_supervisor',
                     'engineering_admin',
                     'drafter',
+                    'site_engineer',
                     'electrician_supervisor'
                 ]);
             })
