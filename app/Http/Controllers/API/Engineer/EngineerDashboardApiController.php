@@ -66,12 +66,13 @@ class EngineerDashboardApiController extends Controller
         $count = $query->count();
 
         $listQuery = clone $query;
-        $list = $listQuery->with(['statusProject', 'phc'])
+        $list = $listQuery->with(['statusProject', 'phc', 'client', 'quotation'])
             ->get()
             ->map(function ($p) {
                 return [
                     'pn_number'    => $p->pn_number,
                     'project_name' => $p->project_name,
+                    'client_name'  => $p->client->name ?? $p->quotation->client->name ?? '-',
                     'target_dates' => $p->phc->target_finish_date,
                     'status'       => $p->statusProject->name ?? '-',
                     'pic'          => $p->phc?->picEngineering?->name ?? '-',
@@ -197,6 +198,7 @@ class EngineerDashboardApiController extends Controller
             return [
                 'pn_number'    => $p['pn_number'],
                 'project_name' => $p['project_name'],
+                'client_name'  => $p['client_name'],
                 'target_dates' => $p['target_dates'],
                 'delay_days'   => Carbon::parse($p['target_dates'])->diffInDays($now),
                 'status'       => $p['status'],

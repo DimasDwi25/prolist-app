@@ -207,6 +207,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/phcs/show/{phc}', [EngineerPhcDocumentiApi::class, 'show']);
     
     Route::get('/document-preparations/{documentPreparationId}/attachment', [EngineerPhcDocumentiApi::class, 'viewAttachment']);
+    Route::post('/document-preparations/{documentPreparationId}/upload', [EngineerPhcDocumentiApi::class, 'uploadDocument']);
     Route::get('/phcs/{phc}/document-preparations', [DocumentPreparationApiController::class, 'index']);
 
     Route::get('/document-phc', [DocumentApiController::class, 'index']);

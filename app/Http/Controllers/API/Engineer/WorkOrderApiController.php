@@ -431,13 +431,8 @@ class WorkOrderApiController extends Controller
                 'pn_number'      => $project->pn_number,
                 'project_number' => $project->project_number,
                 'project_name'   => $project->project_name,
-                'project_client_name' => $project->client?->name,
+                'client_name' => $project->client?->name ?? $project->quotation->client->name,
                 'total_wo'       => $project->work_orders_count, // hasil dari withCount
-                'quotation'      => $project->quotation ? [
-                    'id'            => $project->quotation->id,
-                    'quotation_number' => $project->quotation->quotation_number,
-                    'client_name' => $project->quotation->client->name,
-                ] : null,
                 'status_project' => $project->statusProject ? [
                     'id'   => $project->statusProject->id,
                     'name' => $project->statusProject->name,

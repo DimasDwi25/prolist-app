@@ -234,7 +234,7 @@ class RequestInvoiceApiController extends Controller
                 return [
                     'pn_number' => $project->pn_number,
                     'project_name' => $project->project_name,
-                    'client' => $clientName,
+                    'client_name' => $clientName,
                     'total_request_invoices' => $totalRequestInvoices,
                 ];
             });
