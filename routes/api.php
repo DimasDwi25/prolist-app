@@ -39,6 +39,7 @@ use App\Http\Controllers\API\users\UsersController;
 use App\Http\Controllers\API\Finance\InvoiceTypeController;
 use App\Http\Controllers\API\Finance\InvoicePaymentController;
 use App\Http\Controllers\API\Finance\RequestInvoiceApiController;
+use App\Http\Controllers\API\Finance\RequestInvoiceListApiController;
 use App\Http\Controllers\API\Finance\FinanceDashboardController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -355,6 +356,9 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::get('request-invoices-summary', [RequestInvoiceApiController::class, 'summary']);
+    Route::get('request-invoices-list', [RequestInvoiceListApiController::class, 'index']);
+    Route::get('request-invoices-list/{id}', [RequestInvoiceListApiController::class, 'show']);
+    Route::post('request-invoices-list/{id}/approve', [RequestInvoiceListApiController::class, 'approve']);
     Route::get('request-invoices/{pn_number}', [RequestInvoiceApiController::class, 'index']);
     Route::get('request-invoices/{pn_number}/phc-documents', [RequestInvoiceApiController::class, 'getPhcDocuments']);
     Route::post('request-invoices', [RequestInvoiceApiController::class, 'store']);

@@ -31,7 +31,15 @@ class InvoiceController extends Controller
                 return $invoice;
             });
 
-        return response()->json($invoices);
+        $totalPayment = $invoices->sum('total_payment_amount');
+        $totalInvoiceValue = $invoices->sum('invoice_value');
+        $outstandingPayment = $totalInvoiceValue - $totalPayment;
+
+        return response()->json([
+            'invoices' => $invoices,
+            'total_payment' => $totalPayment,
+            'outstanding_payment' => $outstandingPayment
+        ]);
     }
 
     /**
@@ -254,6 +262,7 @@ class InvoiceController extends Controller
                 $paymentTotal = $project->invoices->flatMap->payments->sum('payment_amount');
                 $outstandingInvoice = $invoiceTotal - $paymentTotal;
                 $outstandingAmount = $project->po_value - $paymentTotal;
+                $invoiceProgress = $invoiceTotal > 0 ? round(($paymentTotal / $invoiceTotal) * 100, 2) : 0;
 
                 // Get client name from project->client or project->quotation->client
                 $clientName = $project->client ? $project->client->name :
@@ -265,12 +274,13 @@ class InvoiceController extends Controller
                 return [
                     'pn_number' => $project->pn_number,
                     'project_name' => $project->project_name,
-                    'client' => $clientName,
+                    'client_name' => $clientName,
                     'project_value' => $project->po_value,
                     'invoice_total' => $invoiceTotal,
                     'payment_total' => $paymentTotal,
                     'outstanding_invoice' => $outstandingInvoice,
                     'outstanding_amount' => $outstandingAmount,
+                    'invoice_progress' => $invoiceProgress,
                     'remarks' => $remarks,
                 ];
             });

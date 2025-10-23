@@ -52,30 +52,21 @@ class RequestInvoiceApiController extends Controller
             'documents.*.notes' => 'nullable|string',
         ]);
 
-        $year = now()->format('y');
-
-        // cari nomor terakhir di project yang sama & tahun berjalan
+        // cari nomor terakhir di project yang sama
         $lastRequest = RequestInvoice::where('project_id', $request->project_id)
-            ->whereYear('created_at', now()->year)
             ->orderBy('id', 'desc')
             ->first();
 
         $nextNumber = 1;
         if ($lastRequest) {
             $parts = explode('/', $lastRequest->request_number);
-            if (!empty($parts[0])) {
-                $num = (int) filter_var($parts[0], FILTER_SANITIZE_NUMBER_INT);
+            if (count($parts) > 1) {
+                $num = (int) $parts[1];
                 $nextNumber = $num + 1;
             }
         }
 
-        $projectCode = substr($data['project_id'], -3);
-        $requestNumber = sprintf(
-            "RI/%s/%s/%03d",
-            $year,
-            $projectCode,
-            $nextNumber
-        );
+        $requestNumber = $data['project_id'] . '/' . sprintf("%03d", $nextNumber);
 
         DB::transaction(function () use ($data, $requestNumber, $request) {
             $requestInvoice = RequestInvoice::create([

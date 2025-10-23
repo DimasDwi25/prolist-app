@@ -13,37 +13,44 @@ class FinanceDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Get year from query param, default to current year
-        $yearParam = $request->query('year');
-        $currentYear = now()->year;
-        $year = $yearParam ? (int)$yearParam : $currentYear;
-
         // Request invoice count
         $requestInvoiceCount = RequestInvoice::count();
 
+        // Request invoice list with details
+        $requestInvoiceList = RequestInvoice::with(['project', 'requestedBy', 'documents.documentPreparation.document'])
+            ->get()
+            ->map(function ($invoice) {
+                return [
+                    'request_number' => $invoice->request_number,
+                    'project_name' => $invoice->project ? $invoice->project->project_name : null,
+                    'status' => $invoice->status,
+                    'requested_by_name' => $invoice->requestedBy ? $invoice->requestedBy->name : null,
+                    'documents' => $invoice->documents->map(function ($doc) {
+                        return [
+                            'name' => $doc->documentPreparation && $doc->documentPreparation->document ? $doc->documentPreparation->document->name : null,
+                            'attachment_path' => $doc->documentPreparation ? $doc->documentPreparation->attachment_path : null,
+                            'notes' => $doc->notes,
+                        ];
+                    }),
+                ];
+            });
+
         // Jumlah PN (projects)
-        $projectCount = Project::whereYearFromPn($year)->count();
+        $projectCount = Project::count();
 
         // Total invoice value
-        $totalInvoice = Invoice::whereHas('project', function ($query) use ($year) {
-            $query->whereYearFromPn($year);
-        })->sum('invoice_value');
+        $totalInvoice = Invoice::sum('invoice_value');
 
         // Invoice outstanding (total invoice - total payments)
-        $invoiceOutstanding = Invoice::whereHas('project', function ($query) use ($year) {
-            $query->whereYearFromPn($year);
-        })->with('payments')->get()->sum(function ($invoice) {
+        $invoiceOutstanding = Invoice::with('payments')->get()->sum(function ($invoice) {
             return $invoice->invoice_value - $invoice->payments->sum('payment_amount');
         });
 
         // Invoice due date - count of invoices past due
-        $invoiceDueCount = Invoice::whereHas('project', function ($query) use ($year) {
-            $query->whereYearFromPn($year);
-        })->where('invoice_due_date', '<', now())->count();
+        $invoiceDueCount = Invoice::where('invoice_due_date', '<', now())->count();
 
         // Summary invoice vs PN with payment < 100%
-        $incompletePayments = Project::whereYearFromPn($year)
-            ->with(['invoices.payments'])
+        $incompletePayments = Project::with(['invoices.payments'])
             ->get()
             ->filter(function ($project) {
                 $totalInvoice = $project->invoices->sum('invoice_value');
@@ -65,8 +72,8 @@ class FinanceDashboardController extends Controller
             });
 
         return response()->json([
-            'year' => $year,
             'request_invoice' => $requestInvoiceCount,
+            'request_invoice_list' => $requestInvoiceList,
             'jumlah_pn' => $projectCount,
             'total_invoice' => $totalInvoice,
             'invoice_outstanding' => $invoiceOutstanding,

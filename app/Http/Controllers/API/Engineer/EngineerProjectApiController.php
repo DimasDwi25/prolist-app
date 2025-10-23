@@ -13,7 +13,7 @@ class EngineerProjectApiController extends Controller
     //
     public function index()
     {
-        $projects = Project::with(['category', 'quotation.client', 'client', 'statusProject'])
+        $projects = Project::with(['category', 'quotation.client', 'client', 'statusProject', 'logs'])
         ->orderByRaw('CAST(LEFT(CAST(pn_number AS VARCHAR), 2) AS INT) DESC') // ambil 2 digit pertama sebagai tahun
         ->orderByRaw('CAST(SUBSTRING(CAST(pn_number AS VARCHAR), 3, LEN(CAST(pn_number AS VARCHAR)) - 2) AS INT) DESC') // ambil nomor urut
         ->get();
@@ -46,7 +46,7 @@ class EngineerProjectApiController extends Controller
                         ->orWhere('ho_engineering_id', $userId);
                 });
             })
-            ->with(['client', 'quotation', 'phc', 'manPowerAllocations']) // optional eager load
+            ->with(['client', 'quotation', 'phc', 'manPowerAllocations', 'logs']) // optional eager load
             ->get();
 
         return response()->json([
