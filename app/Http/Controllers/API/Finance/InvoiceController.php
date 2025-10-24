@@ -25,6 +25,7 @@ class InvoiceController extends Controller
 
         $invoices = Invoice::where('project_id', $projectId)
             ->with(['project', 'invoiceType', 'payments'])
+            ->orderBy('invoice_number_in_project', 'asc')
             ->get()
             ->map(function ($invoice) {
                 $invoice->total_payment_amount = $invoice->payments->sum('payment_amount');
@@ -58,6 +59,7 @@ class InvoiceController extends Controller
             'payment_status' => 'nullable|in:unpaid,partial,paid',
             'remarks' => 'nullable|string',
             'currency' => 'nullable|in:IDR,USD',
+            'invoice_sequence' => 'nullable|integer|min:1',
         ]);
 
         // Fetch project to check value
@@ -69,11 +71,19 @@ class InvoiceController extends Controller
             return response()->json(['error' => 'Invoice total exceeds project value'], 400);
         }
 
-        // Generate invoice_id based on template IP25001
-        $invoiceId = $this->generateInvoiceId($request->project_id, $request->invoice_type_id);
+        // Determine invoice sequence: custom or auto-generated
+        if ($request->has('invoice_sequence')) {
+            $invoiceNumberInProject = $request->invoice_sequence;
+            // Check uniqueness within project
+            if (Invoice::where('project_id', $request->project_id)->where('invoice_number_in_project', $invoiceNumberInProject)->exists()) {
+                return response()->json(['error' => 'Invoice sequence already exists for this project'], 400);
+            }
+        } else {
+            $invoiceNumberInProject = $this->getInvoiceNumberInProject($request->project_id);
+        }
 
-        // Get invoice number in project
-        $invoiceNumberInProject = $this->getInvoiceNumberInProject($request->project_id);
+        // Generate invoice_id based on template IP25001
+        $invoiceId = $this->generateInvoiceId($request->project_id, $request->invoice_type_id, $invoiceNumberInProject);
 
         $data = $request->all();
         $data['invoice_id'] = $invoiceId;
@@ -311,13 +321,13 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Generate invoice_id based on template IP25001
-     * IP + code_type + year from pn_number + invoice number in project
+     * Generate invoice_id based on template IP25020001
+     * code_type + full pn_number + invoice number in project
      */
-    private function generateInvoiceId(string $projectId, ?int $invoiceTypeId): string
+    private function generateInvoiceId(string $projectId, ?int $invoiceTypeId, int $invoiceNumberInProject): string
     {
         $project = Project::findOrFail($projectId);
-        $yearShort = substr((string)$project->pn_number, 0, 2); // e.g., '25' for 2025
+        $pnNumber = (string)$project->pn_number; // e.g., '25020'
 
         $codeType = '00'; // default
         if ($invoiceTypeId) {
@@ -327,9 +337,7 @@ class InvoiceController extends Controller
             }
         }
 
-        $invoiceNumberInProject = $this->getInvoiceNumberInProject($projectId);
-
-        return $codeType . $yearShort . str_pad($invoiceNumberInProject, 3, '0', STR_PAD_LEFT);
+        return $codeType . $pnNumber . str_pad($invoiceNumberInProject, 3, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -352,11 +360,153 @@ class InvoiceController extends Controller
         $request->validate([
             'project_id' => 'required|string',
             'invoice_type_id' => 'nullable|integer',
+            'invoice_sequence' => 'nullable|integer|min:1',
         ]);
 
-        $nextInvoiceId = $this->generateInvoiceId($request->project_id, $request->invoice_type_id);
+        $invoiceNumberInProject = $request->has('invoice_sequence') ? $request->invoice_sequence : $this->getInvoiceNumberInProject($request->project_id);
+        $nextInvoiceId = $this->generateInvoiceId($request->project_id, $request->invoice_type_id, $invoiceNumberInProject);
 
         return response()->json(['next_invoice_id' => $nextInvoiceId]);
+    }
+
+    /**
+     * Validate if an invoice sequence is available for a project.
+     */
+    public function validateSequence(Request $request): JsonResponse
+    {
+        $request->validate([
+            'project_id' => 'required|string',
+            'invoice_sequence' => 'required|integer|min:1',
+        ]);
+
+        $exists = Invoice::where('project_id', $request->project_id)
+            ->where('invoice_number_in_project', $request->invoice_sequence)
+            ->exists();
+
+        return response()->json([
+            'available' => !$exists,
+            'message' => $exists ? 'Sequence already exists for this project' : 'Sequence is available'
+        ]);
+    }
+
+    /**
+     * Display a listing of all invoices with filtering by year and range.
+     */
+    public function invoiceList(Request $request): JsonResponse
+    {
+        // 🔹 Ambil daftar tahun dari invoices created_at
+        $availableYears = $this->getAvailableYearsInvoices();
+
+        // 🔹 Tahun aktif
+        $yearParam = $request->query('year');
+        $year = $yearParam
+            ? (int) $yearParam
+            : (!empty($availableYears) ? end($availableYears) : now()->year);
+
+        // 🔹 Filter & range
+        $rangeType = $request->query('range_type', 'yearly');
+        $month = $request->query('month');
+        $from = $request->query('from_date');
+        $to = $request->query('to_date');
+
+        // 🔹 Query invoices
+        $invoices = Invoice::query()
+            ->with([
+                'project' => function ($query) {
+                    $query->select('pn_number', 'project_name')
+                        ->selectRaw('(SELECT c.name FROM quotations q JOIN clients c ON q.client_id = c.id WHERE q.quotation_number = projects.quotations_id) as client_name');
+                },
+                'invoiceType' => function ($query) {
+                    $query->select('id', 'code_type');
+                },
+                'payments' => function ($query) {
+                    $query->select('invoice_id', 'payment_amount');
+                }
+            ])
+            ->orderBy('created_at', 'desc');
+
+        // 🔹 Filter berdasarkan range
+        switch ($rangeType) {
+            case 'monthly':
+                $invoices->whereYear('created_at', $year);
+                if ($month) {
+                    $invoices->whereMonth('created_at', $month);
+                }
+                break;
+
+            case 'weekly':
+                $invoices->whereBetween('created_at', [
+                    now()->startOfWeek(), now()->endOfWeek()
+                ]);
+                break;
+
+            case 'custom':
+                if ($from && $to) {
+                    $invoices->whereBetween('created_at', [$from, $to]);
+                }
+                break;
+
+            default:
+                $invoices->whereYear('created_at', $year);
+                break;
+        }
+
+        $invoices = $invoices->get()
+            ->map(function ($invoice) {
+                $totalPaymentAmount = $invoice->payments->sum('payment_amount');
+                $paymentPercentage = $invoice->invoice_value > 0 ? round(($totalPaymentAmount / $invoice->invoice_value) * 100, 2) : 0;
+
+                return [
+                    'invoice_id' => $invoice->invoice_id,
+                    'invoice_number_in_project' => $invoice->invoice_number_in_project,
+                    'project_id' => $invoice->project_id,
+                    'project_name' => $invoice->project ? $invoice->project->project_name : null,
+                    'client_name' => $invoice->project ? $invoice->project->client_name : null,
+                    'invoice_type' => $invoice->invoiceType ? $invoice->invoiceType->code_type : null,
+                    'no_faktur' => $invoice->no_faktur,
+                    'invoice_date' => $invoice->invoice_date,
+                    'invoice_description' => $invoice->invoice_description,
+                    'invoice_value' => $invoice->invoice_value,
+                    'invoice_due_date' => $invoice->invoice_due_date,
+                    'payment_status' => $invoice->payment_status,
+                    'total_payment_amount' => $totalPaymentAmount,
+                    'payment_percentage' => $paymentPercentage,
+                    'remarks' => $invoice->remarks,
+                    'currency' => $invoice->currency,
+                    'created_at' => $invoice->created_at,
+                ];
+            });
+
+        // Calculate totals
+        $totalInvoices = $invoices->count();
+        $totalInvoiceValue = $invoices->sum('invoice_value');
+
+        return response()->json([
+            'status' => 'success',
+            'availableYears' => $availableYears,
+            'year' => $year,
+            'range_type' => $rangeType,
+            'month' => $month,
+            'from_date' => $from,
+            'to_date' => $to,
+            'total_invoices' => $totalInvoices,
+            'total_invoice_value' => $totalInvoiceValue,
+            'data' => $invoices,
+        ]);
+    }
+
+    /**
+     * Ambil daftar tahun yang ada di invoices created_at (unik, ascending)
+     */
+    private function getAvailableYearsInvoices(): array
+    {
+        return Invoice::selectRaw('YEAR(created_at) as year')
+            ->distinct()
+            ->pluck('year')
+            ->map(fn($y) => (int)$y)
+            ->sort()
+            ->values()
+            ->toArray();
     }
 
     /**

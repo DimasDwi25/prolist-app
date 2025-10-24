@@ -338,8 +338,10 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('invoice-types/{id}', [InvoiceTypeController::class, 'destroy']);
 
         Route::get('invoices', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'index']);
+        Route::get('invoice-list', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'invoiceList']);
         Route::post('invoices', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'store']);
         Route::get('invoices/next-id', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'nextInvoiceId']);
+        Route::get('invoices/validate-sequence', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'validateSequence']);
         Route::get('invoice-summary', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'invoiceSummary']);
         Route::get('invoices/validate', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'validateInvoice']);
         Route::get('invoices/{id}', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'show']);
