@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\ActivityLoggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Approval extends Model
 {
-    use HasFactory;
+    use HasFactory, ActivityLoggable;
 
     protected $fillable = ['approvable_type','approvable_id','user_id','status','validated_at','pin_hash','remarks', 'type'];
 

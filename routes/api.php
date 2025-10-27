@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\ActivityLogController;
 use App\Http\Controllers\API\ApprovallController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\Engineer\CategorieLogApiController;
@@ -296,6 +297,12 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/logs/{id}', [LogController::class, 'destroy']);
     Route::patch('/logs/{id}/close', [LogController::class, 'close']);
 
+    // Activity Logs
+    Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+    Route::get('/activity-logs/{id}', [ActivityLogController::class, 'show']);
+    Route::get('/activity-logs/actions/list', [ActivityLogController::class, 'getActions']);
+    Route::get('/activity-logs/model-types/list', [ActivityLogController::class, 'getModelTypes']);
+
     // Tampilkan semua kategori
     Route::get('/categories-log', [CategorieLogApiController::class, 'index']);
 
@@ -344,6 +351,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('invoices/validate-sequence', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'validateSequence']);
         Route::get('invoice-summary', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'invoiceSummary']);
         Route::get('invoices/validate', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'validateInvoice']);
+        Route::get('invoices/preview-taxes', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'previewTaxes']);
         Route::get('invoices/{id}', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'show']);
         Route::put('invoices/{id}', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'update']);
         Route::delete('invoices/{id}', [\App\Http\Controllers\API\Finance\InvoiceController::class, 'destroy']);

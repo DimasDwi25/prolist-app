@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\ActivityLoggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PackingList extends Model
 {
-    use HasFactory;
+    use HasFactory, ActivityLoggable;
 
     protected $primaryKey = 'pl_id';
     public $incrementing = false;

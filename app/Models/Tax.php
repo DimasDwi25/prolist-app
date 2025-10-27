@@ -6,19 +6,12 @@ use App\Traits\ActivityLoggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PurposeWorkOrders extends Model
+class Tax extends Model
 {
     use HasFactory, ActivityLoggable;
 
     protected $fillable = [
         'name',
+        'rate',
     ];
-
-    /**
-     * Relasi ke Work Orders
-     */
-    public function workOrders()
-    {
-        return $this->hasMany(WorkOrder::class, 'purpose_id');
-    }
 }

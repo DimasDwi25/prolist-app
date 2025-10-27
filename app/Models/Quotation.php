@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\ActivityLoggable;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Quotation extends Model
 {
-    use HasFactory;
+    use HasFactory, ActivityLoggable;
     protected $primaryKey = 'quotation_number';
     public $incrementing = false; // karena kita generate manual
     protected $keyType = 'string'; 

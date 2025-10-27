@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\ActivityLoggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DocumentPreparation extends Model
 {
-    use HasFactory;
+    use HasFactory, ActivityLoggable;
 
     protected $fillable = ['document_id', 'phc_id', 'is_applicable', 'date_prepared', 'attachment_path'];
 

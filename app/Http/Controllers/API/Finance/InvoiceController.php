@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\InvoicePayment;
 use App\Models\InvoiceType;
 use App\Models\Project;
+use App\Models\Tax;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -59,7 +60,14 @@ class InvoiceController extends Controller
             'payment_status' => 'nullable|in:unpaid,partial,paid',
             'remarks' => 'nullable|string',
             'currency' => 'nullable|in:IDR,USD',
+            'rate_usd' => 'nullable|numeric',
+            'is_ppn' => 'nullable|boolean',
+            'is_pph23' => 'nullable|boolean',
+            'is_pph42' => 'nullable|boolean',
             'invoice_sequence' => 'nullable|integer|min:1',
+            'nilai_ppn' => 'nullable|numeric',
+            'nilai_pph23' => 'nullable|numeric',
+            'nilai_pph42' => 'nullable|numeric',
         ]);
 
         // Fetch project to check value
@@ -73,23 +81,29 @@ class InvoiceController extends Controller
 
         // Determine invoice sequence: custom or auto-generated
         if ($request->has('invoice_sequence')) {
-            $invoiceNumberInProject = $request->invoice_sequence;
-            // Check uniqueness within project
-            if (Invoice::where('project_id', $request->project_id)->where('invoice_number_in_project', $invoiceNumberInProject)->exists()) {
-                return response()->json(['error' => 'Invoice sequence already exists for this project'], 400);
+            $globalSequence = $request->invoice_sequence;
+            // Check uniqueness globally for the year (across all invoice types)
+            $year = date('y'); // e.g., '25'
+            $sequencePadded = str_pad($globalSequence, 3, '0', STR_PAD_LEFT);
+            $yearSequence = $year . $sequencePadded;
+            if (Invoice::where('invoice_id', 'like', '%' . $yearSequence)->exists()) {
+                return response()->json(['error' => 'Invoice sequence already exists'], 400);
             }
         } else {
-            $invoiceNumberInProject = $this->getInvoiceNumberInProject($request->project_id);
+            $globalSequence = $this->getGlobalInvoiceSequence();
         }
 
-        // Generate invoice_id based on template IP25001
-        $invoiceId = $this->generateInvoiceId($request->project_id, $request->invoice_type_id, $invoiceNumberInProject);
+        // Generate invoice_id based on template IP25001 (global sequence)
+        $invoiceId = $this->generateInvoiceIdGlobal($request->invoice_type_id, $globalSequence);
 
         $data = $request->all();
         $data['invoice_id'] = $invoiceId;
-        $data['invoice_number_in_project'] = $invoiceNumberInProject;
+        $data['invoice_number_in_project'] = $globalSequence; // Keep for backward compatibility, but now global
 
         $invoice = Invoice::create($data);
+
+        // Calculate taxes and totals
+        $this->calculateInvoiceTaxesAndTotals($invoice);
 
         // Set default payment_status if not provided
         if (!isset($data['payment_status'])) {
@@ -127,6 +141,13 @@ class InvoiceController extends Controller
             'payment_status' => 'nullable|in:unpaid,partial,paid',
             'remarks' => 'nullable|string',
             'currency' => 'nullable|in:IDR,USD',
+            'rate_usd' => 'nullable|numeric',
+            'is_ppn' => 'nullable|boolean',
+            'is_pph23' => 'nullable|boolean',
+            'is_pph42' => 'nullable|boolean',
+            'nilai_ppn' => 'nullable|numeric',
+            'nilai_pph23' => 'nullable|numeric',
+            'nilai_pph42' => 'nullable|numeric',
         ]);
 
         // Check if trying to change project_id and payments exist
@@ -160,8 +181,7 @@ class InvoiceController extends Controller
             $oldInvoiceId = $invoice->invoice_id;
             $sequence = substr($oldInvoiceId, -3); // Extract last 3 characters as sequence (e.g., '001')
 
-            $project = Project::findOrFail($invoice->project_id);
-            $yearShort = substr((string)$project->pn_number, 0, 2); // e.g., '25'
+            $year = date('y'); // Current year short
 
             $newCodeType = '00'; // default
             $newInvoiceType = InvoiceType::find($request->invoice_type_id);
@@ -169,7 +189,7 @@ class InvoiceController extends Controller
                 $newCodeType = $newInvoiceType->code_type;
             }
 
-            $newInvoiceId = $newCodeType . $yearShort . $sequence; // e.g., 'IP25001'
+            $newInvoiceId = $newCodeType . $year . $sequence; // e.g., 'IP25001'
 
             DB::transaction(function () use ($oldInvoiceId, $newInvoiceId) {
                 // Update all payments to reference the new invoice_id
@@ -189,11 +209,14 @@ class InvoiceController extends Controller
 
         $invoice->update($data);
 
+        // Calculate taxes and totals
+        $this->calculateInvoiceTaxesAndTotals($invoice);
+
         // Update payment_status based on payments
         $totalPaid = $invoice->payments()->sum('payment_amount');
         if ($totalPaid == 0) {
             $invoice->update(['payment_status' => 'unpaid']);
-        } elseif ($totalPaid < $invoice->invoice_value) {
+        } elseif ($totalPaid < $invoice->total_invoice ?? $invoice->invoice_value) {
             $invoice->update(['payment_status' => 'partial']);
         } else {
             $invoice->update(['payment_status' => 'paid']);
@@ -234,7 +257,7 @@ class InvoiceController extends Controller
 
         // 🔹 Query projects
         $projects = Project::query()
-            ->with(['client', 'quotation.client', 'paymentRemarks', 'invoices'])
+            ->with(['client', 'quotation' => function($q) { $q->with('client'); }, 'paymentRemarks', 'invoices'])
             ->orderByRaw('CAST(LEFT(CAST(pn_number AS VARCHAR), 2) AS INT) DESC') // ambil 2 digit pertama sebagai tahun
             ->orderByRaw('CAST(SUBSTRING(CAST(pn_number AS VARCHAR), 3, LEN(CAST(pn_number AS VARCHAR)) - 2) AS INT) DESC'); // ambil nomor urut
 
@@ -321,13 +344,12 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Generate invoice_id based on template IP25020001
-     * code_type + full pn_number + invoice number in project
+     * Generate invoice_id based on template IP25001 (global sequence)
+     * code_type + year + global sequence
      */
-    private function generateInvoiceId(string $projectId, ?int $invoiceTypeId, int $invoiceNumberInProject): string
+    private function generateInvoiceIdGlobal(?int $invoiceTypeId, int $globalSequence): string
     {
-        $project = Project::findOrFail($projectId);
-        $pnNumber = (string)$project->pn_number; // e.g., '25020'
+        $year = date('y'); // e.g., '25'
 
         $codeType = '00'; // default
         if ($invoiceTypeId) {
@@ -337,55 +359,117 @@ class InvoiceController extends Controller
             }
         }
 
-        return $codeType . $pnNumber . str_pad($invoiceNumberInProject, 3, '0', STR_PAD_LEFT);
+        return $codeType . $year . str_pad($globalSequence, 3, '0', STR_PAD_LEFT);
     }
 
     /**
-     * Get the next invoice number in the project
+     * Get the next global invoice sequence for the year (across all invoice types)
      */
-    private function getInvoiceNumberInProject(string $projectId): int
+    private function getGlobalInvoiceSequence(): int
     {
-        $lastInvoice = Invoice::where('project_id', $projectId)
-            ->orderBy('invoice_number_in_project', 'desc')
+        $year = date('y');
+
+        // Find the highest sequence for the year across all invoice types
+        $lastInvoice = Invoice::where('invoice_id', 'like', '%' . $year . '___')
+            ->orderByRaw("CAST(SUBSTRING(invoice_id, LEN(invoice_id) - 2, 3) AS INT) DESC")
             ->first();
 
-        return $lastInvoice ? $lastInvoice->invoice_number_in_project + 1 : 1;
+        if ($lastInvoice) {
+            $lastSequence = (int)substr($lastInvoice->invoice_id, -3);
+            return $lastSequence + 1;
+        }
+
+        return 1;
     }
 
     /**
-     * Get the next invoice_id for a given project and optional invoice type.
+     * Calculate taxes, totals, and expected payment for an invoice
+     */
+    private function calculateInvoiceTaxesAndTotals(Invoice $invoice): void
+    {
+        $taxes = Tax::all()->keyBy('name');
+
+        $ppnRate = 0;
+        $pph23Rate = 0;
+        $pph42Rate = 0;
+
+        if ($invoice->is_ppn) {
+            $ppnRate = optional($taxes['PPN'])->rate ?? 0.11;
+        }
+        if ($invoice->is_pph23) {
+            $pph23Rate = optional($taxes['PPh 23'])->rate ?? 0.0265;
+        }
+        if ($invoice->is_pph42) {
+            $pph42Rate = optional($taxes['PPh 4(2)'])->rate ?? 0.02;
+        }
+
+        $invoiceValue = $invoice->invoice_value;
+
+        // Adjust for USD currency
+        if ($invoice->currency === 'USD' && $invoice->rate_usd) {
+            $invoiceValue *= $invoice->rate_usd;
+        }
+
+        // Use manual values if provided, otherwise calculate automatically
+        $nilaiPpn = $invoice->nilai_ppn ?? ($invoiceValue * $ppnRate);
+        $nilaiPph23 = $invoice->nilai_pph23 ?? ($invoiceValue * $pph23Rate);
+        $nilaiPph42 = $invoice->nilai_pph42 ?? ($invoiceValue * $pph42Rate);
+
+        $totalInvoice = $invoiceValue;
+        if ($invoice->is_ppn) {
+            $totalInvoice += $nilaiPpn;
+        }
+
+        $expectedPayment = $totalInvoice - $nilaiPph23 - $nilaiPph42;
+
+        $invoice->update([
+            'ppn_rate' => $ppnRate,
+            'pph23_rate' => $pph23Rate,
+            'pph42_rate' => $pph42Rate,
+            'nilai_ppn' => $nilaiPpn,
+            'nilai_pph23' => $nilaiPph23,
+            'nilai_pph42' => $nilaiPph42,
+            'total_invoice' => $totalInvoice,
+            'expected_payment' => $expectedPayment,
+        ]);
+    }
+
+    /**
+     * Get the next invoice_id for a given invoice type.
      */
     public function nextInvoiceId(Request $request): JsonResponse
     {
         $request->validate([
-            'project_id' => 'required|string',
             'invoice_type_id' => 'nullable|integer',
             'invoice_sequence' => 'nullable|integer|min:1',
         ]);
 
-        $invoiceNumberInProject = $request->has('invoice_sequence') ? $request->invoice_sequence : $this->getInvoiceNumberInProject($request->project_id);
-        $nextInvoiceId = $this->generateInvoiceId($request->project_id, $request->invoice_type_id, $invoiceNumberInProject);
+        $globalSequence = $request->has('invoice_sequence') ? $request->invoice_sequence : $this->getGlobalInvoiceSequence();
+        $nextInvoiceId = $this->generateInvoiceIdGlobal($request->invoice_type_id, $globalSequence);
 
         return response()->json(['next_invoice_id' => $nextInvoiceId]);
     }
 
     /**
-     * Validate if an invoice sequence is available for a project.
+     * Validate if an invoice sequence is available globally for the year.
      */
     public function validateSequence(Request $request): JsonResponse
     {
         $request->validate([
-            'project_id' => 'required|string',
+            'invoice_type_id' => 'nullable|integer',
             'invoice_sequence' => 'required|integer|min:1',
         ]);
 
-        $exists = Invoice::where('project_id', $request->project_id)
-            ->where('invoice_number_in_project', $request->invoice_sequence)
-            ->exists();
+        $year = date('y');
+        $sequencePadded = str_pad($request->invoice_sequence, 3, '0', STR_PAD_LEFT);
+        $yearSequence = $year . $sequencePadded;
+
+        // Check if any invoice has the same year + sequence (last 5 characters)
+        $exists = Invoice::where('invoice_id', 'like', '%' . $yearSequence)->exists();
 
         return response()->json([
             'available' => !$exists,
-            'message' => $exists ? 'Sequence already exists for this project' : 'Sequence is available'
+            'message' => $exists ? 'Sequence already exists' : 'Sequence is available'
         ]);
     }
 
@@ -507,6 +591,66 @@ class InvoiceController extends Controller
             ->sort()
             ->values()
             ->toArray();
+    }
+
+    /**
+     * Preview tax calculations for invoice creation/update.
+     */
+    public function previewTaxes(Request $request): JsonResponse
+    {
+        $request->validate([
+            'invoice_value' => 'required|numeric',
+            'currency' => 'nullable|in:IDR,USD',
+            'rate_usd' => 'nullable|numeric',
+            'is_ppn' => 'nullable|in:0,1,true,false',
+            'is_pph23' => 'nullable|in:0,1,true,false',
+            'is_pph42' => 'nullable|in:0,1,true,false',
+        ]);
+
+        $taxes = Tax::all()->keyBy('name');
+
+        $ppnRate = 0;
+        $pph23Rate = 0;
+        $pph42Rate = 0;
+
+        if ($request->boolean('is_ppn')) {
+            $ppnRate = optional($taxes['PPN'])->rate ?? 0.11;
+        }
+        if ($request->boolean('is_pph23')) {
+            $pph23Rate = optional($taxes['PPh 23'])->rate ?? 0.0265;
+        }
+        if ($request->boolean('is_pph42')) {
+            $pph42Rate = optional($taxes['PPh 4(2)'])->rate ?? 0.02;
+        }
+
+        $invoiceValue = $request->invoice_value;
+
+        // Adjust for USD currency
+        if ($request->currency === 'USD' && $request->rate_usd) {
+            $invoiceValue *= $request->rate_usd;
+        }
+
+        $nilaiPpn = $invoiceValue * $ppnRate;
+        $nilaiPph23 = $invoiceValue * $pph23Rate;
+        $nilaiPph42 = $invoiceValue * $pph42Rate;
+
+        $totalInvoice = $invoiceValue;
+        if ($request->is_ppn) {
+            $totalInvoice += $nilaiPpn;
+        }
+
+        $expectedPayment = $totalInvoice - $nilaiPph23 - $nilaiPph42;
+
+        return response()->json([
+            'ppn_rate' => $ppnRate,
+            'pph23_rate' => $pph23Rate,
+            'pph42_rate' => $pph42Rate,
+            'nilai_ppn' => $nilaiPpn,
+            'nilai_pph23' => $nilaiPph23,
+            'nilai_pph42' => $nilaiPph42,
+            'total_invoice' => $totalInvoice,
+            'expected_payment' => $expectedPayment,
+        ]);
     }
 
     /**

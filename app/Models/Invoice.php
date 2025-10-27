@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\ActivityLoggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
-    use HasFactory;
+    use HasFactory, ActivityLoggable;
 
     protected $primaryKey = 'invoice_id';
     public $incrementing = false;
@@ -26,6 +27,19 @@ class Invoice extends Model
         'payment_status',
         'remarks',
         'currency',
+        'ppn_rate',
+        'pph23_rate',
+        'pph42_rate',
+        'rate_usd',
+        'nilai_ppn',
+        'nilai_pph23',
+        'nilai_pph42',
+        'total_invoice',
+        'expected_payment',
+        'payment_actual_date',
+        'is_ppn',
+        'is_pph23',
+        'is_pph42',
 
     ];
 

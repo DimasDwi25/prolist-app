@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ActivityLoggable;
 use Attribute;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    use HasFactory;
+    use HasFactory, ActivityLoggable;
 
     protected $primaryKey = 'pn_number';
     public $incrementing = false; // karena kita generate manual

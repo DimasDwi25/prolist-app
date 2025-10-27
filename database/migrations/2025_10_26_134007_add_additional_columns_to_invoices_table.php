@@ -12,11 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('invoices', function (Blueprint $table) {
-            $table->dropColumn(['payment_date', 'payment_amount']);
-            $table->enum('payment_status', ['unpaid', 'partial', 'paid'])->default('unpaid');
-            $table->decimal('ppn_rate', 5, 2)->nullable();
-            $table->decimal('pph23_rate', 5, 2)->nullable();
-            $table->decimal('pph42_rate', 5, 2)->nullable();
+            $table->decimal('ppn_rate', 8, 4)->nullable();
+            $table->decimal('pph23_rate', 8, 4)->nullable();
+            $table->decimal('pph42_rate', 8, 4)->nullable();
             $table->decimal('rate_usd', 10, 4)->nullable();
             $table->decimal('nilai_ppn', 18, 2)->nullable();
             $table->decimal('nilai_pph23', 18, 2)->nullable();
@@ -33,10 +31,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('invoices', function (Blueprint $table) {
-            $table->dropColumn('payment_status');
             $table->dropColumn(['ppn_rate', 'pph23_rate', 'pph42_rate', 'rate_usd', 'nilai_ppn', 'nilai_pph23', 'nilai_pph42', 'total_invoice', 'expected_payment', 'payment_actual_date']);
-            $table->date('payment_date')->nullable();
-            $table->decimal('payment_amount', 18, 2)->nullable();
         });
     }
 };

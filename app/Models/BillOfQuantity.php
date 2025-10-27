@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\ActivityLoggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class BillOfQuantity extends Model
 {
-    use HasFactory;
+    use HasFactory, ActivityLoggable;
 
     protected $table = 'bill_of_quantitys';
 
