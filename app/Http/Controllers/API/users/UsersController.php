@@ -36,6 +36,7 @@ class UsersController extends Controller
                     'engineering_director',
                     'electrician_supervisor',
                     'site_engineer',
+                    'electrician',
                     'drafter'
                 ]);
             })

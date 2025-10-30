@@ -159,19 +159,18 @@ class WorkOrderApiController extends Controller
                 }
 
                 $mandaysEngineerRoles = [
-                    'engineer',
-                    'project_manager',
-                    'site_manager',
-                    'site_supervisor',
+                    'Engineer',
+                    'Project Manager',
+                    'Site Manager',
+                    'Site Supervisor',
                     'site_admin',
-                    'foreman',
-                    'project_controller',
-                    'document_controller',
-                    'hse',
-                    'quality_control',
-                    'site_warehouse',
+                    'Foreman',
+                    'Project Controller',
+                    'Document Controller',
+                    'HSE',
+                    'Quality Control',
+                    'Site Warehouse',
                 ];
-
                 // Hitung mandays
                $totalEng = $wo->pics()
                     ->whereHas('role', fn($q) => $q->whereIn('name', $mandaysEngineerRoles))

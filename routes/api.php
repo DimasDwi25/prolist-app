@@ -7,6 +7,7 @@ use App\Http\Controllers\API\Engineer\CategorieLogApiController;
 use App\Http\Controllers\API\Engineer\DocumentApiController;
 use App\Http\Controllers\API\Engineer\DocumentPreparationApiController;
 use App\Http\Controllers\API\Engineer\EngineerDashboardApiController;
+use App\Http\Controllers\API\Engineer\Dashboard4kEngineerApiController;
 use App\Http\Controllers\API\Engineer\EngineerPhcDocumentiApi;
 use App\Http\Controllers\API\Engineer\EngineerProjectApiController;
 use App\Http\Controllers\API\Engineer\ManPowerAllocationApiController;
@@ -68,6 +69,7 @@ Route::get('/user', [AuthController::class, 'me']);
 Route::middleware('auth:api')->group(function () {
 
     Route::get('/engineer/dashboard', [EngineerDashboardApiController::class, 'index']);
+    Route::get('/engineer/dashboard4k', [Dashboard4kEngineerApiController::class, 'index']);
     Route::get('/projects/finished-summary', [ProjectFinishedSummaryApiController::class, 'finishedSummary']);
     Route::get('/work-order/work-order-summary', [WorkOrderSummaryApiController::class, 'workOrderSummary']);
     Route::post('/users/{user}/upload-photo', [UsersController::class, 'uploadPhoto']);
