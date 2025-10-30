@@ -68,7 +68,7 @@ class PackingListApiController extends Controller
 
     public function show($id)
     {
-        $packingList = PackingList::with(['project', 'clientPic', 'creator'])->findOrFail($id);
+        $packingList = PackingList::with(['project', 'intPic', 'creator'])->findOrFail($id);
         return response()->json($packingList);
     }
 

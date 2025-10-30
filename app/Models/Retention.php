@@ -11,14 +11,19 @@ class Retention extends Model
     use HasFactory, ActivityLoggable;
 
     protected $fillable = [
-        'invoice_id',
-        'retention_percentage',
-        'retention_amount',
+        'project_id',
         'retention_due_date',
+        'retention_value',
+        'invoice_id',
     ];
 
     public function invoice()
     {
         return $this->belongsTo(Invoice::class, 'invoice_id', 'invoice_id');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id', 'pn_number');
     }
 }

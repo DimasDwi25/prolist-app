@@ -39,7 +39,7 @@ class PackingList extends Model
 
     public function intPic()
     {
-        return $this->belongsTo(User::class, 'client_pic');
+        return $this->belongsTo(User::class, 'int_pic');
     }
 
     public function creator()

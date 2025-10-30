@@ -76,6 +76,7 @@ class Project extends Model
         $end   = (int) ($yearShort . '999');
 
         $last = self::whereBetween('pn_number', [$start, $end])
+            ->whereRaw('pn_number % 1000 != 0') // exclude pn_number ending with 000
             ->orderByDesc('pn_number')
             ->first();
 

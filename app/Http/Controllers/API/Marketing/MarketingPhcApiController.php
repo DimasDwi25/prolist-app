@@ -6,6 +6,8 @@ use App\Events\PhcCreatedEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Approval;
 use App\Models\PHC;
+use App\Models\Project;
+use App\Models\Retention;
 use App\Models\User;
 use App\Notifications\PhcCreated;
 use App\Notifications\PhcValidationRequested;
@@ -33,8 +35,11 @@ class MarketingPhcApiController extends Controller
             'ho_marketings_id' => 'nullable|exists:users,id',
             'ho_engineering_id' => 'nullable|exists:users,id',
             'notes' => 'nullable|string',
-            'retention' => 'nullable',
-            'warranty' => 'nullable',
+            'retention' => 'nullable|boolean',
+            'warranty' => 'nullable|boolean',
+            'retention_percentage' => 'nullable|numeric|min:0|max:100',
+            'retention_months' => 'nullable|integer|min:0',
+            'warranty_date' => 'nullable|date',
             'penalty' => 'nullable',
         ]);
 
@@ -44,8 +49,8 @@ class MarketingPhcApiController extends Controller
 
         $validated['costing_by_marketing'] = $mapRadio($request->costing_by_marketing);
         $validated['boq'] = $mapRadio($request->boq);
-        $validated['retention'] = $request->retention;
-        $validated['warranty'] = $request->warranty;
+        $validated['retention'] = $request->boolean('retention');
+        $validated['warranty'] = $request->boolean('warranty');
         $validated['penalty'] = $request->penalty;
 
         $validated['created_by'] = Auth::id();
@@ -59,6 +64,22 @@ class MarketingPhcApiController extends Controller
         $phc->project()->update([
             'phc_dates' => now(),
         ]);
+
+        // 🔹 Handle retention jika retention applicable
+        if ($validated['retention']) {
+            $retentionData = [
+                'project_id' => $validated['project_id'],
+            ];
+
+            if (isset($validated['retention_percentage']) && $validated['retention_percentage'] > 0) {
+                // Ambil project_value dari project po_value
+                $project = Project::find($validated['project_id']);
+                $projectValue = $project->po_value ?? 0;
+                $retentionData['retention_value'] = ($validated['retention_percentage'] / 100) * $projectValue;
+            }
+
+            Retention::create($retentionData);
+        }
 
         // 🔹 Tentukan siapa saja yang akan menerima notifikasi WebSocket
         $hasMarketing = !empty($request->ho_marketings_id) || !empty($request->pic_marketing_id);
@@ -109,31 +130,6 @@ class MarketingPhcApiController extends Controller
                 $user->notify(new PhcValidationRequested($phc));
             }
         }
-
-
-        // 🔹 Kirim notifikasi ke user yang sedang login (untuk polling)
-        // $request->user()->notify(new PhcCreated($phc));
-
-        // // 🔹 Kirim notifikasi WebSocket
-        // $userIds = array_filter([
-        //     $validated['ho_marketings_id'] ?? null,
-        //     $validated['pic_marketing_id'] ?? null,
-        //     $validated['ho_engineering_id'] ?? null,
-        //     $validated['pic_engineering_id'] ?? null,
-        // ]);
-
-        // // Jika tidak ada approver yang dipilih, kirim ke roles tertentu
-        // if (empty($userIds)) {
-        //     $fallbackUsers = User::whereHas('role', function($q){
-        //         $q->whereIn('name', ['project manager', 'project controller', 'engineering_admin', 'sales_supervisor', 'supervisor marketing']);
-        //     })->pluck('id')->toArray();
-        //     $userIds = $fallbackUsers;
-        // }
-
-        // Uncomment the event to enable real-time notifications
-        // event(new PhcCreatedEvent($phc, $userIds));
-
-        
 
         // $approverIds = [];
 
@@ -257,8 +253,11 @@ class MarketingPhcApiController extends Controller
             'ho_marketings_id' => 'nullable|exists:users,id',
             'ho_engineering_id' => 'nullable|exists:users,id',
             'notes' => 'nullable|string',
-            'retention' => 'nullable|string',
-            'warranty' => 'nullable|string',
+            'retention' => 'nullable|boolean',
+            'warranty' => 'nullable|boolean',
+            'retention_percentage' => 'nullable|numeric|min:0|max:100',
+            'retention_months' => 'nullable|integer|min:0',
+            'warranty_date' => 'nullable|date',
             'penalty' => 'nullable|string',
             'boq' => 'nullable|string',
             'costing_by_marketing' => 'nullable|string',
@@ -273,6 +272,28 @@ class MarketingPhcApiController extends Controller
         }
 
          $phc->update($validated);
+
+        // 🔹 Handle retention jika retention applicable
+        if ($validated['retention']) {
+            $retentionData = [
+                'project_id' => $phc->project_id,
+            ];
+
+            if (isset($validated['retention_percentage']) && $validated['retention_percentage'] > 0) {
+                // Ambil project_value dari project po_value
+                $project = Project::find($phc->project_id);
+                $projectValue = $project->po_value ?? 0;
+                $retentionData['retention_value'] = ($validated['retention_percentage'] / 100) * $projectValue;
+            }
+
+            Retention::updateOrCreate(
+                ['project_id' => $phc->project_id],
+                $retentionData
+            );
+        } else {
+            // Jika retention tidak applicable, hapus retention jika ada
+            Retention::where('project_id', $phc->project_id)->delete();
+        }
 
 
         // $newApprovers = [];

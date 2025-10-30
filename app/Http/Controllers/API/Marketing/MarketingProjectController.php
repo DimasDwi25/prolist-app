@@ -103,20 +103,20 @@ class MarketingProjectController extends Controller
                 'categories_project_id'  => 'sometimes|exists:project_categories,id',
                 'quotations_id'          => 'sometimes|exists:quotations,quotation_number',
                 'phc_dates'              => 'sometimes|date',
-                'mandays_engineer'       => 'sometimes|integer',
-                'mandays_technician'     => 'sometimes|integer',
-                'target_dates'           => 'sometimes|date',
-                'material_status'        => 'sometimes|string',
-                'dokumen_finish_date'    => 'sometimes|date',
-                'engineering_finish_date'=> 'sometimes|date',
-                'jumlah_invoice'         => 'sometimes|integer',
+                'mandays_engineer'       => 'sometimes|nullable|integer',
+                'mandays_technician'     => 'sometimes|nullable|integer',
+                'target_dates'           => 'sometimes|nullable|date',
+                'material_status'        => 'sometimes|nullable|string',
+                'dokumen_finish_date'    => 'sometimes|nullable|date',
+                'engineering_finish_date'=> 'sometimes|nullable|date',
+                'jumlah_invoice'         => 'sometimes|nullable|integer',
                 'status_project_id'      => 'sometimes|exists:status_projects,id',
-                'project_progress'       => 'sometimes|integer|min:0|max:100',
-                'po_date'                => 'sometimes|date',
+                'project_progress'       => 'sometimes|nullable|integer|min:0|max:100',
+                'po_date'                => 'sometimes|nullable|date',
                 'sales_weeks'            => 'sometimes|string|max:50',
-                'po_number'              => 'nullable|string|max:100',
-                'po_value'               => 'sometimes|numeric',
-                'is_confirmation_order'  => 'sometimes|boolean',
+                'po_number'              => 'nullable|nullable|string|max:100',
+                'po_value'               => 'sometimes|nullable|numeric',
+                'is_confirmation_order'  => 'sometimes|nullable|boolean',
                 'parent_pn_number'       => 'sometimes|exists:projects,pn_number',
                 'client_id'              => 'nullable|exists:clients,id',
             ]);
@@ -208,6 +208,7 @@ class MarketingProjectController extends Controller
         $end = (int) ($yearShort . '999');
 
         $last = Project::whereBetween('pn_number', [$start, $end])
+            ->whereRaw('pn_number % 1000 != 0') // exclude pn_number ending with 000
             ->orderByDesc('pn_number')
             ->first();
 
@@ -261,6 +262,7 @@ class MarketingProjectController extends Controller
                 $start = (int) ($yearShort . '000');
                 $end = (int) ($yearShort . '999');
                 $last = Project::whereBetween('pn_number', [$start, $end])
+                    ->whereRaw('pn_number % 1000 != 0') // exclude pn_number ending with 000
                     ->orderByDesc('pn_number')
                     ->first();
                 if ($last) {

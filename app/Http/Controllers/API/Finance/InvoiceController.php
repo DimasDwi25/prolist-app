@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\API\Finance;
 
 use App\Http\Controllers\Controller;
+use App\Models\HoldingTax;
 use App\Models\Invoice;
 use App\Models\InvoicePayment;
 use App\Models\InvoiceType;
 use App\Models\Project;
+use App\Models\Retention;
 use App\Models\Tax;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -28,8 +30,15 @@ class InvoiceController extends Controller
             ->with(['project', 'invoiceType', 'payments'])
             ->orderBy('invoice_number_in_project', 'asc')
             ->get()
-            ->map(function ($invoice) {
+            ->map(function ($invoice) use ($projectId) {
                 $invoice->total_payment_amount = $invoice->payments->sum('payment_amount');
+
+                // Calculate remaining project value
+                $projectValue = $invoice->project ? $invoice->project->po_value : 0;
+                $totalInvoiceValue = Invoice::where('project_id', $projectId)->sum('invoice_value');
+                $remainingProjectValue = $projectValue - $totalInvoiceValue;
+
+                $invoice->remaining_project_value = $remainingProjectValue;
                 return $invoice;
             });
 
@@ -104,6 +113,9 @@ class InvoiceController extends Controller
 
         // Calculate taxes and totals
         $this->calculateInvoiceTaxesAndTotals($invoice);
+
+        // Handle holding tax creation if is_pph23 or is_pph42 is true
+        $this->handleHoldingTaxCreation($invoice);
 
         // Set default payment_status if not provided
         if (!isset($data['payment_status'])) {
@@ -212,6 +224,9 @@ class InvoiceController extends Controller
         // Calculate taxes and totals
         $this->calculateInvoiceTaxesAndTotals($invoice);
 
+        // Handle holding tax creation/update if is_pph23 or is_pph42 is true
+        $this->handleHoldingTaxCreation($invoice);
+
         // Update payment_status based on payments
         $totalPaid = $invoice->payments()->sum('payment_amount');
         if ($totalPaid == 0) {
@@ -231,7 +246,18 @@ class InvoiceController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $invoice = Invoice::findOrFail($id);
-        $invoice->delete();
+
+        DB::transaction(function () use ($invoice) {
+            // Delete all related payments
+            InvoicePayment::where('invoice_id', $invoice->invoice_id)->delete();
+            
+            // Delete related holding tax
+            HoldingTax::where('invoice_id', $invoice->invoice_id)->delete();
+
+            // Finally delete the invoice
+            $invoice->delete();
+        });
+
         return response()->json(['message' => 'Invoice deleted successfully']);
     }
 
@@ -405,7 +431,7 @@ class InvoiceController extends Controller
 
         $invoiceValue = $invoice->invoice_value;
 
-        // Adjust for USD currency
+        // Adjust for USD currency: convert invoice value to IDR first
         if ($invoice->currency === 'USD' && $invoice->rate_usd) {
             $invoiceValue *= $invoice->rate_usd;
         }
@@ -625,7 +651,7 @@ class InvoiceController extends Controller
 
         $invoiceValue = $request->invoice_value;
 
-        // Adjust for USD currency
+        // Adjust for USD currency: convert invoice value to IDR first
         if ($request->currency === 'USD' && $request->rate_usd) {
             $invoiceValue *= $request->rate_usd;
         }
@@ -651,6 +677,41 @@ class InvoiceController extends Controller
             'total_invoice' => $totalInvoice,
             'expected_payment' => $expectedPayment,
         ]);
+    }
+
+    /**
+     * Handle holding tax creation or update for an invoice.
+     */
+    private function handleHoldingTaxCreation(Invoice $invoice): void
+    {
+        // Delete existing holding tax for this invoice
+        HoldingTax::where('invoice_id', $invoice->invoice_id)->delete();
+
+        // Check if is_pph23 or is_pph42 is true
+        if ($invoice->is_pph23 || $invoice->is_pph42) {
+            $holdingTaxData = [
+                'invoice_id' => $invoice->invoice_id,
+                'no_bukti_potong' => null, // Can be set later
+                'tanggal_wht' => null, // Can be set later
+            ];
+
+            // Set rates and values based on which taxes are enabled
+            if ($invoice->is_pph23) {
+                $holdingTaxData['pph23_rate'] = $invoice->pph23_rate;
+                $holdingTaxData['nilai_pph23'] = $invoice->nilai_pph23;
+            }
+
+            if ($invoice->is_pph42) {
+                $holdingTaxData['pph42_rate'] = $invoice->pph42_rate;
+                $holdingTaxData['nilai_pph42'] = $invoice->nilai_pph42;
+            }
+
+            // Calculate nilai_potongan as sum of nilai_pph23 and nilai_pph42
+            $holdingTaxData['nilai_potongan'] = ($invoice->nilai_pph23 ?? 0) + ($invoice->nilai_pph42 ?? 0);
+
+            // Create the holding tax record
+            HoldingTax::create($holdingTaxData);
+        }
     }
 
     /**

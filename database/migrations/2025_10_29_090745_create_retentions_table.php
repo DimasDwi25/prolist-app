@@ -13,15 +13,14 @@ return new class extends Migration
     {
         Schema::create('retentions', function (Blueprint $table) {
             $table->id();
-            $table->string('invoice_id');
-            $table->foreign('invoice_id')
-                ->references('invoice_id')
-                ->on('invoices')
-                ->onDelete('cascade');
-            $table->double('retention_percentage');
-            $table->decimal('retention_amount', 18, 2);
+            $table->unsignedBigInteger('project_id');
             $table->date('retention_due_date')->nullable();
+            $table->decimal('retention_value', 18, 2)->nullable();
+            $table->string('invoice_id')->nullable();
             $table->timestamps();
+
+            $table->foreign('project_id')->references('pn_number')->on('projects')->onDelete('cascade');
+            $table->foreign('invoice_id')->references('invoice_id')->on('invoices')->onDelete('no action');
         });
     }
 

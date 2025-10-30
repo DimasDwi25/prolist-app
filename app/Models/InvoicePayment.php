@@ -16,6 +16,7 @@ class InvoicePayment extends Model
         'payment_date',
         'payment_amount',
         'currency',
+        'nomor_bukti_pembayaran',
         'notes',
     ];
 
@@ -38,7 +39,10 @@ class InvoicePayment extends Model
         $totalPaid = $invoice->payments()->sum('payment_amount');
 
         if ($totalPaid >= $invoice->invoice_value) {
-            $invoice->update(['payment_status' => 'paid']);
+            $invoice->update([
+                'payment_status' => 'paid',
+                'payment_actual_date' => $this->payment_date
+            ]);
         } elseif ($totalPaid > 0 && $totalPaid < $invoice->invoice_value) {
             $invoice->update(['payment_status' => 'partial']);
         } else {

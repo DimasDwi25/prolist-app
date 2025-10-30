@@ -27,12 +27,15 @@ class OutstandingProjectApiController extends Controller
         // Ambil semua user sesuai role + relasi allocations & project
         $users = User::with([
             'manPowerAllocations.project' => function ($q) {
-                $q->with(['client', 'quotation.client', 'logs' => function ($q) {
-                    $q->select('id', 'project_id', 'users_id', 'tgl_logs', 'logs') // wajib bawa project_id karena fk → pn_number
-                    ->orderBy('tgl_logs', 'desc')
-                    ->take(3)
-                    ->with('user:id,name');
-                }]);
+                $q->with([
+                    'client',
+                    'quotation.client',
+                    'logs' => function ($q) {
+                        $q->select('id', 'project_id', 'users_id', 'tgl_logs', 'logs')
+                            ->orderBy('tgl_logs', 'desc')
+                            ->with('user:id,name');
+                    }
+                ]);
             },
             'manPowerAllocations.project.statusProject:status_projects.id,name',
             'manPowerAllocations.project.phc:project_id,target_finish_date',
@@ -92,7 +95,7 @@ class OutstandingProjectApiController extends Controller
                         ] : null,
                         'target_date'    => optional($project->phc)->target_finish_date,
                         'status'         => $project->statusProject->name ?? '-',
-                        'logs'           => $project->logs->map(function ($log) {
+                        'logs'           => $project->logs->take(3)->map(function ($log) {
                             return [
                                 'user' => $log->user->name ?? 'Unknown',
                                 'tgl'  => $log->tgl_logs ? \Carbon\Carbon::parse($log->tgl_logs)->format('Y-m-d H:i') : null,

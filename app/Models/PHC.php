@@ -35,7 +35,10 @@ class PHC extends Model
         'retention',
         'warranty',
         'penalty',
-        'handover_date'
+        'handover_date',
+        'retention_percentage',
+        'retention_months',
+        'warranty_date'
     ];
 
     public function project()

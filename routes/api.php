@@ -42,6 +42,9 @@ use App\Http\Controllers\API\Finance\InvoicePaymentController;
 use App\Http\Controllers\API\Finance\RequestInvoiceApiController;
 use App\Http\Controllers\API\Finance\RequestInvoiceListApiController;
 use App\Http\Controllers\API\Finance\FinanceDashboardController;
+use App\Http\Controllers\API\Finance\TaxController;
+use App\Http\Controllers\API\Finance\HoldingTaxController;
+use App\Http\Controllers\API\Finance\RetentionController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -363,6 +366,20 @@ Route::middleware('auth:api')->group(function () {
         Route::get('invoice-payments/{id}', [InvoicePaymentController::class, 'show']);
         Route::put('invoice-payments/{id}', [InvoicePaymentController::class, 'update']);
         Route::delete('invoice-payments/{id}', [InvoicePaymentController::class, 'destroy']);
+
+        Route::get('taxes', [TaxController::class, 'index']);
+        Route::post('taxes', [TaxController::class, 'store']);
+        Route::get('taxes/{id}', [TaxController::class, 'show']);
+        Route::put('taxes/{id}', [TaxController::class, 'update']);
+        Route::delete('taxes/{id}', [TaxController::class, 'destroy']);
+
+        Route::get('holding-taxes/invoice/{invoiceId}', [HoldingTaxController::class, 'getByInvoiceId']);
+        Route::put('holding-taxes/invoice/{invoiceId}', [HoldingTaxController::class, 'update']);
+
+        Route::get('retentions', [RetentionController::class, 'index']);
+        Route::get('retentions/{id}', [RetentionController::class, 'show']);
+        Route::put('retentions/{id}', [RetentionController::class, 'update']);
+        Route::delete('retentions/{id}', [RetentionController::class, 'destroy']);
     });
 
     Route::get('request-invoices-summary', [RequestInvoiceApiController::class, 'summary']);
