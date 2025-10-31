@@ -17,6 +17,7 @@ class LogController extends Controller
     {
         $logs = Log::with(['user', 'category', 'closer', 'responseUser', 'approvals'])
             ->where('project_id', $project)
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json($logs);

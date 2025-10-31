@@ -50,7 +50,7 @@ class FinanceDashboardController extends Controller
         $invoiceDueCount = Invoice::where('invoice_due_date', '<', now())->count();
 
         // Summary invoice vs PN with payment < 100%
-        $incompletePayments = Project::with(['invoices.payments'])
+        $incompletePayments = Project::with(['invoices.payments', 'client', 'quotation.client'])
             ->get()
             ->filter(function ($project) {
                 $totalInvoice = $project->invoices->sum('invoice_value');
@@ -62,9 +62,13 @@ class FinanceDashboardController extends Controller
                 $totalPayment = $project->invoices->flatMap->payments->sum('payment_amount');
                 $percentage = $totalInvoice > 0 ? ($totalPayment / $totalInvoice) * 100 : 0;
 
+                // Get client name with fallback
+                $clientName = $project->client ? $project->client->name : ($project->quotation && $project->quotation->client ? $project->quotation->client->name : null);
+
                 return [
                     'pn_number' => $project->pn_number,
                     'project_name' => $project->project_name,
+                    'client_name' => $clientName,
                     'total_invoice' => $totalInvoice,
                     'total_payment' => $totalPayment,
                     'payment_percentage' => round($percentage, 2),

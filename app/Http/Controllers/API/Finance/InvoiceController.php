@@ -538,26 +538,26 @@ class InvoiceController extends Controller
         // 🔹 Filter berdasarkan range
         switch ($rangeType) {
             case 'monthly':
-                $invoices->whereYear('created_at', $year);
+                $invoices->whereYear('invoice_date', $year);
                 if ($month) {
-                    $invoices->whereMonth('created_at', $month);
+                    $invoices->whereMonth('invoice_date', $month);
                 }
                 break;
 
             case 'weekly':
-                $invoices->whereBetween('created_at', [
+                $invoices->whereBetween('invoice_date', [
                     now()->startOfWeek(), now()->endOfWeek()
                 ]);
                 break;
 
             case 'custom':
                 if ($from && $to) {
-                    $invoices->whereBetween('created_at', [$from, $to]);
+                    $invoices->whereBetween('invoice_date', [$from, $to]);
                 }
                 break;
 
             default:
-                $invoices->whereYear('created_at', $year);
+                $invoices->whereYear('invoice_date', $year);
                 break;
         }
 

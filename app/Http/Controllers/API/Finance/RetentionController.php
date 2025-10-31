@@ -15,13 +15,22 @@ class RetentionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $projectId = $request->query('project_id');
-        $query = Retention::with(['invoice', 'project']);
+        $query = Retention::with(['invoice', 'project.client', 'project.quotation.client']);
 
         if ($projectId) {
             $query->where('project_id', $projectId);
         }
 
-        $retentions = $query->get();
+        $retentions = $query->get()->map(function ($retention) {
+            $clientName = null;
+            if ($retention->project && $retention->project->client) {
+                $clientName = $retention->project->client->name;
+            } elseif ($retention->project && $retention->project->quotation && $retention->project->quotation->client) {
+                $clientName = $retention->project->quotation->client->name;
+            }
+            $retention->setAttribute('client_name', $clientName);
+            return $retention;
+        });
 
         return response()->json($retentions);
     }
@@ -31,7 +40,16 @@ class RetentionController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $retention = Retention::with(['invoice', 'project'])->findOrFail($id);
+        $retention = Retention::with(['invoice', 'project.client', 'project.quotation.client'])->findOrFail($id);
+
+        $clientName = null;
+        if ($retention->project && $retention->project->client) {
+            $clientName = $retention->project->client->name;
+        } elseif ($retention->project && $retention->project->quotation && $retention->project->quotation->client) {
+            $clientName = $retention->project->quotation->client->name;
+        }
+        $retention->setAttribute('client_name', $clientName);
+
         return response()->json($retention);
     }
 
