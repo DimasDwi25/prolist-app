@@ -93,8 +93,8 @@ class InvoiceController extends Controller
             $globalSequence = $request->invoice_sequence;
             // Check uniqueness globally for the year (across all invoice types)
             $year = date('y'); // e.g., '25'
-            $sequencePadded = str_pad($globalSequence, 3, '0', STR_PAD_LEFT);
-            $yearSequence = $year . $sequencePadded;
+            $sequencePadded = str_pad($globalSequence, 4, '0', STR_PAD_LEFT);
+            $yearSequence = $year . '/' . $sequencePadded;
             if (Invoice::where('invoice_id', 'like', '%' . $yearSequence)->exists()) {
                 return response()->json(['error' => 'Invoice sequence already exists'], 400);
             }
@@ -191,7 +191,7 @@ class InvoiceController extends Controller
         // Handle invoice_type_id change: regenerate invoice_id based on new type, keep sequence number
         if ($request->has('invoice_type_id') && $request->invoice_type_id != $invoice->invoice_type_id) {
             $oldInvoiceId = $invoice->invoice_id;
-            $sequence = substr($oldInvoiceId, -3); // Extract last 3 characters as sequence (e.g., '001')
+            $sequence = substr($oldInvoiceId, -4); // Extract last 4 characters as sequence (e.g., '0001')
 
             $year = date('y'); // Current year short
 
@@ -201,7 +201,7 @@ class InvoiceController extends Controller
                 $newCodeType = $newInvoiceType->code_type;
             }
 
-            $newInvoiceId = $newCodeType . $year . $sequence; // e.g., 'IP25001'
+            $newInvoiceId = $newCodeType . '/' . $year . '/' . $sequence; // e.g., 'IP/25/0001'
 
             DB::transaction(function () use ($oldInvoiceId, $newInvoiceId) {
                 // Update all payments to reference the new invoice_id
@@ -370,8 +370,8 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Generate invoice_id based on template IP25001 (global sequence)
-     * code_type + year + global sequence
+     * Generate invoice_id based on template IP/25/0001 (global sequence)
+     * code_type + / + year + / + global sequence
      */
     private function generateInvoiceIdGlobal(?int $invoiceTypeId, int $globalSequence): string
     {
@@ -385,7 +385,7 @@ class InvoiceController extends Controller
             }
         }
 
-        return $codeType . $year . str_pad($globalSequence, 3, '0', STR_PAD_LEFT);
+        return $codeType . '/' . $year . '/' . str_pad($globalSequence, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -396,12 +396,12 @@ class InvoiceController extends Controller
         $year = date('y');
 
         // Find the highest sequence for the year across all invoice types
-        $lastInvoice = Invoice::where('invoice_id', 'like', '%' . $year . '___')
-            ->orderByRaw("CAST(SUBSTRING(invoice_id, LEN(invoice_id) - 2, 3) AS INT) DESC")
+        $lastInvoice = Invoice::where('invoice_id', 'like', '%' . $year . '/____')
+            ->orderByRaw("CAST(SUBSTRING(invoice_id, LEN(invoice_id) - 3, 4) AS INT) DESC")
             ->first();
 
         if ($lastInvoice) {
-            $lastSequence = (int)substr($lastInvoice->invoice_id, -3);
+            $lastSequence = (int)substr($lastInvoice->invoice_id, -4);
             return $lastSequence + 1;
         }
 
@@ -487,10 +487,10 @@ class InvoiceController extends Controller
         ]);
 
         $year = date('y');
-        $sequencePadded = str_pad($request->invoice_sequence, 3, '0', STR_PAD_LEFT);
-        $yearSequence = $year . $sequencePadded;
+        $sequencePadded = str_pad($request->invoice_sequence, 4, '0', STR_PAD_LEFT);
+        $yearSequence = $year . '/' . $sequencePadded;
 
-        // Check if any invoice has the same year + sequence (last 5 characters)
+        // Check if any invoice has the same year + sequence (last 6 characters)
         $exists = Invoice::where('invoice_id', 'like', '%' . $yearSequence)->exists();
 
         return response()->json([
@@ -523,8 +523,8 @@ class InvoiceController extends Controller
         $invoices = Invoice::query()
             ->with([
                 'project' => function ($query) {
-                    $query->select('pn_number', 'project_name')
-                        ->selectRaw('(SELECT c.name FROM quotations q JOIN clients c ON q.client_id = c.id WHERE q.quotation_number = projects.quotations_id) as client_name');
+                    $query->select('pn_number', 'project_name', 'client_id', 'quotations_id')
+                        ->with(['client', 'quotation' => function($q) { $q->with('client'); }]);
                 },
                 'invoiceType' => function ($query) {
                     $query->select('id', 'code_type');
@@ -571,7 +571,7 @@ class InvoiceController extends Controller
                     'invoice_number_in_project' => $invoice->invoice_number_in_project,
                     'project_id' => $invoice->project_id,
                     'project_name' => $invoice->project ? $invoice->project->project_name : null,
-                    'client_name' => $invoice->project ? $invoice->project->client_name : null,
+                    'client_name' => $invoice->project ? ($invoice->project->client ? $invoice->project->client->name : ($invoice->project->quotation && $invoice->project->quotation->client ? $invoice->project->quotation->client->name : null)) : null,
                     'invoice_type' => $invoice->invoiceType ? $invoice->invoiceType->code_type : null,
                     'no_faktur' => $invoice->no_faktur,
                     'invoice_date' => $invoice->invoice_date,
@@ -610,7 +610,7 @@ class InvoiceController extends Controller
      */
     private function getAvailableYearsInvoices(): array
     {
-        return Invoice::selectRaw('YEAR(created_at) as year')
+        return Invoice::selectRaw('YEAR(invoice_date) as year')
             ->distinct()
             ->pluck('year')
             ->map(fn($y) => (int)$y)
