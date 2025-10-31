@@ -1,2 +1,5 @@
--   [x] Update the `with()` clause in `incompletePayments` to load 'client' and 'quotation.client' relationships.
--   [x] Add 'client_name' field in the `map()` function with fallback logic: project->client->name or project->quotation->client->name.
+-   [ ] Modify updateStatus method in EngineerProjectApiController to calculate and set retention_due_date when project_finish_date is updated
+-   [ ] Add necessary imports for Retention model and Carbon
+-   [ ] Eager load PHC relationship in the project query
+-   [ ] Implement logic to calculate retention_due_date = project_finish_date + retention_months from PHC
+-   [ ] Use updateOrCreate to set retention_due_date in Retention table

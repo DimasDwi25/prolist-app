@@ -317,8 +317,11 @@ class InvoiceController extends Controller
 
         $projects = $projects->get()
             ->map(function ($project) {
-                $invoiceTotal = $project->invoices->sum('invoice_value');
+                
+                $total_dpp = $project->invoices->sum('invoice_value');
+                $invoiceTotal = $project->invoices->sum('total_invoice');
                 $paymentTotal = $project->invoices->flatMap->payments->sum('payment_amount');
+                $expectedPaymentTotal = $project->invoices->sum('expected_payment');
                 $outstandingInvoice = $invoiceTotal - $paymentTotal;
                 $outstandingAmount = $project->po_value - $paymentTotal;
                 $invoiceProgress = $invoiceTotal > 0 ? round(($paymentTotal / $invoiceTotal) * 100, 2) : 0;
@@ -336,6 +339,8 @@ class InvoiceController extends Controller
                     'client_name' => $clientName,
                     'project_value' => $project->po_value,
                     'invoice_total' => $invoiceTotal,
+                    'total_dpp' => $total_dpp,
+                    'expected_payment_total' => $expectedPaymentTotal,
                     'payment_total' => $paymentTotal,
                     'outstanding_invoice' => $outstandingInvoice,
                     'outstanding_amount' => $outstandingAmount,

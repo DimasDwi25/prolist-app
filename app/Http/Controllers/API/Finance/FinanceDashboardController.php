@@ -14,10 +14,11 @@ class FinanceDashboardController extends Controller
     public function index(Request $request)
     {
         // Request invoice count
-        $requestInvoiceCount = RequestInvoice::count();
+        $requestInvoiceCount = RequestInvoice::where('status', 'pending')->count();
 
         // Request invoice list with details
-        $requestInvoiceList = RequestInvoice::with(['project', 'requestedBy', 'documents.documentPreparation.document'])
+        $requestInvoiceList = RequestInvoice::where('status', 'pending')
+            ->with(['project', 'requestedBy', 'documents.documentPreparation.document'])
             ->get()
             ->map(function ($invoice) {
                 return [
@@ -39,11 +40,11 @@ class FinanceDashboardController extends Controller
         $projectCount = Project::count();
 
         // Total invoice value
-        $totalInvoice = Invoice::sum('invoice_value');
+        $totalInvoice = Invoice::sum('total_invoice');
 
         // Invoice outstanding (total invoice - total payments)
         $invoiceOutstanding = Invoice::with('payments')->get()->sum(function ($invoice) {
-            return $invoice->invoice_value - $invoice->payments->sum('payment_amount');
+            return $invoice->expected_payment - $invoice->payments->sum('payment_amount');
         });
 
         // Invoice due date - count of invoices past due
@@ -53,12 +54,12 @@ class FinanceDashboardController extends Controller
         $incompletePayments = Project::with(['invoices.payments', 'client', 'quotation.client'])
             ->get()
             ->filter(function ($project) {
-                $totalInvoice = $project->invoices->sum('invoice_value');
+                $totalInvoice = $project->invoices->sum('total_invoice');
                 $totalPayment = $project->invoices->flatMap->payments->sum('payment_amount');
                 return $totalInvoice > 0 && ($totalPayment / $totalInvoice) < 1;
             })
             ->map(function ($project) {
-                $totalInvoice = $project->invoices->sum('invoice_value');
+                $totalInvoice = $project->invoices->sum('total_invoice');
                 $totalPayment = $project->invoices->flatMap->payments->sum('payment_amount');
                 $percentage = $totalInvoice > 0 ? ($totalPayment / $totalInvoice) * 100 : 0;
 

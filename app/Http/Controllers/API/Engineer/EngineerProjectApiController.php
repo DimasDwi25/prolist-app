@@ -4,9 +4,11 @@ namespace App\Http\Controllers\API\Engineer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Models\Retention;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class EngineerProjectApiController extends Controller
 {
@@ -67,8 +69,8 @@ class EngineerProjectApiController extends Controller
             'project_finish_date' => 'nullable|date'
         ]);
 
-        // Ambil project berdasarkan pn_number
-        $project = Project::where('pn_number', $pn_number)->first();
+        // Ambil project berdasarkan pn_number dengan eager load phc
+        $project = Project::with('phc')->where('pn_number', $pn_number)->first();
 
         if (!$project) {
             return response()->json(['message' => 'Project not found'], 404);
@@ -97,6 +99,17 @@ class EngineerProjectApiController extends Controller
             $project->project_finish_date = $validated['project_finish_date'];
         }
         $project->save();
+
+        // Jika project_finish_date ada dan PHC ada, hitung retention_due_date
+        if ($project->project_finish_date && $project->phc && $project->phc->retention_months) {
+            $retentionDueDate = Carbon::parse($project->project_finish_date)->addMonths($project->phc->retention_months);
+
+            // Update atau create retention record
+            Retention::updateOrCreate(
+                ['project_id' => $project->pn_number],
+                ['retention_due_date' => $retentionDueDate]
+            );
+        }
 
         return response()->json([
             'status' => 'success',
