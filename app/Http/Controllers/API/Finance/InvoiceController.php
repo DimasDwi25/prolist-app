@@ -245,14 +245,17 @@ class InvoiceController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
-        $invoice = Invoice::findOrFail($id);
+        $invoice = Invoice::where('invoice_id', $id)->firstOrFail();
 
         DB::transaction(function () use ($invoice) {
             // Delete all related payments
             InvoicePayment::where('invoice_id', $invoice->invoice_id)->delete();
-            
+
             // Delete related holding tax
             HoldingTax::where('invoice_id', $invoice->invoice_id)->delete();
+
+            // Update retention to remove invoice_id without deleting the retention record
+            Retention::where('invoice_id', $invoice->invoice_id)->update(['invoice_id' => null]);
 
             // Finally delete the invoice
             $invoice->delete();
