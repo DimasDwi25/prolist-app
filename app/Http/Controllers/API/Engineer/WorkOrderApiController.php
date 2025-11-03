@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\Engineer;
 
+use App\Events\DashboardUpdatedEvent;
 use App\Http\Controllers\Controller;
 use App\Libraries\WorkOrderPdf;
 use App\Models\Approval;
@@ -204,6 +205,9 @@ class WorkOrderApiController extends Controller
 
             return $results;
         });
+
+        // Dispatch event for realtime dashboard update
+        event(new DashboardUpdatedEvent());
 
         return response()->json([
             'status' => 'success',
@@ -409,6 +413,9 @@ class WorkOrderApiController extends Controller
                 ]);
             $workOrder->update(['status' => WorkOrder::STATUS_FINISHED]);
         });
+
+        // Dispatch event for realtime dashboard update
+        event(new DashboardUpdatedEvent());
 
         return response()->json([
             'status' => 'success',

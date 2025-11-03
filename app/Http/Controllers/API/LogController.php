@@ -37,75 +37,75 @@ class LogController extends Controller
 
     // Create new log
     public function store(Request $request)
-{
-    $user = auth()->user(); // get authenticated user
-    $userId = $user->id;
-    $today = Carbon::today()->toDateString();
+    {
+        $user = auth()->user(); // get authenticated user
+        $userId = $user->id;
+        $today = Carbon::today()->toDateString();
 
-    // ambil project ID dari pn_number
-    $project = Project::where('pn_number', $request->project_id)->firstOrFail();
+        // ambil project ID dari pn_number
+        $project = Project::where('pn_number', $request->project_id)->firstOrFail();
 
-    // Check if user has special roles that bypass the 1 log per day rule
-    $isSpecialRole = $user->hasAnyRole(['project controller', 'engineering_admin']);
+        // Check if user has special roles that bypass the 1 log per day rule
+        $isSpecialRole = $user->hasAnyRole(['project controller', 'engineering_admin']);
 
-    if (!$isSpecialRole) {
-        // cek 1 log per hari for non-special roles
-        $exists = Log::where('users_id', $userId) // sesuai kolom di DB
-            ->where('project_id', $project->pn_number)
-            ->whereDate('tgl_logs', $today)
-            ->exists();
+        if (!$isSpecialRole) {
+            // cek 1 log per hari for non-special roles
+            $exists = Log::where('users_id', $userId) // sesuai kolom di DB
+                ->where('project_id', $project->pn_number)
+                ->whereDate('tgl_logs', $today)
+                ->exists();
 
-        if ($exists) {
-            return response()->json([
-                'message' => 'User can only create 1 log per project per day'
-            ], 422);
+            if ($exists) {
+                return response()->json([
+                    'message' => 'User can only create 1 log per project per day'
+                ], 422);
+            }
         }
+
+        // Validation rules
+        $validationRules = [
+            'categorie_log_id' => 'required|integer',
+            'logs' => 'required|string',
+            'tgl_logs' => 'required|date',
+            'status' => 'nullable|string',
+            'closing_date' => 'nullable|date',
+            'closing_users' => 'nullable|integer',
+            'response_by' => 'nullable|integer',
+            'need_response' => 'nullable|boolean',
+            'project_id' => 'required|exists:projects,pn_number',
+        ];
+
+        // Add users_id validation for special roles (delegation)
+        if ($isSpecialRole) {
+            $validationRules['users_id'] = 'nullable|integer|exists:users,id';
+        }
+
+        $validated = $request->validate($validationRules);
+
+        // Set users_id: use request value for special roles, otherwise auth id
+        $validated['users_id'] = $isSpecialRole ? ($request->users_id ?? $userId) : $userId;
+        $validated['project_id'] = $project->pn_number; // pastikan ID numeric
+
+        // Tentukan status otomatis
+        if (!empty($validated['need_response']) && !empty($validated['response_by'])) {
+            $validated['status'] = 'waiting approval';
+        } else {
+            $validated['status'] = 'open';
+        }
+
+        $log = Log::create($validated);
+
+        // Jika need_response true, buat approval
+        if (!empty($validated['need_response']) && !empty($validated['response_by'])) {
+            $log->approvals()->create([
+                'user_id' => $validated['response_by'],
+                'type' => 'log',
+                'status' => 'pending',
+            ]);
+        }
+
+        return response()->json($log->load(['user', 'category', 'closer', 'responseUser', 'approvals']), 201);
     }
-
-    // Validation rules
-    $validationRules = [
-        'categorie_log_id' => 'required|integer',
-        'logs' => 'required|string',
-        'tgl_logs' => 'required|date',
-        'status' => 'nullable|string',
-        'closing_date' => 'nullable|date',
-        'closing_users' => 'nullable|integer',
-        'response_by' => 'nullable|integer',
-        'need_response' => 'nullable|boolean',
-        'project_id' => 'required|exists:projects,pn_number',
-    ];
-
-    // Add users_id validation for special roles (delegation)
-    if ($isSpecialRole) {
-        $validationRules['users_id'] = 'nullable|integer|exists:users,id';
-    }
-
-    $validated = $request->validate($validationRules);
-
-    // Set users_id: use request value for special roles, otherwise auth id
-    $validated['users_id'] = $isSpecialRole ? ($request->users_id ?? $userId) : $userId;
-    $validated['project_id'] = $project->pn_number; // pastikan ID numeric
-
-    // Tentukan status otomatis
-    if (!empty($validated['need_response']) && !empty($validated['response_by'])) {
-        $validated['status'] = 'waiting approval';
-    } else {
-        $validated['status'] = 'open';
-    }
-
-    $log = Log::create($validated);
-
-    // Jika need_response true, buat approval
-    if (!empty($validated['need_response']) && !empty($validated['response_by'])) {
-        $log->approvals()->create([
-            'user_id' => $validated['response_by'],
-            'type' => 'log',
-            'status' => 'pending',
-        ]);
-    }
-
-    return response()->json($log->load(['user', 'category', 'closer', 'responseUser', 'approvals']), 201);
-}
 
 
     // Update log

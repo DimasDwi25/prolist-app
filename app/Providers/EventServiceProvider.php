@@ -22,6 +22,12 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\RequestInvoiceCreated::class => [
             \App\Listeners\SendRequestInvoiceNotification::class,
         ],
+        \App\Events\LogApprovalUpdated::class => [
+            \App\Listeners\SendLogApprovalNotification::class,
+        ],
+        \App\Events\LogCreatedEvent::class => [
+            \App\Listeners\SendLogCreatedNotification::class,
+        ],
     ];
 
 

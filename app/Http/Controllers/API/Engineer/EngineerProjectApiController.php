@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\Engineer;
 
+use App\Events\DashboardUpdatedEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Retention;
@@ -110,6 +111,9 @@ class EngineerProjectApiController extends Controller
                 ['retention_due_date' => $retentionDueDate]
             );
         }
+
+        // Dispatch event for realtime dashboard update
+        event(new DashboardUpdatedEvent());
 
         return response()->json([
             'status' => 'success',
