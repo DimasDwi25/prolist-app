@@ -375,8 +375,8 @@ Route::middleware('auth:api')->group(function () {
         Route::put('taxes/{id}', [TaxController::class, 'update']);
         Route::delete('taxes/{id}', [TaxController::class, 'destroy']);
 
-        Route::get('holding-taxes/invoice/{invoiceId}', [HoldingTaxController::class, 'getByInvoiceId'])->where('invoiceId', '.*');
-        Route::put('holding-taxes/invoice/{invoiceId}', [HoldingTaxController::class, 'update'])->where('invoiceId', '.*');
+        Route::get('holding-taxes/invoice', [HoldingTaxController::class, 'getByInvoiceId']);
+        Route::put('holding-taxes/invoice', [HoldingTaxController::class, 'update']);
 
         Route::get('retentions', [RetentionController::class, 'index']);
         Route::get('retentions/{id}', [RetentionController::class, 'show']);

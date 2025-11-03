@@ -12,8 +12,10 @@ class HoldingTaxController extends Controller
     /**
      * Get holding tax by invoice_id.
      */
-    public function getByInvoiceId(string $invoiceId): JsonResponse
+    public function getByInvoiceId(Request $request): JsonResponse
     {
+        $invoiceId = $request->query('invoice_id');
+
         $holdingTax = HoldingTax::with(['invoice.project', 'invoice.invoiceType'])
             ->where('invoice_id', $invoiceId)
             ->first();
@@ -42,8 +44,10 @@ class HoldingTaxController extends Controller
     /**
      * Update the specified holding tax.
      */
-    public function update(Request $request, string $invoiceId): JsonResponse
+    public function update(Request $request): JsonResponse
     {
+        $invoiceId = $request->query('invoice_id');
+
         $holdingTax = HoldingTax::where('invoice_id', $invoiceId)->first();
 
         if (!$holdingTax) {
