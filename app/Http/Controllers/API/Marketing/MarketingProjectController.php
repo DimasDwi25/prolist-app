@@ -10,17 +10,50 @@ use Illuminate\Support\Facades\Log as FacadesLog;
 class MarketingProjectController extends Controller
 {
     //
-    public function index()
+    public function index(Request $request)
     {
-        $projects = Project::with(['category', 'quotation.client', 'client', 'statusProject'])
-        ->orderByRaw('CAST(LEFT(CAST(pn_number AS VARCHAR), 2) AS INT) DESC') // ambil 2 digit pertama sebagai tahun
-        ->orderByRaw('CAST(SUBSTRING(CAST(pn_number AS VARCHAR), 3, LEN(CAST(pn_number AS VARCHAR)) - 2) AS INT) DESC') // ambil nomor urut
-        ->get();
+        $yearParam = $request->query('year');
+        $availableYears = $this->getAvailableYears();
+        $year = $yearParam ? (int)$yearParam : (!empty($availableYears) ? end($availableYears) : now()->year);
+
+        $rangeType = $request->query('range_type', 'yearly'); // yearly, monthly, weekly, custom
+        $monthParam = $request->query('month'); // 1-12
+        $fromDate = $request->query('from_date');
+        $toDate = $request->query('to_date');
+
+        // Inisialisasi query
+        $projects = Project::with(['category', 'quotation.client', 'client', 'statusProject']);
+
+        // Filter berdasarkan range type
+        if ($rangeType === 'monthly' && $monthParam) {
+            $projects->whereYear('po_date', $year)
+                     ->whereMonth('po_date', $monthParam);
+        } elseif ($rangeType === 'weekly') {
+            $projects->whereBetween('po_date', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($rangeType === 'custom' && $fromDate && $toDate) {
+            $projects->whereBetween('po_date', [$fromDate, $toDate]);
+        } else {
+            // default: filter berdasarkan tahun saja
+            $projects->whereYear('po_date', $year);
+        }
+
+        $projects = $projects
+            ->orderByRaw('CAST(LEFT(CAST(pn_number AS VARCHAR), 2) AS INT) DESC') // ambil 2 digit pertama sebagai tahun
+            ->orderByRaw('CAST(SUBSTRING(CAST(pn_number AS VARCHAR), 3, LEN(CAST(pn_number AS VARCHAR)) - 2) AS INT) DESC') // ambil nomor urut
+            ->get();
 
         return response()->json([
             'status'  => 'success',
             'message' => 'Projects fetched successfully',
             'data'    => $projects,
+            'filters' => [
+                'year' => $year,
+                'range_type' => $rangeType,
+                'month' => $monthParam,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'available_years' => $availableYears,
+            ],
         ]);
     }
 
@@ -292,6 +325,24 @@ class MarketingProjectController extends Controller
                 'error'   => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function getAvailableYears(): array
+    {
+        // Dari Project po_date
+        $projectYears = Project::selectRaw('YEAR(po_date) as year')
+            ->whereNotNull('po_date')
+            ->distinct()
+            ->pluck('year')
+            ->map(fn($y) => (int)$y) // pastikan integer
+            ->toArray();
+
+        // Gabungkan dan unique
+        return collect($projectYears)
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
     }
 
 }

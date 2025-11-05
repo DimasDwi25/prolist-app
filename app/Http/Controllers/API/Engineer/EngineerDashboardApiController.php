@@ -71,12 +71,13 @@ class EngineerDashboardApiController extends Controller
             ->get()
             ->map(function ($p) {
                 return [
-                    'pn_number'    => $p->pn_number,
-                    'project_name' => $p->project_name,
-                    'client_name'  => $p->client->name ?? $p->quotation->client->name ?? '-',
-                    'target_dates' => $p->phc->target_finish_date,
-                    'status'       => $p->statusProject->name ?? '-',
-                    'pic'          => $p->phc?->picEngineering?->name ?? '-',
+                    'pn_number'     => $p->pn_number,
+                    'project_number' => $p->project_number,
+                    'project_name'  => $p->project_name,
+                    'client_name'   => $p->client->name ?? $p->quotation->client->name ?? '-',
+                    'target_dates'  => $p->phc->target_finish_date,
+                    'status'        => $p->statusProject->name ?? '-',
+                    'pic'           => $p->phc?->picEngineering?->name ?? '-',
                 ];
             });
 
@@ -199,16 +200,16 @@ class EngineerDashboardApiController extends Controller
             $q->whereNotNull('target_finish_date')->where('target_finish_date', '<', $now);
         }, true)['list']->map(function ($p) use ($now) {
             return [
-                'pn_number'    => $p['pn_number'],
-                'project_name' => $p['project_name'],
-                'client_name'  => $p['client_name'],
-                'target_dates' => $p['target_dates'],
-                'delay_days'   => Carbon::parse($p['target_dates'])->diffInDays($now),
-                'status'       => $p['status'],
-                'pic'          => $p['pic'],
+                'pn_number'     => $p['pn_number'],
+                'project_number' => $p['project_number'],
+                'project_name'  => $p['project_name'],
+                'client_name'   => $p['client_name'],
+                'target_dates'  => $p['target_dates'],
+                'delay_days'    => Carbon::parse($p['target_dates'])->diffInDays($now),
+                'status'        => $p['status'],
+                'pic'           => $p['pic'],
             ];
-        })
-        ->sortByDesc('delay_days')
+        })->sortByDesc('delay_days')
         // ->take(5)
         ->values();
 

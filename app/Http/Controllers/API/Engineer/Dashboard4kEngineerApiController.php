@@ -75,6 +75,7 @@ class Dashboard4kEngineerApiController extends Controller
                 $latestLog = $p->logs->first();
                 return [
                     'pn_number'    => $p->pn_number,
+                    'project_number' => $p->project_number,
                     'project_name' => $p->project_name,
                     'client_name'  => $p->client->name ?? $p->quotation->client->name ?? '-',
                     'target_dates' => $p->phc->target_finish_date,
@@ -204,6 +205,7 @@ class Dashboard4kEngineerApiController extends Controller
         }, true)['list']->map(function ($p) use ($now) {
             return [
                 'pn_number'    => $p['pn_number'],
+                'project_number' => $p['project_number'],
                 'project_name' => $p['project_name'],
                 'client_name'  => $p['client_name'],
                 'target_dates' => $p['target_dates'],

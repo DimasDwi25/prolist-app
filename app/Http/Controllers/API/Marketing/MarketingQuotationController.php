@@ -19,14 +19,51 @@ class MarketingQuotationController extends Controller
     }
 
     // List semua quotation
-    public function index()
+    public function index(Request $request)
     {
-        $quotations = Quotation::with('client', 'user')
+        $yearParam = $request->query('year');
+        $availableYears = $this->getAvailableYears();
+        $year = $yearParam ? (int)$yearParam : (!empty($availableYears) ? end($availableYears) : now()->year);
+
+        $rangeType = $request->query('range_type', 'yearly'); // yearly, monthly, weekly, custom
+        $monthParam = $request->query('month'); // 1-12
+        $fromDate = $request->query('from_date');
+        $toDate = $request->query('to_date');
+
+        // Inisialisasi query
+        $quotations = Quotation::with('client', 'user');
+
+        // Filter berdasarkan range type
+        if ($rangeType === 'monthly' && $monthParam) {
+            $quotations->whereYear('quotation_date', $year)
+                       ->whereMonth('quotation_date', $monthParam);
+        } elseif ($rangeType === 'weekly') {
+            $quotations->whereBetween('quotation_date', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($rangeType === 'custom' && $fromDate && $toDate) {
+            $quotations->whereBetween('quotation_date', [$fromDate, $toDate]);
+        } else {
+            // default: filter berdasarkan tahun saja
+            $quotations->whereYear('quotation_date', $year);
+        }
+
+        $quotations = $quotations
             ->orderByRaw('CAST(LEFT(quotation_number, 4) AS INT) DESC') // tahun DESC
             ->orderByRaw('CAST(SUBSTRING(quotation_number, 5, LEN(quotation_number) - 4) AS INT) DESC') // nomor per tahun DESC
             ->get();
 
-        return response()->json($quotations);
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Quotations fetched successfully',
+            'data'    => $quotations,
+            'filters' => [
+                'year' => $year,
+                'range_type' => $rangeType,
+                'month' => $monthParam,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'available_years' => $availableYears,
+            ],
+        ]);
     }
 
 
@@ -139,5 +176,22 @@ class MarketingQuotationController extends Controller
             'next_number' => str_pad($next, 3, '0', STR_PAD_LEFT),
             'year' => $year
         ]);
+    }
+
+    public function getAvailableYears(): array
+    {
+        // Dari Quotation quotation_date
+        $quotationYears = Quotation::selectRaw('YEAR(quotation_date) as year')
+            ->distinct()
+            ->pluck('year')
+            ->map(fn($y) => (int)$y) // pastikan integer
+            ->toArray();
+
+        // Gabungkan dan unique
+        return collect($quotationYears)
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
     }
 }
