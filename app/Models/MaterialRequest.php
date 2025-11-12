@@ -21,7 +21,7 @@ class MaterialRequest extends Model
         'target_date',
         'cancel_date',
         'complete_date',
-        'material_status',
+        'material_status_id',
         'additional_material',
         'material_handover',
         'ho_date',
@@ -43,5 +43,10 @@ class MaterialRequest extends Model
     public function mrHandover()
     {
         return $this->belongsTo(User::class, 'material_handover');
+    }
+
+    public function materialStatus()
+    {
+        return $this->belongsTo(MasterStatusMr::class, 'material_status_id');
     }
 }

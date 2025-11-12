@@ -21,16 +21,10 @@ return new class extends Migration
             $table->text('material_description');
             $table->dateTime('material_created');
             $table->foreignId('created_by')->constrained('users');
-            $table->dateTime('target_date');
+            $table->dateTime('target_date')->nullable();
             $table->dateTime('cancel_date')->nullable();
             $table->dateTime('complete_date')->nullable();
-            $table->enum('material_status', [
-                'On Progress',
-                'Canceled',
-                'Hold',
-                'Delayed',
-                'Completed'
-            ]);
+            $table->foreignId('material_status_id')->nullable()->constrained('master_status_mrs');
             $table->boolean('additional_material')->nullable();
             $table->foreignId('material_handover')->nullable()->constrained('users');
             $table->dateTime('ho_date')->nullable();

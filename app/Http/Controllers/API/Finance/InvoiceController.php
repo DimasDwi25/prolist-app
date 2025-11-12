@@ -531,7 +531,7 @@ class InvoiceController extends Controller
         $invoices = Invoice::query()
             ->with([
                 'project' => function ($query) {
-                    $query->select('pn_number', 'project_name', 'client_id', 'quotations_id')
+                    $query->select('pn_number', 'project_name', 'client_id', 'quotations_id', 'project_number', 'po_value', 'po_number')
                         ->with(['client', 'quotation' => function($q) { $q->with('client'); }]);
                 },
                 'invoiceType' => function ($query) {
@@ -578,8 +578,11 @@ class InvoiceController extends Controller
                     'invoice_id' => $invoice->invoice_id,
                     'invoice_number_in_project' => $invoice->invoice_number_in_project,
                     'project_id' => $invoice->project_id,
+                    'project_number' => $invoice->project ? $invoice->project->project_number : null,
                     'project_name' => $invoice->project ? $invoice->project->project_name : null,
                     'client_name' => $invoice->project ? ($invoice->project->client ? $invoice->project->client->name : ($invoice->project->quotation && $invoice->project->quotation->client ? $invoice->project->quotation->client->name : null)) : null,
+                    'po_value' => $invoice->project ? $invoice->project->po_value : null,
+                    'po_number' => $invoice->project ? $invoice->project->po_number : null,
                     'invoice_type' => $invoice->invoiceType ? $invoice->invoiceType->code_type : null,
                     'no_faktur' => $invoice->no_faktur,
                     'invoice_date' => $invoice->invoice_date,

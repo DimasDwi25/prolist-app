@@ -168,6 +168,11 @@ class Project extends Model
         return $this->hasMany(MaterialRequest::class, 'pn_id', 'pn_number');
     }
 
+    public function deliveryOrders()
+    {
+        return $this->hasMany(DeliveryOrder::class, 'pn_id', 'pn_number');
+    }
+
     public function invoices()
     {
         return $this->hasMany(Invoice::class, 'project_id', 'pn_number');

@@ -35,6 +35,10 @@ use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\ProfileApiController;
 use App\Http\Controllers\API\SUC\MaterialRequestApiController;
 use App\Http\Controllers\API\SUC\PackingListApiController;
+use App\Http\Controllers\API\SUC\SUCDashboardController;
+use App\Http\Controllers\API\SUC\MasterTypePackingListApiController;
+use App\Http\Controllers\API\SUC\MasterExpeditionApiController;
+use App\Http\Controllers\API\SUC\DestinationApiController;
 use App\Http\Controllers\API\users\DepartmentController;
 use App\Http\Controllers\API\users\RoleController;
 use App\Http\Controllers\API\users\UsersController;
@@ -46,6 +50,8 @@ use App\Http\Controllers\API\Finance\FinanceDashboardController;
 use App\Http\Controllers\API\Finance\TaxController;
 use App\Http\Controllers\API\Finance\HoldingTaxController;
 use App\Http\Controllers\API\Finance\RetentionController;
+use App\Http\Controllers\API\Finance\DeliveryOrderController;
+use App\Http\Controllers\API\MasterStatusMrController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -240,15 +246,18 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/document-phc/{id}', [DocumentApiController::class, 'update']);
     Route::delete('/document-phc/{id}', [DocumentApiController::class, 'destroy']);
 
-    Route::get('/material-requests', [MaterialRequestApiController::class, 'index']);      
-    Route::post('/material-requests', [MaterialRequestApiController::class, 'store']);    
-    Route::get('/material-requests/{materialRequest}', [MaterialRequestApiController::class, 'show']); 
-    Route::put('/material-requests/{materialRequest}', [MaterialRequestApiController::class, 'update']); 
-    Route::patch('/material-requests/{materialRequest}', [MaterialRequestApiController::class, 'update']); 
-    Route::delete('/material-requests/{materialRequest}', [MaterialRequestApiController::class, 'destroy']); 
+    Route::get('/material-requests', [MaterialRequestApiController::class, 'index']);
+    Route::post('/material-requests', [MaterialRequestApiController::class, 'store']);
+
+    Route::get('/material-requests/get-available-statuses', [MaterialRequestApiController::class, 'getAvailableStatuses']);
+
+    Route::get('/material-requests/{materialRequest}', [MaterialRequestApiController::class, 'show']);
+    Route::put('/material-requests/{materialRequest}', [MaterialRequestApiController::class, 'update']);
+    Route::patch('/material-requests/{materialRequest}', [MaterialRequestApiController::class, 'update']);
+    Route::delete('/material-requests/{materialRequest}', [MaterialRequestApiController::class, 'destroy']);
 
     Route::post('/{materialRequest}/cancel', [MaterialRequestApiController::class, 'cancel']);
-    Route::post('/{materialRequest}/complete', [MaterialRequestApiController::class, 'complete']);
+    Route::post('/{materialRequest}/handover', [MaterialRequestApiController::class, 'handover']);
 
     Route::get('/mr-summary', [MaterialRequestApiController::class, 'getMrSummary']);
 
@@ -294,6 +303,11 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/packing-lists/{id}', [PackingListApiController::class, 'show']);
     Route::put('/packing-lists/{id}', [PackingListApiController::class, 'update']);
     Route::delete('/packing-lists/{id}', [PackingListApiController::class, 'destroy']);
+    Route::post('/packing-lists/{id}/create-delivery-order', [PackingListApiController::class, 'createDeliveryOrder']);
+    Route::get('/packing-lists/{id}/confirm-delivery-order', [PackingListApiController::class, 'confirmDeliveryOrder']);
+
+    // SUC Dashboard routes
+    Route::get('/suc/dashboard', [SUCDashboardController::class, 'index']);
 
     Route::get('/projects/{project}/logs', [LogController::class, 'index']);
     Route::get('/logs/{id}', [LogController::class, 'show']);
@@ -382,6 +396,12 @@ Route::middleware('auth:api')->group(function () {
         Route::get('retentions/{id}', [RetentionController::class, 'show']);
         Route::put('retentions/{id}', [RetentionController::class, 'update']);
         Route::delete('retentions/{id}', [RetentionController::class, 'destroy']);
+
+        Route::get('delivery-orders', [DeliveryOrderController::class, 'index']);
+        Route::post('delivery-orders', [DeliveryOrderController::class, 'store']);
+        Route::get('delivery-orders/{id}', [DeliveryOrderController::class, 'show']);
+        Route::put('delivery-orders/{id}', [DeliveryOrderController::class, 'update']);
+        Route::delete('delivery-orders/{id}', [DeliveryOrderController::class, 'destroy']);
     });
 
     Route::get('request-invoices-summary', [RequestInvoiceApiController::class, 'summary']);
@@ -394,8 +414,32 @@ Route::middleware('auth:api')->group(function () {
     Route::get('request-invoices/show/{id}', [RequestInvoiceApiController::class, 'show']);
     Route::put('request-invoices/{id}', [RequestInvoiceApiController::class, 'update']);
 
+    // Master Status MR routes
+    Route::get('master-status-mr', [MasterStatusMrController::class, 'index']);
+    Route::post('master-status-mr', [MasterStatusMrController::class, 'store']);
+    Route::get('master-status-mr/{id}', [MasterStatusMrController::class, 'show']);
+    Route::put('master-status-mr/{id}', [MasterStatusMrController::class, 'update']);
+    Route::delete('master-status-mr/{id}', [MasterStatusMrController::class, 'destroy']);
 
+    // Master Type Packing Lists routes
+    Route::get('master-type-packing-lists', [MasterTypePackingListApiController::class, 'index']);
+    Route::post('master-type-packing-lists', [MasterTypePackingListApiController::class, 'store']);
+    Route::get('master-type-packing-lists/{id}', [MasterTypePackingListApiController::class, 'show']);
+    Route::put('master-type-packing-lists/{id}', [MasterTypePackingListApiController::class, 'update']);
+    Route::delete('master-type-packing-lists/{id}', [MasterTypePackingListApiController::class, 'destroy']);
 
+    // Master Expeditions routes
+    Route::get('master-expeditions', [MasterExpeditionApiController::class, 'index']);
+    Route::post('master-expeditions', [MasterExpeditionApiController::class, 'store']);
+    Route::get('master-expeditions/{id}', [MasterExpeditionApiController::class, 'show']);
+    Route::put('master-expeditions/{id}', [MasterExpeditionApiController::class, 'update']);
+    Route::delete('master-expeditions/{id}', [MasterExpeditionApiController::class, 'destroy']);
 
+    // Destinations routes
+    Route::get('destinations', [DestinationApiController::class, 'index']);
+    Route::post('destinations', [DestinationApiController::class, 'store']);
+    Route::get('destinations/{id}', [DestinationApiController::class, 'show']);
+    Route::put('destinations/{id}', [DestinationApiController::class, 'update']);
+    Route::delete('destinations/{id}', [DestinationApiController::class, 'destroy']);
 
 });

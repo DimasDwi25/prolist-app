@@ -18,23 +18,33 @@ class PackingList extends Model
         'pl_id',
         'pl_number',
         'pn_id',
-        'destination',
-        'expedition_name',
+        'destination_id',
+        'expedition_id',
         'pl_date',
         'ship_date',
-        'pl_type',
+        'pl_type_id',
+        'int_pic',
         'client_pic',
         'receive_date',
         'pl_return_date',
         'remark',
         'created_by',
-        'int_pic'
     ];
 
     // Relasi
     public function project()
     {
         return $this->belongsTo(Project::class, 'pn_id', 'pn_number');
+    }
+
+    public function expedition()
+    {
+        return $this->belongsTo(MasterExpedition::class, 'expedition_id');
+    }
+
+    public function plType()
+    {
+        return $this->belongsTo(MasterTypePackingList::class, 'pl_type_id');
     }
 
     public function intPic()
@@ -45,5 +55,10 @@ class PackingList extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function destination()
+    {
+        return $this->belongsTo(Destination::class, 'destination_id');
     }
 }

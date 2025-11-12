@@ -18,11 +18,11 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('projects', 'pn_number')
                 ->noActionOnDelete();
-            $table->string('destination');
-            $table->text('expedition_name');
+            $table->foreignId('destination_id')->nullable()->constrained('destinations');
+            $table->foreignId('expedition_id')->nullable()->constrained('master_expeditions');
             $table->dateTime('pl_date')->nullable();
             $table->dateTime('ship_date')->nullable();
-            $table->enum('pl_type',['internal', 'client', 'expedition']);
+            $table->foreignId('pl_type_id')->nullable()->constrained('master_type_packing_lists');
             $table->foreignId('int_pic')->nullable()->constrained('users', 'id');
             $table->string('client_pic')->nullable();
             $table->dateTime('receive_date')->nullable();

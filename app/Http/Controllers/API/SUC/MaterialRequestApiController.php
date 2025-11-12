@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\API\SUC;
 
 use App\Http\Controllers\Controller;
+use App\Models\MasterStatusMr;
 use App\Models\MaterialRequest;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class MaterialRequestApiController extends Controller
 {
@@ -15,7 +17,7 @@ class MaterialRequestApiController extends Controller
      */
     public function index()
     {
-        $materials = MaterialRequest::with(['project', 'creator', 'mrHandover'])
+        $materials = MaterialRequest::with(['project', 'creator', 'mrHandover', 'materialStatus'])
             ->orderBy('material_number', 'asc') // ascending
             ->get();
 
@@ -31,7 +33,7 @@ class MaterialRequestApiController extends Controller
         $validated = $request->validate([
             'pn_id'              => 'required|exists:projects,pn_number',
             'material_description' => 'required|string',     // Judul MR / deskripsi
-            'target_date'        => 'required|date',
+            'target_date'        => 'nullable|date',
             'material_handover'  => 'nullable|exists:users,id',
             'remark'             => 'nullable|string',
         ]);
@@ -43,6 +45,15 @@ class MaterialRequestApiController extends Controller
 
         $nextNumber = $lastMr ? $lastMr->material_number + 1 : 1;
 
+        // ✅ Cari status 'On Progress'
+        $onProgressStatus = MasterStatusMr::where('name', 'On Progress')->first();
+        if (!$onProgressStatus) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Default status "On Progress" not found in master_status_mrs table'
+            ], 500);
+        }
+
         // ✅ Buat record baru
         $material = MaterialRequest::create([
             'pn_id'               => $validated['pn_id'],
@@ -51,12 +62,17 @@ class MaterialRequestApiController extends Controller
             'material_created'    => now(),
             'created_by'          => $request->user()->id ?? null,      // user yang create
             'target_date'         => $validated['target_date'],
-            'material_status'     => 'On Progress',                  // Default status
+            'material_status_id'  => $onProgressStatus->id,          // Default status ID
             'material_handover'   => $validated['material_handover'],
-            'ho_date'             => now(),
+            'ho_date'             => $validated['material_handover'] ? now() : null,
             'additional_material' => 0,                              // Default 0
             'remark'              => $validated['remark'] ?? null,
         ]);
+
+        // ✅ Jika material_handover diisi, otomatis handover
+        if ($validated['material_handover']) {
+            $this->performHandover($material, $validated['material_handover']);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -86,15 +102,36 @@ class MaterialRequestApiController extends Controller
             'material_number' => 'sometimes|integer',
             'material_description' => 'sometimes|string',
             'created_by' => 'sometimes|exists:users,id',
-            'target_date' => 'sometimes|date',
+            'material_handover' => 'sometimes|exists:users,id',
+            'target_date' => 'sometimes|nullable|date',
             'cancel_date' => 'nullable|date',
             'complete_date' => 'nullable|date',
-            'material_status' => 'sometimes|in:On Progress,Canceled,Hold,Delayed,Completed',
+            'material_status_id' => 'sometimes|exists:master_status_mrs,id',
             'additional_material' => 'sometimes|boolean',
             'remark' => 'nullable|string',
         ]);
 
+        // Prevent changing status to 'Canceled' or 'Completed'
+        if (isset($validated['material_status_id'])) {
+            $status = MasterStatusMr::find($validated['material_status_id']);
+            if ($status && in_array($status->name, ['Canceled', 'Completed'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Cannot change status to ' . $status->name . '. Use the specific cancel or complete methods instead.'
+                ], 400);
+            }
+        }
+
+        // Track if material_handover was changed
+        $handoverChanged = isset($validated['material_handover']) &&
+                          $validated['material_handover'] != $materialRequest->material_handover;
+
         $materialRequest->update($validated);
+
+        // ✅ Jika material_handover diubah dan diisi, otomatis handover
+        if ($handoverChanged && $validated['material_handover']) {
+            $this->performHandover($materialRequest, $validated['material_handover']);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -117,17 +154,26 @@ class MaterialRequestApiController extends Controller
 
     public function cancel(MaterialRequest $materialRequest)
     {
-        if (in_array($materialRequest->material_status, ['Canceled', 'Completed'])) {
+        // Check if already closed using relation
+        if ($materialRequest->materialStatus && in_array($materialRequest->materialStatus->name, ['Canceled', 'Completed'])) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'This material request is already closed',
             ], 400);
         }
 
+        // Find Canceled status
+        $canceledStatus = MasterStatusMr::where('name', 'Canceled')->first();
+        if (!$canceledStatus) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Status "Canceled" not found in master_status_mrs table'
+            ], 500);
+        }
+
         $materialRequest->update([
-            'material_status' => 'Canceled',
-            'cancel_date'     => now(),
-            'complete_date'   => now(), // ikut diisi juga
+            'material_status_id' => $canceledStatus->id,
+            'cancel_date'        => now(),
         ]);
 
         return response()->json([
@@ -137,30 +183,83 @@ class MaterialRequestApiController extends Controller
         ]);
     }
 
-    public function complete(MaterialRequest $materialRequest)
+    public function handover(Request $request, MaterialRequest $materialRequest)
     {
-        if (in_array($materialRequest->material_status, ['Canceled', 'Completed'])) {
+        $validated = $request->validate([
+            'material_handover' => 'required|exists:users,id',
+            'pin' => 'required|string',
+        ]);
+
+        // Check if already closed using relation
+        if ($materialRequest->materialStatus && in_array($materialRequest->materialStatus->name, ['Canceled', 'Completed'])) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'This material request is already closed',
             ], 400);
         }
 
+        // Get the handover user
+        $handoverUser = \App\Models\User::find($validated['material_handover']);
+        if (!$handoverUser) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Handover user not found',
+            ], 404);
+        }
+
+        // Validate PIN against handover user's PIN first
+        if (!Hash::check($validated['pin'], $handoverUser->pin)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid PIN for the selected handover user',
+            ], 400);
+        }
+
+        // Perform handover only if PIN is valid
+        $this->performHandover($materialRequest, $validated['material_handover']);
+
+        // Find Completed status
+        $completedStatus = MasterStatusMr::where('name', 'Completed')->first();
+        if (!$completedStatus) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Status "Completed" not found in master_status_mrs table'
+            ], 500);
+        }
+
+        // Immediately approve and complete
         $materialRequest->update([
-            'material_status' => 'Completed',
-            'complete_date'   => now(),
+            'material_status_id' => $completedStatus->id,
+            'complete_date'      => now(),
         ]);
 
         return response()->json([
             'status'  => 'success',
-            'message' => 'Material request has been completed',
+            'message' => 'Material request has been handed over and approved',
             'data'    => $materialRequest
+        ]);
+    }
+
+
+
+    private function performHandover(MaterialRequest $materialRequest, $handoverUserId)
+    {
+        // Find Waiting Approval status
+        $waitingApprovalStatus = MasterStatusMr::where('name', 'Waiting Approval')->first();
+        if (!$waitingApprovalStatus) {
+            throw new \Exception('Status "Waiting Approval" not found in master_status_mrs table');
+        }
+
+        $materialRequest->update([
+            'material_handover'  => $handoverUserId,
+            'material_status_id' => $waitingApprovalStatus->id,
+            'ho_date'            => now(),
         ]);
     }
 
     public function getMrSummary()
     {
-        $projects = Project::with(['materialRequests', 'statusProject']) 
+        $projects = Project::with(['materialRequests', 'statusProject'])
         ->orderByRaw('CAST(LEFT(CAST(pn_number AS VARCHAR), 2) AS INT) DESC')
         ->orderByRaw('CAST(SUBSTRING(CAST(pn_number AS VARCHAR), 3, LEN(CAST(pn_number AS VARCHAR)) - 2) AS INT) DESC')
         ->get();
@@ -168,7 +267,7 @@ class MaterialRequestApiController extends Controller
         $summary = $projects->map(function ($project) {
             $totalMr = $project->materialRequests->count();
             $completedMr = $project->materialRequests
-            ->filter(fn($mr) => in_array($mr->material_status, ['Completed', 'Canceled']))
+            ->filter(fn($mr) => $mr->materialStatus && in_array($mr->materialStatus->name, ['Completed', 'Canceled']))
             ->count();
 
 
@@ -193,6 +292,16 @@ class MaterialRequestApiController extends Controller
         return response()->json([
             'status' => 'success',
             'data'   => $summary,
+        ]);
+    }
+
+    public function getAvailableStatuses()
+    {
+        $statuses = MasterStatusMr::whereNotIn('name', ['Canceled', 'Completed'])->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $statuses
         ]);
     }
 
